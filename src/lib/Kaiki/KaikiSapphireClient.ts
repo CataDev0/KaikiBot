@@ -33,7 +33,7 @@ import fs from "fs/promises";
 import { container } from "@sapphire/pieces";
 import NeofetchCommand from "../../commands/Fun/neofetch";
 import DiscordBotListService from "../../services/DiscordBotListService";
-import { Webserver } from "../WebAPI/Webserver";
+import { Webserver } from "../../services/Webserver";
 
 export default class KaikiSapphireClient<Ready extends true>
     extends SapphireClient<Ready>

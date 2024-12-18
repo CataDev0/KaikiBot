@@ -1,21 +1,23 @@
 import { Command } from "@sapphire/framework";
 import {
-    ApplicationCommandDataResolvable,
+    ChatInputApplicationCommandData,
     EmbedBuilder,
     Guild,
+    InteractionContextType,
     Message,
 } from "discord.js";
 import KaikiEmbeds from "../Kaiki/KaikiEmbeds";
 import KaikiSapphireClient from "../Kaiki/KaikiSapphireClient";
 
 export default class SlashCommandsLib {
-    static excludeData: ApplicationCommandDataResolvable = {
+    static excludeData: ChatInputApplicationCommandData = {
+        contexts: [InteractionContextType.Guild],
         name: "exclude",
         description:
 			"Excludes you from being targeted by dad-bot. Execute command again to reverse this action.",
     };
 
-    public static async getOrCreateDadbotRole(
+    public static async getDbRole(
         guild: Guild,
         client: KaikiSapphireClient<true>
     ) {
@@ -31,7 +33,7 @@ export default class SlashCommandsLib {
         const { guild } = messageOrInteraction;
 
         const embeds = [];
-        let excludedRole = await SlashCommandsLib.getOrCreateDadbotRole(
+        let excludedRole = await SlashCommandsLib.getDbRole(
             guild,
 			messageOrInteraction.client as KaikiSapphireClient<true>
         );

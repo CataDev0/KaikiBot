@@ -3,7 +3,7 @@ import express, { Express } from "express";
 import { container } from "@sapphire/pieces";
 import * as Colorette from "colorette";
 import { GuildUsers, Guilds } from "@prisma/client";
-import KaikiSapphireClient from "../Kaiki/KaikiSapphireClient";
+import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
 
 
 // A class managing the Bot's webserver.

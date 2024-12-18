@@ -18,13 +18,7 @@ export default class ExcludeCommand extends KaikiCommand {
     public override registerApplicationCommands(
         registry: ChatInputCommand.Registry
     ) {
-        registry.registerChatInputCommand((builder) =>
-            builder
-                .setName("exclude")
-                .setDescription(
-                    "Excludes you from being targeted by dad-bot. Execute command again to reverse this action."
-                )
-        );
+        registry.registerChatInputCommand(SlashCommandsLib.excludeData);
     }
 
     public async messageRun(message: Message<true>) {
