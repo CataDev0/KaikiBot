@@ -1,6 +1,6 @@
 {
 	"name": "kaikideishubot",
-	"version": "6.1.21",
+	"version": "6.1.22",
 	"main": "./dist/index.js",
 	"scripts": {
 		"start": "node dist/index.js --color",

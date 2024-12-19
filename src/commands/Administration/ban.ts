@@ -20,9 +20,10 @@ export default class BanCommand extends KaikiCommand {
             args.pick("user").catch(async () => args.pick("member"))
         );
 
-        // Default ban string
+        // Pick up ban reason
         const reason = await args
             .rest("string")
+        // Default ban string
             .catch(
                 () =>
                     `Banned by ${message.author.username} [${message.author.id}]`
@@ -82,22 +83,19 @@ export default class BanCommand extends KaikiCommand {
             });
         }
 
-        await message.guild?.members
-            .ban(user, { reason: reason })
-            .then((m) => {
-                try {
-                    (m as GuildMember | User).send({
-                        embeds: [
-                            new EmbedBuilder({
-                                description: `You have been banned from ${message.guild?.name}.\nReason: ${reason}`,
-                            }).withOkColor(message),
-                        ],
-                    });
-                } catch {
-                    // ignored
-                }
-            })
-            .catch((err) => this.client.logger.error(err));
+        const m = await message.guild?.members.ban(user, { reason: reason });
+
+        try {
+            await (m as GuildMember | User).send({
+                embeds: [
+                    new EmbedBuilder({
+                        description: `You have been banned from \`${message.guild?.name}\` [\`${message.guildId}\`].\n\n**Reason**: ${reason}`,
+                    }).withOkColor(message)
+                ]
+            });
+        } catch {
+            successBan.setFooter({ text: "Couldn't send a DM to the user." });
+        }
 
         return message.reply({ embeds: [successBan] });
     }

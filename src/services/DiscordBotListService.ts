@@ -1,8 +1,8 @@
 import { createDjsClient } from "discordbotlist-djs";
 import process from "process";
 import { EmbedBuilder } from "discord.js";
-import Constants from "../../struct/Constants";
-import KaikiSapphireClient from "../Kaiki/KaikiSapphireClient";
+import Constants from "../struct/Constants";
+import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
 
 export default class DiscordBotListService {
     constructor(client: KaikiSapphireClient<true>) {

@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
     db:
         image: mariadb:latest
@@ -21,7 +19,7 @@ services:
         build:
             context: .
             args:
-                - DATABASE_URL=$DATABASE_URL
+                - DATABASE_URL=$DATABASE_URL_DOCKER_BUILD
         restart: unless-stopped
         env_file: ./.env
         stdin_open: true

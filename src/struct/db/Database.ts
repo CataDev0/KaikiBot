@@ -10,7 +10,7 @@ import process from "process";
 import DatabaseProvider from "./DatabaseProvider";
 import { green } from "colorette";
 import KaikiCache from "../../lib/Cache/KaikiCache";
-import { MoneyService } from "../../lib/Money/MoneyService";
+import { MoneyService } from "../../services/MoneyService";
 
 export default class Database {
     private _client: KaikiSapphireClient<true>;

@@ -1,7 +1,7 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args, UserError } from "@sapphire/framework";
 import { EmbedBuilder, Message } from "discord.js";
-import { DAPI } from "../../lib/Hentai/HentaiService";
+import { DAPI } from "../../services/HentaiService";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import KaikiUtil from "../../lib/KaikiUtil";

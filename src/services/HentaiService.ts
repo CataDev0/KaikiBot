@@ -1,7 +1,7 @@
-import Constants from "../../struct/Constants";
-import E261APIData, { E621Post } from "../Interfaces/Common/E261APIData";
-import KaikiUtil from "../KaikiUtil";
-import { DanbooruData, DanbooruPost } from "../Interfaces/Common/DanbooruData";
+import Constants from "../struct/Constants";
+import E261APIData, { E621Post } from "../lib/Interfaces/Common/E261APIData";
+import KaikiUtil from "../lib/KaikiUtil";
+import { DanbooruData, DanbooruPost } from "../lib/Interfaces/Common/DanbooruData";
 import { UserError } from "@sapphire/framework";
 
 export enum DAPI {

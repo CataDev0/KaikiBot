@@ -56,22 +56,19 @@ export default class KickCommand extends KaikiCommand {
             ],
         }).withOkColor(message);
 
-        await member
-            .kick(reason)
-            .then((m) => {
-                m.user
-                    .send({
-                        embeds: [
-                            new EmbedBuilder({
-                                description: `You have been kicked from ${message.guild?.name}.\nReason: ${reason}`,
-                            }).withErrorColor(message),
-                        ],
-                    })
-                    .catch(() =>
-                        embed.setFooter({ text: "DM'ing user failed." })
-                    );
-            })
-            .catch((err) => console.log(err));
+        const m = await member.kick(reason);
+
+        try {
+            await m.user.send({
+                embeds: [
+                    new EmbedBuilder({
+                        description: `You have been kicked from \`${message.guild?.name}\` [\`${message.guildId}\`].\n\n**Reason**: ${reason}`,
+                    }).withErrorColor(message),
+                ],
+            });
+        } catch {
+            embed.setFooter({ text: "Couldn't send a DM to the user." });
+        }
 
         return message.reply({ embeds: [embed] });
     }

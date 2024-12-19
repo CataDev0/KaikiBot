@@ -60,7 +60,7 @@ export default async (
         ],
     };
 
-    if (payload.message.interaction) {
+    if (payload.message.interactionMetadata) {
         Object.assign(messageOptions, { ephemeral: true });
     }
 

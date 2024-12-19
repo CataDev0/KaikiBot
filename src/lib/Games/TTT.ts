@@ -4,25 +4,24 @@ import Constants from "../../struct/Constants";
 type PlayerType = { player: GuildMember; color: string; sign: Sign };
 
 enum Sign {
-    PLAYER1,
+    PLAYER1 = 1,
     PLAYER2
 }
 
 export default class TicTacToe {
-    pOne: PlayerType;
-    pTwo: PlayerType;
-    currentPlayer: PlayerType;
-    message: Message<true>;
-    embed: Promise<Message<true>>;
-    currentPlayerTurn: (p: GuildMember, m: Message) => Promise<void>;
-    winningMessage: (p: GuildMember) => string;
-    timedWinMessage: (p: GuildMember) => string;
-    stateDict: { [index: number]: string | Sign };
-    active: boolean;
-
-    static drawMessage = "Game ended in a draw!";
-    static numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    static winningCombos = [
+    private readonly pOne: PlayerType;
+    private readonly pTwo: PlayerType;
+    private currentPlayer: PlayerType;
+    private message: Message<true>;
+    private embed: Promise<Message<true>>;
+    private readonly currentPlayerTurn: (p: GuildMember, m: Message) => Promise<void>;
+    private readonly winningMessage: (p: GuildMember) => string;
+    private readonly timedWinMessage: (p: GuildMember) => string;
+    private readonly stateDict: { [index: number]: number | Sign };
+    private active: boolean;
+    private static tieMessage = "Game ended, it's a tie!";
+    private static numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    private static winningCombos = [
         [0, 1, 2],
         [3, 4, 5],
         [6, 7, 8],
@@ -32,6 +31,17 @@ export default class TicTacToe {
         [0, 4, 8],
         [2, 4, 6],
     ];
+    private static emojiIndex: {[index: number]: string} = {
+        0: "1️⃣",
+        1: "2️⃣",
+        2: "3️⃣",
+        3: "4️⃣",
+        4: "5️⃣",
+        5: "6️⃣",
+        6: "7️⃣",
+        7: "8️⃣",
+        8: "9️⃣",
+    };
 
     /**
 	 * Initializes a TicTacToe game.
@@ -50,16 +60,17 @@ export default class TicTacToe {
         this.currentPlayer = this.pTwo;
         this.message = message;
         this.stateDict = {
-            0: "1️⃣",
-            1: "2️⃣",
-            2: "3️⃣",
-            3: "4️⃣",
-            4: "5️⃣",
-            5: "6️⃣",
-            6: "7️⃣",
-            7: "8️⃣",
-            8: "9️⃣",
+            0: 0,
+            1: 0,
+            2: 0,
+            3: 0,
+            4: 0,
+            5: 0,
+            6: 0,
+            7: 0,
+            8: 0,
         };
+
         this.active = true;
 
         this.start();
@@ -69,6 +80,7 @@ export default class TicTacToe {
             embeds: [
                 new EmbedBuilder({
                     description: Object.values(this.stateDict)
+                        .map((_, i) => TicTacToe.emojiIndex[i])
                         .map((v, i) => ([2, 5].includes(i) ? v + "\n" : v))
                         .join(""),
                     color: parseInt(this.pTwo.color, 16),
@@ -89,7 +101,7 @@ export default class TicTacToe {
             });
         this.winningMessage = (p: GuildMember) => `Player ${p} has won!`;
         this.timedWinMessage = (p: GuildMember) =>
-            `Player ${p} didn't make a move for 20 seconds, making <@${p.id !== this.pOne.player.id ? this.pOne.player.id : this.pTwo.player.id}> the winner.`;
+            `Player ${p} didn't make a move for 30 seconds, making <@${p.id !== this.pOne.player.id ? this.pOne.player.id : this.pTwo.player.id}> the winner.`;
     }
 
     private start() {
@@ -108,7 +120,7 @@ export default class TicTacToe {
             .awaitMessages({
                 filter,
                 max: 1,
-                time: 20000,
+                time: 30000,
                 errors: ["time"],
             })
             .then((collected) => {
@@ -144,7 +156,9 @@ export default class TicTacToe {
 
         if (this.checkWin(sign)) {
             return this.win(playerObject);
-        } else if (this.checkTie("p1", "p2")) {
+        }
+
+        else if (this.checkTie()) {
             return this.tie();
         }
 
@@ -155,14 +169,17 @@ export default class TicTacToe {
 
     private async updateEmbed(
         playerObject: PlayerType
-    ): Promise<Message | NodeJS.Timeout> {
+    ): Promise<Message> {
         const finalString = `It's ${playerObject.player}'s turn to make a move.`;
         const finalEmbed = new EmbedBuilder({
             description: Object.values(this.stateDict)
+                .map((v, i) => v === 0
+                    ? TicTacToe.emojiIndex[i]
+                    : String(v)
+                        .replace(/1/g, "🟩")
+                        .replace(/2/g, "🟥"))
                 .map((v, i) => ([2, 5].includes(i) ? v + "\n" : v))
-                .join("")
-                .replace(/p1/g, "🟩")
-                .replace(/p2/g, "🟥"),
+                .join(""),
             color: parseInt(playerObject.color, 16),
         });
         return (await this.embed).edit({
@@ -177,9 +194,9 @@ export default class TicTacToe {
         });
     }
 
-    private checkTie(value: string, value2: string) {
+    private checkTie() {
         return Object.values(this.stateDict).every((str) => {
-            return str === value || str === value2;
+            return str === Sign.PLAYER1 || str === Sign.PLAYER2;
         });
     }
 
@@ -204,7 +221,7 @@ export default class TicTacToe {
     private tie() {
         if (this.active) {
             this.active = false;
-            return this.message.reply(TicTacToe.drawMessage);
+            return this.message.reply(TicTacToe.tieMessage);
         }
     }
 }

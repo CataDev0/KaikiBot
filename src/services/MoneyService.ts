@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import Constants from "../../struct/Constants";
+import Constants from "../struct/Constants";
 
 export class MoneyService {
     currencyName: string;
