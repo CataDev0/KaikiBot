@@ -2,19 +2,20 @@ import process from "process";
 import express, { Express } from "express";
 import { container } from "@sapphire/pieces";
 import * as Colorette from "colorette";
-import KaikiSapphireClient from "../Kaiki/KaikiSapphireClient";
 import { Guild } from "discord.js";
 import { GETGuildBody, PUTDashboardResponse, POSTUserGuildsBody } from "kaikiwa-types";
+import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
+import { APIRole } from "../../KaikiWA-Types";
 
 // A class managing the Bot's webserver.
-// It is intended to interact with a kaikibot.xyz dashboard
-//
-// It needs to send a POST req, with a specified token in the header under authorization
+// It is intended to interact with a kaikibot dashboard
+
+// Requires to send a POST req, with a specified token in the header under authorization
 export class Webserver {
     private app: Express;
     private client: KaikiSapphireClient<true>;
 
-    // Creates an express webserver and server user-data on the specified URL path
+    // Creates an express webserver and serves user-data on the specified URL path
     public constructor(client: KaikiSapphireClient<true>) {
         if (!process.env.SELF_API_PORT) return;
 
@@ -69,15 +70,17 @@ export class Webserver {
             return res.sendStatus(404);
         }
 
-        const responseObject = JSON.stringify(<POSTUserGuildsBody>{
+        const responseObject: POSTUserGuildsBody = {
             userData: userData,
             guildDb: guildsData,
-        }, (_, value) => typeof value === "bigint" ? value.toString() : value);
+        };
 
         container.logger.info(`Webserver | Request successful: [${Colorette.greenBright(req.params.id)}]`);
-        return res.status(200).send(responseObject);
+        return res.status(200).send(JSON.stringify(responseObject, (_, value) => typeof value === "bigint" ? value.toString() : value));
     }
 
+    // Response to GET requests for guilds on the dashboard
+    // Serves information, stats and data to be edited online
     private async GETGuild(req: express.Request, res: express.Response): Promise<express.Response<GETGuildBody>> {
         Webserver.checkValidParam(req, res);
         Webserver.verifyToken(req, res);
@@ -88,7 +91,7 @@ export class Webserver {
         const userId = req.query.userId;
         const guildId = BigInt(req.params.id);
 
-        let dbGuild, userRoleData = null;
+        let dbGuild, userRoleData: APIRole | null = null;
         if (userId) {
             dbGuild = await container.client.orm.guilds.findUnique({
                 where: {
@@ -106,7 +109,12 @@ export class Webserver {
             const userRole = guild.roles.cache.get(String(dbGuild?.GuildUsers.shift()));
 
             if (userRole) {
-                userRoleData = { id: userRole.id, name: userRole.name, color: userRole.color, icon: userRole.icon };
+                userRoleData = {
+                    id: userRole.id,
+                    name: userRole.name,
+                    color: userRole.color,
+                    icon: userRole.icon
+                };
             }
         }
         else {
@@ -119,32 +127,50 @@ export class Webserver {
 
         if (!dbGuild) return res.sendStatus(404);
 
-        let ExcludeRole: { color: number; id: string; name: string } | null = null;
+        let ExcludeRole: APIRole | null = null;
+
+        // Try to find role if there is one in the db
         if (dbGuild.ExcludeRole) {
-            ExcludeRole = guild.roles.cache.get(String(dbGuild.ExcludeRole)) || null;
+            const role = guild.roles.cache.get(String(dbGuild.ExcludeRole));
+
+            if (role)
+                ExcludeRole = {
+                    id: role.id,
+                    name: role.name,
+                    color: role.color,
+                    icon: role.icon
+                };
         }
 
-        const roles = guild.roles.cache.map(({ color, id, name }) => ({ id, name, color }));
+        const roles = guild.roles.cache.map(({ color, id, name, icon }) => ({ id, name, color, icon }));
         const emojis = guild.emojis.cache.map(({ animated, id, name, url }) => ({ id, name, url, animated }));
 
         const channels = guild.channels.cache
             .filter(channel => channel.isTextBased())
             .map(channel => ({ id: channel.id, name: channel.name }));
 
-        const guildBody = JSON.stringify(<GETGuildBody> {
+        const statsCount = {
+            text: channels.length,
+            voice: guild.channels.cache.filter(chan => chan.isVoiceBased()).size,
+            members: guild.approximateMemberCount || guild.memberCount,
+            bots: guild.members.cache.filter(memb => memb.user.bot).size,
+        };
+
+        const guildBody: GETGuildBody = {
             guild: {
                 ...dbGuild,
                 ExcludeRole,
                 channels,
                 emojis,
-                roles
+                roles,
+                statsCount
             },
             user: {
                 userRole: userRoleData
             },
-        }, (_, value) => typeof value === "bigint" ? value.toString() : value);
+        };
 
-        return res.send(guildBody);
+        return res.send(JSON.stringify(guildBody, (_, value) => typeof value === "bigint" ? value.toString() : value));
     }
 
     private async PUTGuildUpdate(req: express.Request, res: express.Response) {

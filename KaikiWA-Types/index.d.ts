@@ -1,26 +1,27 @@
 // Data sent when requested for each guild
 export type GETGuildBody = {
-    guild: Omit<Guild, "ExcludeRole"> & {
+    guild: Omit<APIGuild, "ExcludeRole"> & {
         // Overwrites Guild ExcludedRole with data from bot cache
-        ExcludeRole: { color: number; id: string; name: string } | null;
+        ExcludeRole: APIRole | null;
         channels: { id: string; name: string }[];
-        roles: { id: string; name: string; color: number }[];
         emojis: { id: string; name: string | null; url: string; animated: boolean | null }[];
+        roles: APIRole[];
+        statsCount: APIGuildStats
     },
     user: {
-        userRole: { color: number; icon: string | null; id: string; name: string } | null;
+        userRole: APIRole | null;
     }
 }
 
 // Custom type for data coming from the Webserver
-export type PUTDashboardResponse = Omit<Guild, "Id" | "CreatedAt"> & GuildUsers & {
+export type PUTDashboardResponse = Omit<APIGuild, "Id" | "CreatedAt"> & APIGuildUsers & {
     ExcludeRole: string;
-    name: string;
-    icon: string
-    UserRoleName: string | null;
-    UserRoleIcon: string | null;
-    UserRoleColor: bigint | null;
     ExcludeRoleName: string | null;
+    UserRoleColor: bigint | null
+    UserRoleIcon: string | null;
+    UserRoleName: string | null;
+    icon: string;
+    name: string;
 }
 
 // Initial data sent to the dashboard
@@ -28,34 +29,38 @@ export type POSTUserGuildsBody = {
     // Used to filter out guilds to show
     guildDb: { Id: bigint }[];
     userData: {
-        UserId: bigint,
         Amount: bigint,
         ClaimedDaily: boolean,
-        DailyReminder: Date | null
+        DailyReminder: Date | null,
+        UserId: bigint
     } | null
 }
 
-type Guild = {
-    Id: bigint,
-    Prefix: string,
+export type APIGuild = {
     Anniversary: boolean,
-    DadBot: boolean,
-    StickyRoles: boolean,
-    ErrorColor: bigint,
-    OkColor: bigint,
-    ExcludeRole: bigint,
-    WelcomeChannel: bigint | null,
-    WelcomeMessage: string | null,
-    WelcomeTimeout: number | null,
     ByeChannel: bigint | null,
     ByeMessage: string | null,
     ByeTimeout: number | null,
-    CreatedAt: Date
+    CreatedAt: Date,
+    DadBot: boolean,
+    ErrorColor: bigint,
+    ExcludeRole: bigint,
+    Id: bigint,
+    OkColor: bigint,
+    Prefix: string,
+    StickyRoles: boolean,
+    WelcomeChannel: bigint | null,
+    WelcomeMessage: string | null,
+    WelcomeTimeout: number | null
 }
 
-type GuildUsers = {
+export type APIGuildUsers = {
+    CreatedAt: Date,
+    GuildId: bigint,
     UserId: bigint,
     UserRole: bigint | null,
-    GuildId: bigint,
-    CreatedAt: Date,
 }
+
+export type APIRole = { color: number; icon: string | null; id: string, name: string };
+
+export type APIGuildStats = { bots: number, members: number, text: number, voice: number }
