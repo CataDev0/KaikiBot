@@ -37,12 +37,8 @@ export default class Database {
         };
     }
     public async init(): Promise<Database> {
-        try {
-            this._mySQLConnection = createPool(this.createConfig());
-            this.orm = new PrismaClient();
-        } catch (e) {
-            throw new Error(e);
-        }
+        this._mySQLConnection = createPool(this.createConfig());
+        this.orm = new PrismaClient();
 
         const botSettings = await this.orm.botSettings.findFirst();
 
@@ -106,10 +102,17 @@ export default class Database {
     }
 
     public async initializeDatabase() {
-        const database = await this.init();
+        try {
+            const database = await this.init();
 
-        this._client.orm = database.orm;
-        this._client.connection = database.mySQLConnection;
+            this._client.orm = database.orm;
+            this._client.connection = database.mySQLConnection;
+        }
+
+        catch (e) {
+            this._client.logger.error(e)
+            process.exit(1);
+        }
 
         this._client.botSettings = new DatabaseProvider(
             this._client.connection,

@@ -148,7 +148,7 @@ export default class KaikiSapphireClient<Ready extends true>
             `Bot owner: ${colorette.greenBright(client.owner.username)}`
         );
 
-        this.webListener = new Webserver(this);
+        this.webListener = new Webserver();
 
         await Promise.all([
             client.filterOptionalCommands(),

@@ -126,24 +126,24 @@ export default class Constants {
             APPLICATION_COMMAND_PERMISSIONS_V2: "Application permissions v2",
             AUTOMOD_TRIGGER_KEYWORD_FILTER: "",
             AUTOMOD_TRIGGER_ML_SPAM_FILTER:
-			"Given to guilds previously in the `2022-03_automod_trigger_ml_spam_filter` experiment overrides",
+        "Given to guilds previously in the `2022-03_automod_trigger_ml_spam_filter` experiment overrides",
             AUTOMOD_TRIGGER_SPAM_LINK_FILTER: "",
             AUTOMOD_TRIGGER_USER_PROFILE:
-			"Server has enabled AutoMod for user profiles.",
+        "Server has enabled AutoMod for user profiles.",
             AUTO_MODERATION: "Auto moderation",
             BANNER: "Banner",
             BFG: "",
             BOOSTING_TIERS_EXPERIMENT_MEDIUM_GUILD: "",
             BOOSTING_TIERS_EXPERIMENT_SMALL_GUILD: "",
             BOT_DEVELOPER_EARLY_ACCESS:
-			"Early access features for bot and library developers enabled.",
+        "Early access features for bot and library developers enabled.",
             BURST_REACTIONS: "Burst reactions enabled",
             CHANNEL_EMOJIS_GENERATED: "Channel icon emojis populated",
             CHANNEL_HIGHLIGHTS: "",
             CHANNEL_HIGHLIGHTS_DISABLED: "",
             CHANNEL_ICON_EMOJIS_GENERATED: "Channel icon emojis populated",
             CLYDE_DISABLED:
-			"Given when a server administrator disables ClydeAI for the guild",
+        "Given when a server administrator disables ClydeAI for the guild",
             CLYDE_ENABLED: "",
             CLYDE_EXPERIMENT_ENABLED: "Enables ClydeAI for the guild",
             COMMUNITY: "Community",
@@ -153,7 +153,7 @@ export default class Constants {
             COMMUNITY_EXP_MEDIUM: "",
             CREATOR_ACCEPTED_NEW_TERMS: "",
             CREATOR_MONETIZABLE:
-			"Given to guilds that enabled role subscriptions through the manual approval system",
+        "Given to guilds that enabled role subscriptions through the manual approval system",
             CREATOR_MONETIZABLE_DISABLED: "",
             CREATOR_MONETIZABLE_PENDING_NEW_OWNER_ONBOARDING: "",
             CREATOR_MONETIZABLE_PROVISIONAL: "Creator monetization enabled",
@@ -164,123 +164,125 @@ export default class Constants {
             DEVELOPER_SUPPORT_SERVER: "Developer support server",
             DISCOVERABLE: "Visible in Server Discovery.",
             DISCOVERABLE_DISABLED:
-			"Guild is permanently removed from Discovery by Discord.",
+        "Guild is permanently removed from Discovery by Discord.",
             ENABLED_DISCOVERABLE_BEFORE:
-			"Given to servers that have enabled Discovery at any point.",
+        "Given to servers that have enabled Discovery at any point.",
             EXPOSED_TO_ACTIVITIES_WTP_EXPERIMENT:
-			"Given to guilds previously in the `2021-11_activities_baseline_engagement_bundle` experiment overrides",
+        "Given to guilds previously in the `2021-11_activities_baseline_engagement_bundle` experiment overrides",
             FEATURABLE: "Can be featured",
             GUESTS_ENABLED: "Guild has used guest invites",
             GUILD_AUTOMOD_DEFAULT_LIST:
-			"Given to guilds in the `2022-03_guild_automod_default_list` experiment overrides",
+        "Given to guilds in the `2022-03_guild_automod_default_list` experiment overrides",
             GUILD_COMMUNICATION_DISABLED_GUILDS:
-			"Given to guilds previously in the `2021-11_guild_communication_disabled_guilds` experiment overrides",
+        "Given to guilds previously in the `2021-11_guild_communication_disabled_guilds` experiment overrides",
             GUILD_HOME_DEPRECATION_OVERRIDE: "Guild home deprecation override",
             GUILD_HOME_OVERRIDE:
-			"Gives the guild access to the Home feature, enables Treatment 2 of the `2022-01_home_tab_guild` experiment overrides",
+        "Gives the guild access to the Home feature, enables Treatment 2 of the `2022-01_home_tab_guild` experiment overrides",
             GUILD_HOME_TEST:
-			"Gives the guild access to the Home feature, enables Treatment 1 of the `2022-01_home_tab_guild` experiment",
+        "Gives the guild access to the Home feature, enables Treatment 1 of the `2022-01_home_tab_guild` experiment",
             GUILD_MEMBER_VERIFICATION_EXPERIMENT:
-			"Given to guilds previously in the `2021-11_member_verification_manual_approval` experiment",
+        "Given to guilds previously in the `2021-11_member_verification_manual_approval` experiment",
             GUILD_ONBOARDING: "Guild has access to the Onboarding feature",
             GUILD_ONBOARDING_ADMIN_ONLY: "Onboarding only visible to guild admins",
             GUILD_ONBOARDING_EVER_ENABLED:
-			"Guild has previously enabled the onboarding feature",
+        "Guild has previously enabled the onboarding feature",
             GUILD_ONBOARDING_HAS_PROMPTS:
-			"Guild has prompts configured in onboarding",
+        "Guild has prompts configured in onboarding",
             GUILD_ROLE_SUBSCRIPTIONS:
-			"Given to guilds previously in the `2021-06_guild_role_subscriptions` experiment overrides",
+        "Given to guilds previously in the `2021-06_guild_role_subscriptions` experiment overrides",
             GUILD_ROLE_SUBSCRIPTION_PURCHASE_FEEDBACK_LOOP:
-			"Given to guilds previously in the `2022-05_mobile_web_role_subscription_purchase_page` experiment overrides",
+        "Given to guilds previously in the `2022-05_mobile_web_role_subscription_purchase_page` experiment overrides",
             GUILD_ROLE_SUBSCRIPTION_TRIALS:
-			"Given to guilds previously in the `2022-01_guild_role_subscription_trials` experiment overrides",
+        "Given to guilds previously in the `2022-01_guild_role_subscription_trials` experiment overrides",
             GUILD_SERVER_GUIDE:
-			"Guild has enabled [server guide](https://support.discord.com/hc/en-us/articles/13497665141655)",
+        "Guild has enabled [server guide](https://support.discord.com/hc/en-us/articles/13497665141655)",
             GUILD_WEB_PAGE_VANITY_URL: "Web page vanity url",
             HAD_EARLY_ACTIVITIES_ACCESS:
-			"Server previously had access to voice channel activities and can bypass the boost level requirement",
+        "Server previously had access to voice channel activities and can bypass the boost level requirement",
             HAS_DIRECTORY_ENTRY: "Guild is in a directory channel.",
             HIDE_FROM_EXPERIMENT_UI: "Hide from experiemtn UI",
             HUB: "[Student Hubs](https://dis.gd/studenthubs) contain a directory channel that let you find school-related, student-run servers for your school or university.",
             INCREASED_THREAD_LIMIT:
-			"Allows the server to have 1,000+ active threads",
+        "Allows the server to have 1,000+ active threads",
             INTERNAL_EMPLOYEE_ONLY:
-			"Restricts the guild so that only users with the staff flag can join.",
+        "Restricts the guild so that only users with the staff flag can join.",
             INVITES_DISABLED: "Disabled invites",
             INVITE_SPLASH:
-			"Ability to set a background image that will display on all invite links.",
+        "Ability to set a background image that will display on all invite links.",
             LINKED_TO_HUB: "Linked to student hub",
             MARKETPLACES_CONNECTION_ROLES: "Marketplace connection roles",
             MEMBER_PROFILES:
-			"Allows members to customize their avatar, banner and bio for that server.",
+        "Allows members to customize their avatar, banner and bio for that server.",
             MEMBER_SAFETY_PAGE_ROLLOUT:
-			"Assigns the experiment of the `Member Safety` panel and lockdowns to the guild",
+        "Assigns the experiment of the `Member Safety` panel and lockdowns to the guild",
             MEMBER_VERIFICATION_GATE_ENABLED:
-			"Has member verification gate enabled, requiring new users to pass the verification gate before interacting with the server.",
+        "Has member verification gate enabled, requiring new users to pass the verification gate before interacting with the server.",
             MEMBER_VERIFICATION_MANUAL_APPROVAL:
-			"Member verification with manual approval",
+        "Member verification with manual approval",
             MOBILE_WEB_ROLE_SUBSCRIPTION_PURCHASE_PAGE:
-			"Given to guilds previously in the `2022-05_mobile_web_role_subscription_purchase_page` experiment overrides",
+        "Given to guilds previously in the `2022-05_mobile_web_role_subscription_purchase_page` experiment overrides",
             MONETIZATION_ENABLED: "Monetization enabled",
             MORE_EMOJI:
-			"Adds 150 extra emoji slots to each category (normal and animated emoji). Not used in server boosting.",
+        "Adds 150 extra emoji slots to each category (normal and animated emoji). Not used in server boosting.",
+            MORE_SOUNDBOARD: "",
             MORE_STICKERS:
-			"Adds 60 total sticker slots no matter how many it had before. Not used in server boosting.",
+        "Adds 60 total sticker slots no matter how many it had before. Not used in server boosting.",
+
             NEWS: "News",
             NEW_THREAD_PERMISSIONS:
-			"Guild has [new thread permissions](https://support.discord.com/hc/en-us/articles/4403205878423#h_01FDGC4JW2D665Y230KPKWQZPN).",
+        "Guild has [new thread permissions](https://support.discord.com/hc/en-us/articles/4403205878423#h_01FDGC4JW2D665Y230KPKWQZPN).",
             PARTNERED:
-			"Partner badge near the server name and in mutual server lists.",
+        "Partner badge near the server name and in mutual server lists.",
             PREMIUM_TIER_3_OVERRIDE: "Forces the server to server boosting level 3",
             PREVIEW_ENABLED:
-			"Allows a user to view the server without passing membership gating.",
+        "Allows a user to view the server without passing membership gating.",
             PRIVATE_THREADS: "Private threads",
             PRODUCTS_AVAILABLE_FOR_PURCHASE:
-			"Guild has server products available for purchase",
+        "Guild has server products available for purchase",
             RAID_ALERTS_DISABLED: "Guild is opt-out from raid alerts",
             RELAY_ENABLED:
-			"Shards connections to the guild to different nodes that relay information between each other.",
+        "Shards connections to the guild to different nodes that relay information between each other.",
             RESTRICT_SPAM_RISK_GUILDS: "Restrict spam risk",
             ROLE_ICONS: "Ability to set an image or emoji as a role icon.",
             ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE:
-			"Allows servers members to purchase role subscriptions.",
+        "Allows servers members to purchase role subscriptions.",
             ROLE_SUBSCRIPTIONS_ENABLED: "Role subscription enabled",
             ROLE_SUBSCRIPTIONS_ENABLED_FOR_PURCHASE:
-			"Monetizable role subscriptions enabled",
+        "Monetizable role subscriptions enabled",
             SHARD: "Shard (?)",
             SHARED_CANVAS_FRIENDS_AND_FAMILY_TEST:
-			"Given to guilds previously in the `2023-01_shared_canvas` experiment overrides",
+        "Given to guilds previously in the `2023-01_shared_canvas` experiment overrides",
             SOUNDBOARD:
-			"Given to guilds previously in the `2021-12_soundboard` experiment overrides",
+        "Given to guilds previously in the `2021-12_soundboard` experiment overrides",
             SUMMARIES_DISABLED_BY_USER: "Summaries disbled",
             SUMMARIES_ENABLED:
-			"Given to guilds in the `2023-02_p13n_summarization` experiment overrides",
+        "Given to guilds in the `2023-02_p13n_summarization` experiment overrides",
             SUMMARIES_ENABLED_BY_USER: "Summaries enabled",
             SUMMARIES_ENABLED_GA:
-			"Given to guilds in the `2023-02_p13n_summarization` experiment overrides",
+        "Given to guilds in the `2023-02_p13n_summarization` experiment overrides",
             TEXT_IN_STAGE_ENABLED: "Text in stage enabled",
             TEXT_IN_VOICE_ENABLED: "Text in voice channels enabled.",
             THREADS_ENABLED: "Enabled threads early access.",
             THREADS_ENABLED_TESTING:
-			"Threads-enabled testing. Used by bot developers to test their bots with threads in guilds with 5 or less members and a bot. ~~Also gives the premium thread features.~~",
+        "Threads-enabled testing. Used by bot developers to test their bots with threads in guilds with 5 or less members and a bot. ~~Also gives the premium thread features.~~",
             THREADS_ONLY_CHANNEL:
-			"Threads-only channel. Given to guilds previously in the `2021-07_threads_only_channel` experiment overrides",
+        "Threads-only channel. Given to guilds previously in the `2021-07_threads_only_channel` experiment overrides",
             THREAD_DEFAULT_AUTO_ARCHIVE_DURATION:
-			"Unknown, presumably used for testing changes to the thread default auto archive duration.",
+        "Unknown, presumably used for testing changes to the thread default auto archive duration.",
             THREE_DAY_THREAD_ARCHIVE:
-			"Ability to have threads that archive after three days",
+        "Ability to have threads that archive after three days",
             TICKETED_EVENTS_ENABLED: "Ticketed events enabled",
             TICKETING_ENABLED: "Ticketing enabled",
             VANITY_URL:
-			"Ability to set a vanity URL (custom discord.gg invite link).",
+        "Ability to set a vanity URL (custom discord.gg invite link).",
             VERIFIED:
-			"Verification checkmark near the server name and in mutual server lists.",
+        "Verification checkmark near the server name and in mutual server lists.",
             VIP_REGIONS:
-			"~~Ability to use special voice regions with better stability: US East VIP, US West VIP, and Amsterdam VIP.~~ Deprecated, replaced with 384kbps max bitrate",
+        "~~Ability to use special voice regions with better stability: US East VIP, US West VIP, and Amsterdam VIP.~~ Deprecated, replaced with 384kbps max bitrate",
             VOICE_CHANNEL_EFFECTS:
-			"Given to guilds previously in the `2022-06_voice_channel_effects` experiment overrides",
+        "Given to guilds previously in the `2022-06_voice_channel_effects` experiment overrides",
             VOICE_IN_THREADS: "Voice in threads",
-            WELCOME_SCREEN_ENABLED: "Welcome screen enabled",
+            WELCOME_SCREEN_ENABLED: "Welcome screen enabled"
         });
 
     static readonly categories: { [category: string]: string } = Object.freeze({

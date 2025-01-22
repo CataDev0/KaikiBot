@@ -2,9 +2,8 @@ import process from "process";
 import express, { Express } from "express";
 import { container } from "@sapphire/pieces";
 import * as Colorette from "colorette";
-import { Guild } from "discord.js";
+import { Guild, HexColorString } from "discord.js";
 import { GETGuildBody, PUTDashboardResponse, POSTUserGuildsBody } from "kaikiwa-types";
-import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
 import { APIRole } from "../../KaikiWA-Types";
 
 // A class managing the Bot's webserver.
@@ -13,13 +12,11 @@ import { APIRole } from "../../KaikiWA-Types";
 // Requires to send a POST req, with a specified token in the header under authorization
 export class Webserver {
     private app: Express;
-    private client: KaikiSapphireClient<true>;
 
     // Creates an express webserver and serves user-data on the specified URL path
-    public constructor(client: KaikiSapphireClient<true>) {
+    public constructor() {
         if (!process.env.SELF_API_PORT) return;
 
-        this.client = client;
         this.app = express();
         this.app.use(express.json());
         this.loadEndPoints()
@@ -40,6 +37,7 @@ export class Webserver {
     private async POSTUserGuilds(req: express.Request, res: express.Response): Promise<express.Response<POSTUserGuildsBody>> {
         Webserver.checkValidParam(req, res);
         Webserver.verifyToken(req, res);
+        Webserver.logRequest(req);
 
         const guilds: bigint[] = req.body;
 
@@ -75,8 +73,11 @@ export class Webserver {
             guildDb: guildsData,
         };
 
-        container.logger.info(`Webserver | Request successful: [${Colorette.greenBright(req.params.id)}]`);
         return res.status(200).send(JSON.stringify(responseObject, (_, value) => typeof value === "bigint" ? value.toString() : value));
+    }
+
+    private static logRequest(req: express.Request) {
+        container.logger.info(`Webserver | ${req.method} request @ ${req.route.path} [${Colorette.greenBright(req.params.id)}]`);
     }
 
     // Response to GET requests for guilds on the dashboard
@@ -84,6 +85,7 @@ export class Webserver {
     private async GETGuild(req: express.Request, res: express.Response): Promise<express.Response<GETGuildBody>> {
         Webserver.checkValidParam(req, res);
         Webserver.verifyToken(req, res);
+        Webserver.logRequest(req);
 
         const guild = container.client.guilds.cache.get(req.params.id);
         if (!guild) return res.sendStatus(404);
@@ -176,13 +178,14 @@ export class Webserver {
     private async PUTGuildUpdate(req: express.Request, res: express.Response) {
         Webserver.checkValidParam(req, res);
         Webserver.verifyToken(req, res);
+        Webserver.logRequest(req);
 
         if (!req.body) return res
             .sendStatus(400)
             .send("Missing request body");
 
         const { body }: { body: Partial<PUTDashboardResponse>} = req;
-        const guild = this.client.guilds.cache.get(String(body.GuildId));
+        const guild = container.client.guilds.cache.get(String(req.params.id));
         const userRole = body.UserRole ? String(body.UserRole) : null;
 
         // Guild not found
@@ -191,34 +194,49 @@ export class Webserver {
             .send("Guild not found");
 
         for (const key of Object.keys(body)) {
-            const value = body[key as keyof PUTDashboardResponse];
+            // All values seem to be string (coming from form input fields)
+            const rawValue = body[key as keyof PUTDashboardResponse] as string;
+            if (!rawValue || !key) continue;
 
-            switch (value) {
+
+            let value;
+
+            try {
+                value = JSON.parse(rawValue);
+            }
+            catch {
+                value = rawValue;
+            }
+
+            switch (key) {
             case "icon":
                 await guild.setIcon(value);
                 break;
-            case "ExcludeRoleName":
-                await this.SetExcludeRoleName(value, guild);
+            case "excluderolename":
+                await Webserver.SetExcludeRoleName(value, guild);
+                break;
+            case "excluderolecolor":
+                await Webserver.SetExcludeRoleColor(value, guild);
                 break;
             case "name": {
                 await guild.setName(value);
                 break;
             }
-            case "UserRoleColor":
+            case "userrolecolor":
                 if (!userRole) break;
                 await this.SetUserRoleColor(userRole, value, guild);
                 break;
-            case "UserRoleName":
+            case "userrolename":
                 if (!userRole) break;
                 await this.SetUserRoleName(userRole, value, guild);
                 break;
-            case "UserRoleIcon":
+            case "userroleicon":
                 if (!userRole) break;
                 await this.SetUserRoleIcon(userRole, value, guild);
                 break;
-            // This will handle all non-special and non-guildDB parameters
+                // This will handle all non-special and non-guildDB parameters
             default:
-                await this.client.guildsDb.set(guild.id, key, value);
+                await container.client.guildsDb.set(guild.id, key, value);
                 break;
             }
         }
@@ -229,7 +247,7 @@ export class Webserver {
     static checkValidParam(req: express.Request, res: express.Response) {
         if (Number.isNaN(Number(req.params.id))) {
             res.sendStatus(400);
-            throw new Error("Missing request body");
+            throw new Error("Missing request guildId parameter");
         }
     }
 
@@ -241,11 +259,18 @@ export class Webserver {
         }
     }
 
-    private async SetExcludeRoleName(data: string | null, guild: Guild) {
+    private static async SetExcludeRoleName(data: string | null, guild: Guild) {
         if (!data) return;
         return guild.roles.cache
-            .get(this.client.guildsDb.get(guild.id, "ExcludeRole", null))
+            .get(container.client.guildsDb.get(guild.id, "ExcludeRole", null))
             ?.setName(data);
+    }
+
+    private static async SetExcludeRoleColor(data: string | null, guild: Guild) {
+        if (!data) return;
+        return guild.roles.cache
+            .get(container.client.guildsDb.get(guild.id, "ExcludeRole", null))
+            ?.setColor(data as HexColorString);
     }
 
     private async SetUserRoleIcon(userRoleId: string, icon: string | null, guild: Guild) {
