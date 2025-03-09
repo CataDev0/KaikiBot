@@ -32,7 +32,7 @@ export default class FetchUserCommand extends KaikiCommand {
         args.restore();
 
         if (result.isErr()) {
-            return new UserError({
+            throw new UserError({
                 identifier: "fetchNoUserFound",
                 message:
 					"Provided argument doesn't seem to be a valid user ID.",

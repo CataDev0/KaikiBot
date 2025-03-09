@@ -45,7 +45,7 @@ export default class MessageCommandDenied extends Listener {
             ],
         };
 
-        if (payload.message.interaction) {
+        if (payload.message.interactionMetadata) {
             Object.assign(messageOptions, { ephemeral: true });
         }
 
