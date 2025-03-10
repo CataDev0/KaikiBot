@@ -223,8 +223,8 @@ export default class Constants {
         "Given to guilds previously in the `2022-05_mobile_web_role_subscription_purchase_page` experiment overrides",
             MONETIZATION_ENABLED: "Monetization enabled",
             MORE_EMOJI:
-        "Adds 150 extra emoji slots to each category (normal and animated emoji). Not used in server boosting.",
-            MORE_SOUNDBOARD: "",
+			"Adds 150 extra emoji slots to each category (normal and animated emoji). Not used in server boosting.",
+            MORE_SOUNDBOARD: "Increased custom soundboard sound slots",
             MORE_STICKERS:
         "Adds 60 total sticker slots no matter how many it had before. Not used in server boosting.",
 

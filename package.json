@@ -1,6 +1,6 @@
 {
 	"name": "kaikideishubot",
-	"version": "6.1.22",
+	"version": "6.1.23",
 	"main": "./dist/index.js",
 	"scripts": {
 		"start": "node dist/index.js --color",
@@ -59,7 +59,7 @@
 		"url": "https://github.com/cataclym/KaikiBot.git"
 	},
 	"engines": {
-		"node": ">=18.0.0",
+		"node": ">=18.17.0",
 		"npm": ">=9.0.0"
 	}
 }

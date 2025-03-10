@@ -92,20 +92,25 @@ export default class StatsCommand extends KaikiCommand {
                         name: "Running on Node.js",
                         value: `[Node.js](https://nodejs.org/en/ 'Node.js website') ${process.version} (${process.env.NODE_ENV})`,
                         inline: true,
-                    },
-                    {
-                        name: "Node Package Manager",
-                        value: `[npm](https://www.npmjs.com/ 'npm website') \`${process.env.npm_config_user_agent || ""}\``,
-                        inline: true,
-                    },
+                    }
                 ])
                 .setAuthor({
-                    name: "© 2024 @Cata",
+                    name: "© 2025 @Cata",
                     iconURL: message.client.user.displayAvatarURL(),
                     url: packageJSON.repository.url,
                 })
                 .withOkColor(message),
         ];
+
+        if (process.env.npm_config_user_agent) {
+            pages[1].addFields([
+                {
+                    name: "Node Package Manager",
+                    value: `[npm](https://www.npmjs.com/ 'npm website') \`${process.env.npm_config_user_agent}\``,
+                    inline: true,
+                },
+            ])
+        }
 
         return sendPaginatedMessage(message, pages);
     }
