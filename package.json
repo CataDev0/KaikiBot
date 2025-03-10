@@ -58,7 +58,7 @@
 		"url": "https://github.com/cataclym/KaikiBot.git"
 	},
 	"engines": {
-		"node": ">=18.0.0",
+		"node": ">=18.17.0",
 		"npm": ">=9.0.0"
 	}
 }
