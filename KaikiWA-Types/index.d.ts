@@ -26,12 +26,17 @@ export type PUTDashboardResponse = Omit<APIGuild, "Id" | "CreatedAt"> & APIGuild
 
 // Initial data sent to the dashboard
 export type POSTUserGuildsBody = {
-    // Used to filter out guilds to show
+    // Used to filter available guilds
     guildDb: { Id: bigint }[];
     userData: {
         Amount: bigint,
         ClaimedDaily: boolean,
         DailyReminder: Date | null,
+        Todos: {
+            Id: bigint;
+            UserId: bigint;
+            String: string;
+        }[]
         UserId: bigint
     } | null
 }

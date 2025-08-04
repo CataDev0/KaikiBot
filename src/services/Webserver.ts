@@ -40,6 +40,8 @@ export class Webserver {
         Webserver.logRequest(req);
 
         const guilds: bigint[] = req.body;
+        // Filter out servers the bot is in, making sure to not show old guilds that might be in the DB.
+        const guildsWithBot = guilds.filter(gId => container.client.guilds.cache.has(String(gId)))
 
         const [guildsData, userData] = await Promise.all([container.client.orm.guilds.findMany({
             select: {
@@ -47,7 +49,7 @@ export class Webserver {
             },
             where: {
                 Id: {
-                    in: guilds
+                    in: guildsWithBot
                 }
             },
         }), container.client.orm.discordUsers.findUnique({
@@ -55,7 +57,8 @@ export class Webserver {
                 UserId: true,
                 Amount: true,
                 ClaimedDaily: true,
-                DailyReminder: true
+                DailyReminder: true,
+                Todos: true,
             },
             where: {
                 UserId: BigInt(req.params.id)
@@ -69,7 +72,14 @@ export class Webserver {
         }
 
         const responseObject: POSTUserGuildsBody = {
-            userData: userData,
+            // Validate the types
+            userData: {
+                Amount: userData.Amount,
+                ClaimedDaily: userData.ClaimedDaily,
+                DailyReminder: userData.DailyReminder,
+                Todos: userData.Todos,
+                UserId: userData.UserId
+            },
             guildDb: guildsData,
         };
 
@@ -290,6 +300,6 @@ export class Webserver {
 
         return guild.roles.cache.get(userRoleId)
         //  This bigint is small enough to be accurate when converted
-            ?.setColor(Number(color));
+            ?.setColor(color as HexColorString);
     }
 }

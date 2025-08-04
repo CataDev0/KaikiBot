@@ -91,9 +91,14 @@ export default class Database {
                         }
                     },
                     Guilds: {
-                        connect: {
-                            Id: BigInt(guildId),
-                        },
+                        connectOrCreate: {
+                            create: {
+                                Id: BigInt(guildId),
+                            },
+                            where: {
+                                Id: BigInt(guildId),
+                            },
+                        }
                     },
                 },
             });

@@ -107,7 +107,7 @@ export default class CommandsList extends KaikiCommand {
     private categoryReply(message: Message, category: string) {
         const cmds = this.store.filter(
             (c) => c.category === category
-        ) as Collection<string, KaikiCommand>;
+        ) as  unknown as Collection<string, KaikiCommand>;
 
         const emb = new EmbedBuilder()
             .setTitle(`Commands in ${category}`)
@@ -193,7 +193,7 @@ export default class CommandsList extends KaikiCommand {
 
             const cmds = this.store.filter(
                 (c) => c.category === category
-            ) as Collection<string, KaikiCommand>;
+            ) as  unknown as Collection<string, KaikiCommand>;
 
             const filtered = cmds.filter(
                 (cmd) => cmd.minorCategory !== undefined
