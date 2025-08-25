@@ -14,7 +14,7 @@ export type GETGuildBody = {
 }
 
 // Custom type for data coming from the Webserver
-export type PUTDashboardResponse = Omit<APIGuild, "Id" | "CreatedAt"> & APIGuildUsers & {
+export type PUTDashboardBody = Omit<APIGuild, "Id" | "CreatedAt"> & APIGuildUsers & {
     ExcludeRole: string;
     ExcludeRoleName: string | null;
     UserRoleColor: bigint | null
@@ -32,13 +32,19 @@ export type POSTUserGuildsBody = {
         Amount: bigint,
         ClaimedDaily: boolean,
         DailyReminder: Date | null,
-        Todos: {
-            Id: bigint;
-            UserId: bigint;
-            String: string;
-        }[]
         UserId: bigint
     } | null
+}
+
+export type Todo = {
+    Id: bigint;
+    UserId: bigint;
+    String: string;
+}
+export type POSTUserTodoAddBody = Todo
+
+export type POSTUserTodoDeleteBody = {
+    todoIds: bigint[]
 }
 
 export type APIGuild = {

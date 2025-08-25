@@ -3,7 +3,7 @@ import express, { Express } from "express";
 import { container } from "@sapphire/pieces";
 import * as Colorette from "colorette";
 import { Guild, HexColorString } from "discord.js";
-import { GETGuildBody, PUTDashboardResponse, POSTUserGuildsBody } from "kaikiwa-types";
+import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoDeleteBody, POSTUserTodoAddBody } from "kaikiwa-types";
 import { APIRole } from "../../KaikiWA-Types";
 
 // A class managing the Bot's webserver.
@@ -24,22 +24,36 @@ export class Webserver {
         container.logger.info(`WebListener server is listening on port: ${Colorette.greenBright(process.env.SELF_API_PORT)}`);
     }
 
-    private async loadEndPoints() {
-        // Hacky way to wait for guilds to load
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        this.app.post("/API/User/:id", this.POSTUserGuilds)
-        this.app.get("/API/Guild/:id", this.GETGuild)
-        // Patch potentially?
-        this.app.post("/API/Guild/:id", this.PUTGuildUpdate)
+    private verifyTokenMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+        Webserver.validateIdParam(req, res);
+        Webserver.validateToken(req, res);
+        Webserver.logRequest(req);
+        next();
     }
 
-    private async POSTUserGuilds(req: express.Request, res: express.Response): Promise<express.Response<POSTUserGuildsBody>> {
-        Webserver.checkValidParam(req, res);
-        Webserver.verifyToken(req, res);
-        Webserver.logRequest(req);
+    private async loadEndPoints() {
+        const middleware = this.verifyTokenMiddleware;
 
-        const guilds: bigint[] = req.body;
+        this.app.get("/API/User/:id/guilds", middleware, this.GETGuilds)
+        this.app.delete("/API/User/:id/todo", middleware, this.DELUserTodoDelete)
+        this.app.post("/API/User/:id/todo", middleware, this.POSTUserTodoAdd)
+        this.app.get("/API/Guild/:id", middleware, this.GETGuild)
+        this.app.patch("/API/Guild/:id/settings", middleware, this.PATCHGuild)
+        this.app.get("/API/User/:id/todos", middleware, this.GETTodos)
+    }
+
+    private async GETGuilds(req: express.Request, res: express.Response): Promise<express.Response<POSTUserGuildsBody>> {
+
+        const userId = req.params.id;
+        const guildIds = req.query.ids;
+
+        if (typeof guildIds !== "string") return res
+            .status(400)
+            .send("Missing required query properties (ids)");
+
+        // Retrieve guild Ids from query 
+        const guilds: bigint[] = guildIds.split(",").map(id => BigInt(id));
+
         // Filter out servers the bot is in, making sure to not show old guilds that might be in the DB.
         const guildsWithBot = guilds.filter(gId => container.client.guilds.cache.has(String(gId)))
 
@@ -58,10 +72,9 @@ export class Webserver {
                 Amount: true,
                 ClaimedDaily: true,
                 DailyReminder: true,
-                Todos: true,
             },
             where: {
-                UserId: BigInt(req.params.id)
+                UserId: BigInt(userId as string)
             }
         })]);
 
@@ -77,7 +90,6 @@ export class Webserver {
                 Amount: userData.Amount,
                 ClaimedDaily: userData.ClaimedDaily,
                 DailyReminder: userData.DailyReminder,
-                Todos: userData.Todos,
                 UserId: userData.UserId
             },
             guildDb: guildsData,
@@ -87,15 +99,12 @@ export class Webserver {
     }
 
     private static logRequest(req: express.Request) {
-        container.logger.info(`Webserver | ${req.method} request @ ${req.route.path} [${Colorette.greenBright(req.params.id)}]`);
+        container.logger.info(`Webserver | ${req.method} request @ ${req.route.path} [${Colorette.greenBright(req.params.id ? req.params.id : req.query.userId as string || "")}]`);
     }
 
     // Response to GET requests for guilds on the dashboard
     // Serves information, stats and data to be edited online
     private async GETGuild(req: express.Request, res: express.Response): Promise<express.Response<GETGuildBody>> {
-        Webserver.checkValidParam(req, res);
-        Webserver.verifyToken(req, res);
-        Webserver.logRequest(req);
 
         const guild = container.client.guilds.cache.get(req.params.id);
         if (!guild) return res.sendStatus(404);
@@ -185,27 +194,24 @@ export class Webserver {
         return res.send(JSON.stringify(guildBody, (_, value) => typeof value === "bigint" ? value.toString() : value));
     }
 
-    private async PUTGuildUpdate(req: express.Request, res: express.Response) {
-        Webserver.checkValidParam(req, res);
-        Webserver.verifyToken(req, res);
-        Webserver.logRequest(req);
+    private async PATCHGuild(req: express.Request, res: express.Response) {
 
         if (!req.body) return res
             .sendStatus(400)
             .send("Missing request body");
 
-        const { body }: { body: Partial<PUTDashboardResponse>} = req;
+        const { body }: { body: Partial<PUTDashboardBody>} = req;
         const guild = container.client.guilds.cache.get(String(req.params.id));
         const userRole = body.UserRole ? String(body.UserRole) : null;
 
         // Guild not found
         if (!guild) return res
-            .sendStatus(404)
+            .status(404)
             .send("Guild not found");
 
         for (const key of Object.keys(body)) {
             // All values seem to be string (coming from form input fields)
-            const rawValue = body[key as keyof PUTDashboardResponse] as string;
+            const rawValue = body[key as keyof PUTDashboardBody] as string;
             if (!rawValue || !key) continue;
 
 
@@ -253,8 +259,68 @@ export class Webserver {
         return res.sendStatus(200);
     }
 
+    private async DELUserTodoDelete(req: express.Request, res: express.Response) {
 
-    static checkValidParam(req: express.Request, res: express.Response) {
+        if (!req.body) return res
+            .sendStatus(400)
+            .send("Missing request body");
+
+        const { body }: { body: POSTUserTodoDeleteBody } = req;
+        const { todoIds } = body;
+
+        const { count } = await container.client.db.orm.todos.deleteMany({
+            where: {
+                Id: {
+                    in: todoIds
+                }
+            }
+        });
+
+        if (todoIds.length === count) {
+            return res.sendStatus(200);
+        }
+        return res.sendStatus(500).send(`Not all items were deleted. Count: ${count}`)
+    }
+
+        
+    private async POSTUserTodoAdd(req: express.Request, res: express.Response) {
+        
+        if (!req.body) return res
+            .sendStatus(400)
+            .send("Missing request body");
+        
+        const userId = req.params.id;
+
+        const { body }: { body: POSTUserTodoAddBody } = req;
+        
+        const todo = await container.client.db.orm.todos.create({
+            data: {
+                Id: body.Id,
+                String: body.String,
+                DiscordUsers: {
+                    connect: {
+                        UserId: body.UserId
+                    }
+                }
+            }
+        });
+
+        return res.send(JSON.stringify({ todo }, (_, value) => typeof value === "bigint" ? value.toString() : value));
+    }
+
+    private async GETTodos(req: express.Request, res: express.Response) {
+        const userId = req.params.id;
+
+        const todos = await container.client.db.orm.todos.findMany({
+            where: {
+                UserId: BigInt(userId)
+            }
+        });
+
+        return res.send(JSON.stringify({ todos }, (_, value) => typeof value === "bigint" ? value.toString() : value));
+    }
+
+    static validateIdParam(req: express.Request, res: express.Response) {
         if (Number.isNaN(Number(req.params.id))) {
             res.sendStatus(400);
             throw new Error("Missing request guildId parameter");
@@ -262,7 +328,7 @@ export class Webserver {
     }
 
     // Throws 401 unauthorized if token is wrong
-    static verifyToken(req: express.Request, res: express.Response): void {
+    static validateToken(req: express.Request, res: express.Response): void {
         if (req.headers.authorization !== process.env.SELF_API_TOKEN) {
             res.sendStatus(401);
             throw new Error("Unauthorized");

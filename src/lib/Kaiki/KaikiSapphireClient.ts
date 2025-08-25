@@ -5,6 +5,7 @@ import { LogLevel, SapphireClient } from "@sapphire/framework";
 import * as colorette from "colorette";
 import {
     EmbedBuilder,
+    Events,
     GatewayIntentBits,
     Guild,
     Partials,
@@ -114,6 +115,11 @@ export default class KaikiSapphireClient<Ready extends true>
         console.log(colorette.green(Constants.KaikiBotASCII));
 
         super.login(process.env.CLIENT_TOKEN).then(async () => this.init(this));
+
+        // Run only once "ready"
+        super.once(Events.ClientReady, () => {
+            this.webListener = new Webserver();
+        });
     }
 
     private async init(client: this) {
@@ -147,8 +153,6 @@ export default class KaikiSapphireClient<Ready extends true>
         client.logger.info(
             `Bot owner: ${colorette.greenBright(client.owner.username)}`
         );
-
-        this.webListener = new Webserver();
 
         await Promise.all([
             client.filterOptionalCommands(),
