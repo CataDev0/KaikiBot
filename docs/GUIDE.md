@@ -39,7 +39,7 @@ npm run start
 
 Having issues? Come join us on Discord
 
-<a href="https://discord.gg/8G3AqjnFfX">
+<a href="https://discord.kaikibot.xyz">
     <img src="https://discord.com/api/guilds/794671071886049280/embed.png?style=banner3" title="Discord Server" alt="Kaiki invite link">
 </a>
 

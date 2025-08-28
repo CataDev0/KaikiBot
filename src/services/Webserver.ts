@@ -81,7 +81,7 @@ export class Webserver {
         // Send 404 not found
         if (!userData) {
             container.logger.warn(`Webserver | Requested user was not found: [${Colorette.greenBright(req.params.id)}]`);
-            return res.sendStatus(404);
+            return res.status(404).send("Requested user was not found");
         }
 
         const responseObject: POSTUserGuildsBody = {
@@ -260,46 +260,42 @@ export class Webserver {
     }
 
     private async DELUserTodoDelete(req: express.Request, res: express.Response) {
+        if (!req.query.ids) return res
+            .status(400)
+            .send("Missing request ids");
 
-        if (!req.body) return res
-            .sendStatus(400)
-            .send("Missing request body");
-
-        const { body }: { body: POSTUserTodoDeleteBody } = req;
-        const { todoIds } = body;
+        const todoIdsBigIntArray = (req.query.ids! as string).split(",").map(id => BigInt(id))
 
         const { count } = await container.client.db.orm.todos.deleteMany({
             where: {
                 Id: {
-                    in: todoIds
+                    // Sent as string
+                    in: todoIdsBigIntArray
                 }
             }
         });
 
-        if (todoIds.length === count) {
+        if (todoIdsBigIntArray.length === count) {
             return res.sendStatus(200);
         }
-        return res.sendStatus(500).send(`Not all items were deleted. Count: ${count}`)
+        return res.status(500).send(`Not all items were deleted. Count: ${count}`)
     }
 
-        
     private async POSTUserTodoAdd(req: express.Request, res: express.Response) {
-        
         if (!req.body) return res
-            .sendStatus(400)
+            .status(400)
             .send("Missing request body");
         
         const userId = req.params.id;
-
         const { body }: { body: POSTUserTodoAddBody } = req;
+        const todoString = String(body.String);
         
         const todo = await container.client.db.orm.todos.create({
             data: {
-                Id: body.Id,
-                String: body.String,
+                String: todoString,
                 DiscordUsers: {
                     connect: {
-                        UserId: body.UserId
+                        UserId: BigInt(userId)
                     }
                 }
             }

@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import * as colorette from "colorette";
 import { Guild, GuildMember, PermissionsBitField, Role } from "discord.js";
 import Constants from "../struct/Constants";
 import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
@@ -7,8 +6,8 @@ import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
 export default class AnniversaryRolesService {
     readonly client: KaikiSapphireClient<true>;
     readonly orm: PrismaClient;
-    listUsersCakeDay: string[] = [];
-    listUserJoinedAt: string[] = [];
+    private creationdayUsers: string[] = [];
+    private anniversaryUsers: string[] = [];
 
     constructor(client: KaikiSapphireClient<true>) {
         this.client = client;
@@ -19,11 +18,9 @@ export default class AnniversaryRolesService {
 
     async birthdayService(): Promise<void> {
         const enabledGuilds = await this.getEnabledGuilds();
-        this.client.logger.info(
-            `AnniversaryRolesService | Checking ${colorette.green(enabledGuilds.length)} guilds`
-        );
         await this.handleAnniversaryGuilds(enabledGuilds);
-        return this.resetArrays();
+        this.anniversaryUsers = [];
+        this.creationdayUsers = [];
     }
 
     private static getCurrentDate() {
@@ -70,12 +67,12 @@ export default class AnniversaryRolesService {
                 this.client.logger.error(err);
             } finally {
                 this.client.logger.info(
-                    `AnniversaryRolesService | Finished checking ${guild.name} [${guild.id}] - Anniversary enabled`
+                    `AnniversaryRolesService | Finished checking ${guild.name} [${guild.id}] - Anniversary is enabled`
                 );
             }
         } else {
             this.client.logger.info(
-                `AnniversaryRolesService | Finished checking ${guild.name} [${guild.id}] - Anniversary disabled`
+                `AnniversaryRolesService | Finished checking ${guild.name} [${guild.id}] - Anniversary is disabled`
             );
         }
     }
@@ -137,21 +134,23 @@ export default class AnniversaryRolesService {
         // Don't add/remove roles if roles weren't properly fetched.
         if (!anniversaryRoleCreated || !anniversaryRoleJoin) return;
 
-        if (this.checkCakeDay(member)) {
-            this.listUsersCakeDay.push(member.user.id);
+        const date = AnniversaryRolesService.getCurrentDate();
+
+        if (this.checkCakeDay(member, date)) {
+            this.creationdayUsers.push(member.user.id);
             if (!member.roles.cache.has(anniversaryRoleCreated.id)) {
                 await member.roles.add(anniversaryRoleCreated);
             }
         }
 
-        if (this.checkJoinedAt(member)) {
-            this.listUserJoinedAt.push(member.user.id);
+        if (this.checkJoinedAt(member, date)) {
+            this.anniversaryUsers.push(member.user.id);
             if (!member.roles.cache.has(anniversaryRoleJoin.id)) {
                 return member.roles.add(anniversaryRoleJoin);
             }
         }
 
-        if (!this.listUsersCakeDay.includes(member.user.id)) {
+        if (!this.creationdayUsers.includes(member.user.id)) {
 
             if (member.roles.cache.has(anniversaryRoleCreated.id)) {
                 await member.roles.remove(
@@ -166,13 +165,11 @@ export default class AnniversaryRolesService {
         }
     }
 
-    private checkCakeDay(member: GuildMember) {
-        const { day, month } = AnniversaryRolesService.getCurrentDate();
+    private checkCakeDay(member: GuildMember, { day, month }: { month: number; day: number; }) {
         return member.user.createdAt.getMonth() === month && member.user.createdAt.getDate() === day;
     }
 
-    private checkJoinedAt(member: GuildMember) {
-        const { day, month } = AnniversaryRolesService.getCurrentDate();
+    private checkJoinedAt(member: GuildMember, { day, month }: { month: number; day: number; }) {
         return member.joinedAt?.getMonth() === month && member.joinedAt.getFullYear() !== new Date().getFullYear() && member.joinedAt?.getDate() === day;
     }
 
@@ -185,11 +182,6 @@ export default class AnniversaryRolesService {
         return dbRes
             .map((s) => this.client.guilds.cache.get(String(s.Id)))
             .filter((g): g is Guild => !!g);
-    }
-
-    private async resetArrays() {
-        this.listUserJoinedAt = [];
-        this.listUsersCakeDay = [];
     }
 
     private async handleAnniversaryGuilds(enabledGuilds: Guild[]) {
