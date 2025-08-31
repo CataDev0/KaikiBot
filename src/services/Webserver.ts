@@ -3,8 +3,9 @@ import express, { Express } from "express";
 import { container } from "@sapphire/pieces";
 import * as Colorette from "colorette";
 import { Guild, HexColorString } from "discord.js";
-import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoDeleteBody, POSTUserTodoAddBody } from "kaikiwa-types";
+import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoAddBody } from "kaikiwa-types";
 import { APIRole } from "../../KaikiWA-Types";
+import { JSONToMessageOptions } from "../lib/GreetHandler";
 
 // A class managing the Bot's webserver.
 // It is intended to interact with a kaikibot dashboard
@@ -127,7 +128,7 @@ export class Webserver {
                 }
             });
 
-            const userRole = guild.roles.cache.get(String(dbGuild?.GuildUsers.shift()));
+            const userRole = guild.roles.cache.get(String(dbGuild?.GuildUsers.shift()?.UserRole));
 
             if (userRole) {
                 userRoleData = {
@@ -200,62 +201,93 @@ export class Webserver {
             .sendStatus(400)
             .send("Missing request body");
 
-        const { body }: { body: Partial<PUTDashboardBody>} = req;
+        const { body }: { body: Partial<PUTDashboardBody> } = req;
         const guild = container.client.guilds.cache.get(String(req.params.id));
-        const userRole = body.UserRole ? String(body.UserRole) : null;
+        let userRoleId = null;
+        if (body.UserRole) {
+            userRoleId = String(body.UserRole);
+            // Remove so it wont be looped over
+            delete body.UserRole;
+        }
 
         // Guild not found
         if (!guild) return res
             .status(404)
             .send("Guild not found");
 
+        const embedUpdates: Record<string, bigint | number | string | null> = {};
+
         for (const key of Object.keys(body)) {
             // All values seem to be string (coming from form input fields)
             const rawValue = body[key as keyof PUTDashboardBody] as string;
             if (!rawValue || !key) continue;
 
-
             let value;
 
             try {
-                value = JSON.parse(rawValue);
+                // if it's a snowflake, don't parse
+                if (/^\d{17,20}$/.test(rawValue)) value = rawValue;
+                // Parse everything else
+                else value = JSON.parse(rawValue);
             }
             catch {
                 value = rawValue;
             }
 
             switch (key) {
-            case "icon":
-                await guild.setIcon(value);
-                break;
-            case "excluderolename":
-                await Webserver.SetExcludeRoleName(value, guild);
-                break;
-            case "excluderolecolor":
-                await Webserver.SetExcludeRoleColor(value, guild);
-                break;
-            case "name": {
-                await guild.setName(value);
-                break;
-            }
-            case "userrolecolor":
-                if (!userRole) break;
-                await this.SetUserRoleColor(userRole, value, guild);
-                break;
-            case "userrolename":
-                if (!userRole) break;
-                await this.SetUserRoleName(userRole, value, guild);
-                break;
-            case "userroleicon":
-                if (!userRole) break;
-                await this.SetUserRoleIcon(userRole, value, guild);
-                break;
+                case "icon":
+                    await guild.setIcon(value);
+                    break;
+                case "excluderolename":
+                    await Webserver.SetExcludeRoleName(value, guild);
+                    break;
+                case "excluderolecolor":
+                    await Webserver.SetExcludeRoleColor(value, guild);
+                    break;
+                case "name": 
+                    await guild.setName(value);
+                    break;
+                case "UserRoleColor":
+                    if (!userRoleId) break;
+                    await Webserver.SetUserRoleColor(userRoleId, value, guild);
+                    break;
+                case "UserRoleName":
+                    if (!userRoleId) break;
+                    await Webserver.SetRoleName(userRoleId, value, guild);
+                    break;
+                case "UserRoleIcon":
+                    if (!userRoleId) break;
+                    await Webserver.SetUserRoleIcon(userRoleId, value, guild);
+                    break;
+                case "WelcomeChannel":
+                case "ByeChannel":
+                    embedUpdates[key] = value ? BigInt(value) : null;
+                    break;
+
+                case "WelcomeTimeout":
+                case "ByeTimeout":
+                    embedUpdates[key] = Number(value ?? 0);
+                    break;
+
+                case "WelcomeMessage":
+                case "ByeMessage":
+                    embedUpdates[key] = JSON.stringify(new JSONToMessageOptions(value));
+                    break;
                 // This will handle all non-special and non-guildDB parameters
-            default:
-                await container.client.guildsDb.set(guild.id, key, value);
-                break;
+                default:
+                    await container.client.guildsDb.set(guild.id, key, value);
+                    break;
             }
         }
+
+        // Batch update once
+        if (Object.keys(embedUpdates).length > 0) {
+            await container.client.orm.guilds.update({
+                where: { Id: BigInt(req.params.id) },
+                data: embedUpdates
+            });
+        }
+
         return res.sendStatus(200);
     }
 
@@ -285,11 +317,11 @@ export class Webserver {
         if (!req.body) return res
             .status(400)
             .send("Missing request body");
-        
+
         const userId = req.params.id;
         const { body }: { body: POSTUserTodoAddBody } = req;
         const todoString = String(body.String);
-        
+
         const todo = await container.client.db.orm.todos.create({
             data: {
                 String: todoString,
@@ -345,23 +377,22 @@ export class Webserver {
             ?.setColor(data as HexColorString);
     }
 
-    private async SetUserRoleIcon(userRoleId: string, icon: string | null, guild: Guild) {
+    private static async SetUserRoleIcon(userRoleId: string, icon: string | null, guild: Guild) {
         if (!guild.features.includes("ROLE_ICONS")) return;
         return guild.roles.cache.get(userRoleId)
             ?.setIcon(icon);
     }
 
-    private async SetUserRoleName(userRoleId: string, name: string | null, guild: Guild) {
+    private static async SetRoleName(userRoleId: string, name: string | null, guild: Guild) {
         if (!name) return;
         return guild.roles.cache.get(userRoleId)
             ?.setName(name);
     }
 
-    private async SetUserRoleColor(userRoleId: string, color: bigint | string | null, guild: Guild) {
+    private static async SetUserRoleColor(userRoleId: string, color: bigint | string | null, guild: Guild) {
         if (!color) return;
 
         return guild.roles.cache.get(userRoleId)
-        //  This bigint is small enough to be accurate when converted
             ?.setColor(color as HexColorString);
     }
 }

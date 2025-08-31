@@ -22,13 +22,6 @@ export default class KaikiEmbeds {
             description: `Removed role \`${roleName}\`.\nType the command again to add it back.`,
         });
 
-    static noDataReceived = async (m: Message): Promise<EmbedBuilder> =>
-        new EmbedBuilder({
-            title: "Error",
-            description:
-				"No data received. Double check the subreddit's name and try again.",
-        }).withErrorColor(m);
-
     static embedFail = async (
         message: Message,
         text = "You do not have a role!"

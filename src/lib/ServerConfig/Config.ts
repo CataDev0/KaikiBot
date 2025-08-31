@@ -1,5 +1,5 @@
 import { BlockedCategories, Guilds } from "@prisma/client";
-import { Args, UserError } from "@sapphire/framework";
+import { Args, ArgumentError, UserError } from "@sapphire/framework";
 import { sendPaginatedMessage } from "discord-js-button-pagination-ts";
 import {
     AttachmentBuilder,
@@ -150,6 +150,11 @@ export default class Config {
 
     static async prefixRun(message: Message<true>, args: Args) {
         const value = await args.rest("string");
+
+        if (value.length > 10) throw new UserError({
+            "message": "Prefix can be no longer than 10 characters.",
+            "identifier": "PrefixTooLong"
+        })
 
         this.checkSubcommandUserPermission(
             message,
