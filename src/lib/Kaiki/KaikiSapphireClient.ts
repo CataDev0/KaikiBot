@@ -166,9 +166,8 @@ export default class KaikiSapphireClient<Ready extends true>
     private async sendOnlineMsg() {
         // Let bot owner know when bot goes online.
         if (this.user && this.owner.id === process.env.OWNER) {
-            const emoji = ["✨", "♥️", "✅", "🇹🇼"][
-                Math.floor(Math.random() * 4)
-            ];
+            const emojis = ["✨", "♥️", "✅", "🇹🇼"];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)]
 
             await this.owner.send({
                 embeds: [

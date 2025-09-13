@@ -60,6 +60,22 @@ Example
 
     KAWAIIKEY=142788173885276162.DspDpD0isjuXAKD73vWs
 
+## Dashboard (Optiona)
+Requires a running clone of https://github.com/cataDev0/kaikibot.xyz/ 
+
+The port the website is using
+
+    SELF_API_PORT=3636
+
+Specify a secret the dashboard uses to communicate
+
+    SELF_API_TOKEN=
+
+The url including endpoint where the bot will upload the commandlist to 
+
+    CMDLIST_URL=
+
+
 ## The rest of the file
 
 Please leave this as is, unless you know what you're doing

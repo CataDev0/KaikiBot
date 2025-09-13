@@ -19,7 +19,7 @@ export class Webserver {
     private dbl: Express;
     private DBL_API_PORT: number;
     private SELF_API_PORT: number ;
-    private DBL_API_TOKEN: string | undefined;
+    private DBL_API_WEBHOOK_SECRET: string | undefined;
 
     // Creates express webservers
     // Serves user-data on the specified URL paths
@@ -27,7 +27,7 @@ export class Webserver {
     public constructor() {
         this.SELF_API_PORT = process.env.SELF_API_PORT ? Number(process.env.SELF_API_PORT) : 3636;
         this.DBL_API_PORT = process.env.DBL_API_PORT ? Number(process.env.DBL_API_PORT) : 3635;
-        this.DBL_API_TOKEN = process.env.DBL_API_TOKEN;
+        this.DBL_API_WEBHOOK_SECRET = process.env.DBL_API_WEBHOOK_SECRET;
 
         this.dashboard = express().use(express.json())
         this.dbl = express().use(express.json())
@@ -58,13 +58,15 @@ export class Webserver {
         this.dashboard.get("/API/User/:id/todos", middleware, this.GETTodos);
 
         // DBL
-        this.dbl.post("/API/Vote", this.POSTVote);
+        if (this.DBL_API_WEBHOOK_SECRET) {
+            this.dbl.post("/API/Vote", this.POSTVote);
+        }
     }
 
 
     // Handle DBL Votes
     private async POSTVote(req: express.Request, res: express.Response) {
-        if (req.headers.authorization !== this.DBL_API_TOKEN) return res.sendStatus(401);
+        if (req.headers.authorization !== this.DBL_API_WEBHOOK_SECRET) return res.sendStatus(401);
 
         if (!this.checkVoteBody(req.body)) return res.sendStatus(400);
         (container.client as KaikiSapphireClient<true>).dblService.registerVote(req.body)
