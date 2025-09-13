@@ -59,7 +59,7 @@ export default class HentaiService {
         const response = await fetch(`https://waifu.pics/api/nsfw/${type}`);
 
         KaikiUtil.checkResponse(response);
-        return KaikiUtil.json<string>(response, ["url"]);
+        return KaikiUtil.json(response, ["url"]);
     }
 
     async makeRequest(

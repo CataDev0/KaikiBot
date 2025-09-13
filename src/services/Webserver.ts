@@ -6,23 +6,37 @@ import { Guild, HexColorString } from "discord.js";
 import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoAddBody } from "kaikiwa-types";
 import { APIRole } from "../../KaikiWA-Types";
 import { JSONToMessageOptions } from "../lib/GreetHandler";
+import { VoteBody } from "src/lib/Types/DiscordBotList";
+import KaikiSapphireClient from "src/lib/Kaiki/KaikiSapphireClient";
 
 // A class managing the Bot's webserver.
 // It is intended to interact with a kaikibot dashboard
 
 // Requires to send a POST req, with a specified token in the header under authorization
 export class Webserver {
-    private app: Express;
+    private dashboard: Express;
+    // DiscordBotList
+    private dbl: Express;
+    private DBL_API_PORT: number;
+    private SELF_API_PORT: number ;
+    private DBL_API_TOKEN: string | undefined;
 
-    // Creates an express webserver and serves user-data on the specified URL path
+    // Creates express webservers
+    // Serves user-data on the specified URL paths
+    // Listens for DBL webhook
     public constructor() {
-        if (!process.env.SELF_API_PORT) return;
+        this.SELF_API_PORT = process.env.SELF_API_PORT ? Number(process.env.SELF_API_PORT) : 3636;
+        this.DBL_API_PORT = process.env.DBL_API_PORT ? Number(process.env.DBL_API_PORT) : 3635;
+        this.DBL_API_TOKEN = process.env.DBL_API_TOKEN;
 
-        this.app = express();
-        this.app.use(express.json());
-        this.loadEndPoints()
-            .then(() => this.app.listen(process.env.SELF_API_PORT))
-        container.logger.info(`WebListener server is listening on port: ${Colorette.greenBright(process.env.SELF_API_PORT)}`);
+        this.dashboard = express().use(express.json())
+        this.dbl = express().use(express.json())
+        this.loadEndpoints()
+            .then(() => {
+                this.dashboard.listen(this.SELF_API_PORT)
+                this.dbl.listen(this.DBL_API_PORT)
+            });
+        container.logger.info(`WebListener server is listening on ports: [${Colorette.greenBright(this.DBL_API_PORT)}, ${Colorette.greenBright(this.SELF_API_PORT)}]`);
     }
 
     private verifyTokenMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -32,15 +46,33 @@ export class Webserver {
         next();
     }
 
-    private async loadEndPoints() {
+    private async loadEndpoints() {
         const middleware = this.verifyTokenMiddleware;
 
-        this.app.get("/API/User/:id/guilds", middleware, this.GETGuilds)
-        this.app.delete("/API/User/:id/todo", middleware, this.DELUserTodoDelete)
-        this.app.post("/API/User/:id/todo", middleware, this.POSTUserTodoAdd)
-        this.app.get("/API/Guild/:id", middleware, this.GETGuild)
-        this.app.patch("/API/Guild/:id/settings", middleware, this.PATCHGuild)
-        this.app.get("/API/User/:id/todos", middleware, this.GETTodos)
+        // Dashboard endpoints
+        this.dashboard.get("/API/User/:id/guilds", middleware, this.GETGuilds);
+        this.dashboard.delete("/API/User/:id/todo", middleware, this.DELUserTodoDelete);
+        this.dashboard.post("/API/User/:id/todo", middleware, this.POSTUserTodoAdd);
+        this.dashboard.get("/API/Guild/:id", middleware, this.GETGuild);
+        this.dashboard.patch("/API/Guild/:id/settings", middleware, this.PATCHGuild);
+        this.dashboard.get("/API/User/:id/todos", middleware, this.GETTodos);
+
+        // DBL
+        this.dbl.post("/API/Vote", this.POSTVote);
+    }
+
+
+    // Handle DBL Votes
+    private async POSTVote(req: express.Request, res: express.Response) {
+        if (req.headers.authorization !== this.DBL_API_TOKEN) return res.sendStatus(401);
+
+        if (!this.checkVoteBody(req.body)) return res.sendStatus(400);
+        (container.client as KaikiSapphireClient<true>).dblService.registerVote(req.body)
+    }
+
+    // Make sure the body is correct
+    private checkVoteBody(body: any): body is VoteBody {
+        return "id" in body && "username" in body;
     }
 
     private async GETGuilds(req: express.Request, res: express.Response): Promise<express.Response<POSTUserGuildsBody>> {

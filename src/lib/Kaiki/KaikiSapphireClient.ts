@@ -35,6 +35,7 @@ import { container } from "@sapphire/pieces";
 import NeofetchCommand from "../../commands/Fun/neofetch";
 import DiscordBotListService from "../../services/DiscordBotListService";
 import { Webserver } from "../../services/Webserver";
+import { BotStats } from "../Types/DiscordBotList";
 
 export default class KaikiSapphireClient<Ready extends true>
     extends SapphireClient<Ready>
@@ -52,6 +53,7 @@ export default class KaikiSapphireClient<Ready extends true>
     public owner: User;
     public package: PackageJSON;
     public hentaiService: HentaiService;
+    public dblService: DiscordBotListService;
     private webListener: Webserver;
 
     constructor() {
@@ -61,7 +63,7 @@ export default class KaikiSapphireClient<Ready extends true>
                 GatewayIntentBits.DirectMessageReactions,
                 GatewayIntentBits.DirectMessages,
                 GatewayIntentBits.GuildModeration,
-                GatewayIntentBits.GuildEmojisAndStickers,
+                GatewayIntentBits.GuildExpressions,
                 GatewayIntentBits.GuildIntegrations,
                 GatewayIntentBits.GuildInvites,
                 GatewayIntentBits.GuildMembers,
@@ -128,7 +130,8 @@ export default class KaikiSapphireClient<Ready extends true>
         }
 
         if (process.env.DBL_API_TOKEN && process.env.NODE_ENV === "production") {
-            new DiscordBotListService(this);
+            this.dblService = new DiscordBotListService(this, process.env.DBL_API_TOKEN);
+            this.dblService.startPosting();
         }
 
         await client.application?.fetch();
@@ -163,7 +166,6 @@ export default class KaikiSapphireClient<Ready extends true>
     private async sendOnlineMsg() {
         // Let bot owner know when bot goes online.
         if (this.user && this.owner.id === process.env.OWNER) {
-            // Inconspicuous emotes haha
             const emoji = ["✨", "♥️", "✅", "🇹🇼"][
                 Math.floor(Math.random() * 4)
             ];
@@ -349,7 +351,7 @@ export default class KaikiSapphireClient<Ready extends true>
         );
     }
 
-    async filterOptionalCommands() {
+    private async filterOptionalCommands() {
         const commandStore = this.stores.get("commands");
 
         if (!process.env.KAWAIIKEY || process.env.KAWAIIKEY === "[YOUR_OPTIONAL_KAWAII_KEY]") {
@@ -373,5 +375,12 @@ export default class KaikiSapphireClient<Ready extends true>
             }
             NeofetchCommand.usingFastFetch = false;
         }
+    }
+
+    public getBotStats(): BotStats {
+        return {
+            guilds: this.guilds.cache.size,
+            users: this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0),
+        };
     }
 }
