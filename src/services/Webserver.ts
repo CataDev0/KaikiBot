@@ -66,7 +66,7 @@ export class Webserver {
 
     // Handle DBL Votes
     private async POSTVote(req: express.Request, res: express.Response) {
-        if (req.headers.authorization !== this.DBL_API_WEBHOOK_SECRET) return res.sendStatus(401);
+        if (req.headers.authorization !== process.env.DBL_API_WEBHOOK_SECRET) return res.sendStatus(401);
 
         if (!this.checkVoteBody(req.body)) return res.sendStatus(400);
         (container.client as KaikiSapphireClient<true>).dblService.registerVote(req.body)
