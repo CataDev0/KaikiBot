@@ -69,7 +69,8 @@ export class Webserver {
         if (req.headers.authorization !== process.env.DBL_API_WEBHOOK_SECRET) return res.sendStatus(401);
 
         if (!this.checkVoteBody(req.body)) return res.sendStatus(400);
-        (container.client as KaikiSapphireClient<true>).dblService.registerVote(req.body)
+        await (container.client as KaikiSapphireClient<true>).dblService.registerVote(req.body)
+        return res.sendStatus(200);
     }
 
     // Make sure the body is correct
