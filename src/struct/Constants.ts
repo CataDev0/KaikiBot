@@ -529,6 +529,9 @@ export default class Constants {
                 KAIKI_CLR: [234, 88, 12] as RGBTuple,
             },
         },
+        SERVICES: {
+            DBL_POST_INTERVAL_MS: 3600000
+        }
     });
 
     static readonly errorColor = Constants.MAGIC_NUMBERS.LIB.UTILITY.ERR_CLR;

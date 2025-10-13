@@ -1,37 +1,38 @@
 import { PrismaClient } from "@prisma/client";
-import Constants from "../struct/Constants";
+import { container } from "@sapphire/framework";
 
 export class MoneyService {
-    currencyName: string;
-    currencySymbol: string;
+    public currencyName: string;
+    public currencySymbol: string;
     private orm: PrismaClient;
+
     constructor(connection: PrismaClient) {
         this.orm = connection;
-        (async () => {
-            const botSettings = await this.orm.botSettings.findFirst();
-
-            if (!botSettings)
-                throw new Error("Missing row in BotSettings table!");
-
-            this.currencyName = botSettings.CurrencyName;
-            this.currencySymbol = botSettings.CurrencySymbol;
-        })();
     }
 
-    async get(id: string): Promise<bigint> {
-        const query = await this.orm.discordUsers.findFirst({
-            select: { Amount: true },
+    public async init() {
+        const botSettings = await this.orm.botSettings.findFirst();
+        if (!botSettings)
+            throw new Error("Missing row in BotSettings table!");
+        this.currencyName = botSettings.CurrencyName;
+        this.currencySymbol = botSettings.CurrencySymbol;
+        return this;
+    }
+
+    public async get(id: string): Promise<bigint> {
+        const query = await this.orm.discordUsers.upsert({
             where: { UserId: BigInt(id) },
+            create: {
+                UserId: BigInt(id),
+            },
+            update: {},
+            select: { Amount: true }
         });
 
-        if (query) {
-            return query.Amount;
-        }
-        await this.orm.discordUsers.create({ data: { UserId: BigInt(id) } });
-        return Constants.MAGIC_NUMBERS.LIB.MONEY.MONEY_SERVICE.BIGINT_ZERO;
+        return query.Amount;
     }
 
-    async add(id: string, amount: bigint, reason: string): Promise<bigint> {
+    public async add(id: string, amount: bigint, reason: string): Promise<bigint> {
         if (amount <= 0) {
             throw new Error("Amount must be greater than 0");
         }
@@ -75,15 +76,15 @@ export class MoneyService {
             });
             return true;
         } else if (!currentAmount) {
-            this.lazyCreateCurrencyTransactions(bIntId, amount, reason);
             await this.orm.discordUsers.create({
                 data: { UserId: bIntId },
             });
+            this.lazyCreateCurrencyTransactions(bIntId, -amount, reason);
         }
         return false;
     }
 
-    lazyCreateCurrencyTransactions(id: bigint, amount: bigint, reason: string) {
+    private lazyCreateCurrencyTransactions(id: bigint, amount: bigint, reason: string) {
         return setTimeout(async () => {
             await this.orm.currencyTransactions.create({
                 data: {
@@ -91,7 +92,7 @@ export class MoneyService {
                     Amount: amount,
                     Reason: reason,
                 },
-            });
+            }).catch(e => container.client.logger.error(`Currency transaction failed: ${e}`));
         }, 0);
     }
 }

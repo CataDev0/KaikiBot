@@ -173,6 +173,8 @@ export default class KaikiUtil {
         return !!x;
     }
 
+    // Checks response is ok
+    // Throws "Error"
     static checkResponse(resp: Response) {
         if (!resp.ok)
             throw new Error(

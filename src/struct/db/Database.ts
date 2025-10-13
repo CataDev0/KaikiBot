@@ -159,7 +159,7 @@ export default class Database {
             .catch((e) => this.dbRejected(e));
 
         this._client.cache = new KaikiCache(this.orm, this._client.connection, this._client.imageAPIs);
-        this._client.money = new MoneyService(this.orm);
+        this._client.money = await new MoneyService(this.orm).init();
     }
 
     private dbRejected(e: unknown) {

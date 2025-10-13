@@ -5,22 +5,22 @@ import { DanbooruData, DanbooruPost } from "../lib/Interfaces/Common/DanbooruDat
 import { UserError } from "@sapphire/framework";
 
 export enum DAPI {
-	E621,
-	Danbooru,
+    E621,
+    Danbooru,
 }
 
 export type HentaiTypes = "waifu" | "neko" | "femboy" | "trap" | "blowjob";
 
 // noinspection FunctionNamingConventionJS
 export default class HentaiService {
-    options = {
+    protected options = {
         method: "GET",
         headers: {
             "User-Agent": `KaikiDeishuBot is a Discord bot (${Constants.LINKS.REPO_URL})`,
         },
     };
 
-    public static hentaiArray: HentaiTypes[] = [
+    public static readonly hentaiArray: HentaiTypes[] = [
         "waifu",
         "neko",
         "femboy",
@@ -28,20 +28,23 @@ export default class HentaiService {
     ];
 
     public async grabHentai(
-		type: HentaiTypes,
-		format: "single"
-	): Promise<string>;
+        type: HentaiTypes,
+        format: "single"
+    ): Promise<string>;
     public async grabHentai(
-		type: HentaiTypes,
-		format: "bomb"
-	): Promise<string[]>;
+        type: HentaiTypes,
+        format: "bomb"
+    ): Promise<string[]>;
     public async grabHentai(
         type: HentaiTypes,
         format: "single" | "bomb"
     ): Promise<string | string[]> {
+        // This is just a renamed variable to match the API
         if (type === "femboy") type = "trap";
 
         if (format === "bomb") {
+            // Bomb = 5 images
+            const amount = 5;
             const rawResponse = await fetch(
                 `https://api.waifu.pics/many/nsfw/${type}`,
                 {
@@ -50,7 +53,7 @@ export default class HentaiService {
                         Accept: "application/json",
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ a: 1, b: "Textual content" }),
+                    body: JSON.stringify({ type, amount }),
                 }
             );
             KaikiUtil.checkResponse(rawResponse);
@@ -63,13 +66,13 @@ export default class HentaiService {
     }
 
     async makeRequest(
-		tags: string[] | null,
-		type: DAPI.E621
-	): Promise<E621Post>;
+        tags: string[] | null,
+        type: DAPI.E621
+    ): Promise<E621Post>;
     async makeRequest(
-		tags: string[] | null,
-		type: DAPI.Danbooru
-	): Promise<DanbooruPost>;
+        tags: string[] | null,
+        type: DAPI.Danbooru
+    ): Promise<DanbooruPost>;
     async makeRequest(
         tags: string[] | null,
         type: DAPI
@@ -77,19 +80,23 @@ export default class HentaiService {
         const tag = tags?.join("+").toLowerCase() || "";
 
         switch (type) {
-        case DAPI.E621:
-            return this.e621(
-                `https://e621.net/posts.json?limit=5&tags=${tag}`
-            );
-
-        case DAPI.Danbooru:
-            return this.danbooru(
-                `https://danbooru.donmai.us/posts.json?limit=5&tags=${tag}`
-            );
+            case DAPI.E621:
+                return this.e621(
+                    `https://e621.net/posts.json?limit=5&tags=${tag}`
+                );
+            case DAPI.Danbooru:
+                return this.danbooru(
+                    `https://danbooru.donmai.us/posts.json?limit=5&tags=${tag}`
+                );
+            default:
+                throw new UserError({
+                    identifier: "UnknownAPI",
+                    message: "Unknown API type."
+                });
         }
     }
 
-    async danbooru(url: RequestInfo): Promise<DanbooruPost> {
+    public async danbooru(url: RequestInfo): Promise<DanbooruPost> {
         const r = await fetch(url, this.options);
 
         KaikiUtil.checkResponse(r);
@@ -98,10 +105,10 @@ export default class HentaiService {
 
         HentaiService.checkJSONLength(json);
 
-        return json[Math.round(Math.random() * json.length)];
+        return json[Math.floor(Math.random() * json.length)];
     }
 
-    async e621(url: RequestInfo) {
+    public async e621(url: RequestInfo) {
         const r = await fetch(url, this.options);
 
         KaikiUtil.checkResponse(r);
@@ -110,7 +117,7 @@ export default class HentaiService {
 
         HentaiService.checkJSONLength(json.posts);
 
-        return json.posts[Math.round(Math.random() * json.posts.length)];
+        return json.posts[Math.floor(Math.random() * json.posts.length)];
     }
 
     private static checkJSONLength(json: Record<any, any>[]) {

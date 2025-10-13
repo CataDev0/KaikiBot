@@ -56,7 +56,9 @@ export default class DiscordBotListService {
             }),
             method: "POST",
         });
-        if (!res.ok) throw new Error(res.statusText, { "cause": res });
+        if (!res.ok) {
+            this.client.logger.error("Failed to post bot stats to DBL:", res.status, await res.text());
+        }
     }
 
     // Stops this client from posting stats to DBL.
@@ -67,8 +69,7 @@ export default class DiscordBotListService {
         }
     }
 
-    // Starts posting stats to DBL with the specified interval.
-    public startPosting(interval = 3600000) {
+    public startPosting(interval = Constants.MAGIC_NUMBERS.SERVICES.DBL_POST_INTERVAL_MS) {
         this.stopPosting();
         this.postBotStats().catch(() => null);
         this._post = setInterval(() => this.postBotStats().catch(() => null), interval).unref();

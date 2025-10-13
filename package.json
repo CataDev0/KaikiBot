@@ -1,15 +1,16 @@
 {
-	"name": "kaikideishubot",
+	"name": "kaikibot",
 	"version": "6.2.2",
 	"main": "./dist/index.js",
-	"module": "CommonJS",
+	"type": "commonjs",
 	"scripts": {
-		"start": "node dist/index.js --color",
 		"build": "rm -rf dist/ && npx prisma migrate deploy && npx prisma generate && tsc -p tsconfig.json",
-		"version": "auto-changelog -p -u -o CHANGELOG.md -t keepachangelog && git add CHANGELOG.md",
-		"watch": "tsc -p tsconfig.json -w",
 		"dev": "npm run watch & npm run start",
-		"lint": "eslint ."
+		"format": "prettier --write .",
+		"lint": "eslint .",
+		"start": "node dist/index.js --color",
+		"version": "auto-changelog -p -u -o CHANGELOG.md -t keepachangelog && git add CHANGELOG.md",
+		"watch": "tsc -p tsconfig.json -w"
 	},
 	"keywords": [
 		"Community",
@@ -21,7 +22,10 @@
 		"Multipurpose",
 		"Docker"
 	],
-	"author": "Cata <cata@cata.moe>",
+	"author": {
+		"name": "Cata",
+		"email": "cata@cata.moe"
+	},
 	"license": "MIT",
 	"dependencies": {
 		"@prisma/client": "^5.22.0",
@@ -54,10 +58,14 @@
 		"eslint-plugin-import": "^2.32.0",
 		"typescript": "~5.4.5"
 	},
-	"description": "Discord bot built with Sapphire, Prisma and MySQL2",
+	"description": "Discord bot built with Sapphire, Prisma and MySQL2, written in TypeScript.",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/cataclym/KaikiBot.git"
+		"url": "https://github.com/CataDev0/KaikiBot.git"
+	},
+	"homepage": "https://github.com/CataDev0/KaikiBot#readme",
+	"bugs": {
+		"url": "https://github.com/CataDev0/KaikiBot/issues"
 	},
 	"engines": {
 		"node": ">=18.17.0",
