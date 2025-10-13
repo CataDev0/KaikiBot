@@ -22,7 +22,7 @@ export default class KaikiEmbeds {
             description: `Removed role \`${roleName}\`.\nType the command again to add it back.`,
         });
 
-    static embedFail = async (
+    static embedFail = (
         message: Message,
         text = "You do not have a role!"
     ) => {

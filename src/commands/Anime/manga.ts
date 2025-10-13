@@ -39,56 +39,56 @@ export default class MangaCommand extends KaikiCommand {
                 }),
             };
 
-        return await fetch(url, options)
-            .then(AnilistGraphQL.handleResponse)
-            .then((response: MangaData) => {
-                const {
+        const res = await fetch(url, options)
+            .catch((e: never) => AnilistGraphQL.handleError(message, e));
+        const json: MangaData = await AnilistGraphQL.handleResponse(res)
+            .catch((e: never) => AnilistGraphQL.handleError(message, e));
+
+        const {
+            coverImage,
+            title,
+            chapters,
+            description,
+            status,
+            startDate,
+            genres,
+            endDate,
+            siteUrl,
+        } = json.data.Page.media[0];
+
+        const started = Common.formatDate(startDate);
+        const airedText = Object.values(endDate).some(Boolean) ? started : Common.formatDate(endDate);
+
+        return message.reply({
+            embeds: [
+                Common.createEmbed(
                     coverImage,
                     title,
-                    chapters,
-                    description,
-                    status,
-                    startDate,
-                    genres,
-                    endDate,
                     siteUrl,
-                } = response.data.Page.media[0];
-
-                const started = Common.formatDate(startDate);
-                const airedText = Object.values(endDate).some(Boolean) ? started : Common.formatDate(endDate);
-
-                return message.reply({
-                    embeds: [
-                        Common.createEmbed(
-                            coverImage,
-                            title,
-                            siteUrl,
-                            description,
-                            message
-                        ),
-                        new EmbedBuilder()
-                            .addFields([
-                                {
-                                    name: "Chapters",
-                                    value: String(chapters ?? "N/A"),
-                                    inline: true,
-                                },
-                                {
-                                    name: "Release period",
-                                    value: airedText,
-                                    inline: true,
-                                },
-                                { name: "Status", value: status, inline: true },
-                                {
-                                    name: "Genres",
-                                    value: genres.join(", "),
-                                    inline: false,
-                                },
-                            ])
-                            .withOkColor(message),
-                    ],
-                });
-            })
-            .catch(AnilistGraphQL.handleError);
+                    description,
+                    message
+                ),
+                new EmbedBuilder()
+                    .addFields([
+                        {
+                            name: "Chapters",
+                            value: String(chapters ?? "N/A"),
+                            inline: true,
+                        },
+                        {
+                            name: "Release period",
+                            value: airedText,
+                            inline: true,
+                        },
+                        { name: "Status", value: status, inline: true },
+                        {
+                            name: "Genres",
+                            value: genres.join(", "),
+                            inline: false,
+                        },
+                    ])
+                    .withOkColor(message),
+            ],
+        });
     }
 }
