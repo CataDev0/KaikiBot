@@ -1,7 +1,12 @@
-import { BufferResolvable, Message } from "discord.js";
+import { BufferResolvable, Message, Snowflake } from "discord.js";
 import sharp from "sharp";
 import Constants from "../../struct/Constants";
-import { Emote } from "../../arguments/kaikiEmote";
+
+export type Emote = {
+    name: string,
+    id: Snowflake,
+    url: string,
+}
 
 export default class Emotes {
 

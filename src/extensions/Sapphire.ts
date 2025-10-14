@@ -6,7 +6,6 @@ import KaikiCommand from "../lib/Kaiki/KaikiCommand";
 import { KaikiColor } from "../lib/Types/KaikiColor";
 import { Categories } from "../lib/Types/Miscellaneous";
 import { Sides } from "../commands/Gambling/betflip";
-import { Emote } from "../arguments/kaikiEmote";
 
 declare module "@sapphire/framework" {
 	interface Preconditions {

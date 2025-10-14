@@ -1,6 +1,6 @@
 import { ApplyOptions } from "@sapphire/decorators";
-import { Args, EmojiObject } from "@sapphire/framework";
-import { EmbedBuilder, Emoji, formatEmoji, GuildEmoji, Message } from "discord.js";
+import { Args } from "@sapphire/framework";
+import { EmbedBuilder, formatEmoji, Message } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import KaikiUtil from "../../lib/KaikiUtil";
