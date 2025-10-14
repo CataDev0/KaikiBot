@@ -1,5 +1,5 @@
 import { ApplyOptions } from "@sapphire/decorators";
-import { Args, UserError } from "@sapphire/framework";
+import { Args, EmojiObject, UserError } from "@sapphire/framework";
 import { GuildEmoji, Message } from "discord.js";
 import Emotes from "../../lib/Emotes/Emotes";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
@@ -11,7 +11,7 @@ import Constants from "../../struct/Constants";
     name: "addemote",
     aliases: ["ae"],
     description:
-		"Adds an emote from an image link or attached image, with an optional name. Or steal another servers emote.",
+        "Adds an emote from an image link or attached image, with an optional name. Or steal another servers emote.",
     usage: ["image-link Emotename", ":CoolEmote:"],
     requiredUserPermissions: ["ManageEmojisAndStickers"],
     requiredClientPermissions: ["ManageEmojisAndStickers"],
@@ -19,32 +19,40 @@ import Constants from "../../struct/Constants";
     typing: true,
 })
 export default class AddEmoteCommand extends KaikiCommand {
+    private usrErr = new UserError({ message: "Provide valid emotes or URLs", identifier: "NoProvidedArgs" });
     public async messageRun(message: Message, args: Args) {
 
         // Create custom type for url
         // that returns an actual URL
-        const emote = await args.pick("kaikiEmote");
+        const emote = await args.pick("emoji")
+            .catch(() => args.pick("url"))
+            .catch(() => {
+                throw this.usrErr;
+            })
 
-        const isEmote = typeof emote !== "string";
+        let emojiName = "";
+        // Only if emote is EmoteObj
+        if ("name" in emote && emote.name) {
+            if ("id" in emote && !emote.id) throw this.usrErr;
+            emojiName = emote.name;
+        }
 
-        let emojiName: string;
-        if (isEmote) emojiName = emote.name;
-
-        let name = (await args.rest("string").catch(() => emojiName
-          || message.attachments.first()?.name));
+        let name = await args.rest("string").catch(() => emojiName
+            || message.attachments.first()?.name);
 
         if (!name) throw new UserError({
             identifier: "NoNameProvided",
             message: "No name was provided"
         });
 
+        const emojiUrl = AddEmoteCommand.isURL(emote) ? emote : `https://cdn.discordapp.com/emojis/${emote.id}.${emote.animated ? "gif" : "png"}`;
+
         name = KaikiUtil.trim(
             name,
             Constants.MAGIC_NUMBERS.CMDS.EMOTES.ADD_EMOTE.NAME_MAX_LENGTH
         ).replace(/ /g, "_");
 
-        const buffer = await Emotes.fetchEmote(isEmote ? emote.url : emote);
-
+        const buffer = await Emotes.fetchEmote(emojiUrl);
         const fileSize = buffer.byteLength;
 
         // Added if size is ok
@@ -55,7 +63,7 @@ export default class AddEmoteCommand extends KaikiCommand {
             });
             return AddEmoteCommand.sendMessage(result, message);
         } else {
-            const resizedBuffer = await Emotes.resizeImage(buffer, emote);
+            const resizedBuffer = await Emotes.resizeImage(buffer, emote.toString());
             const result = await message.guild?.emojis.create({
                 attachment: Buffer.from(resizedBuffer),
                 name,
@@ -72,5 +80,9 @@ export default class AddEmoteCommand extends KaikiCommand {
             identifier: "UnableUploadGuildEmoji",
             message: "Emote image was unable to be uploaded!"
         })
+    }
+
+    private static isURL(emoji: URL | EmojiObject): emoji is URL {
+        return emoji instanceof URL;
     }
 }

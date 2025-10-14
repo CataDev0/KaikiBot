@@ -22,7 +22,6 @@ declare module "@sapphire/framework" {
 		kaikiColor: KaikiColor;
 		kaikiHentai: HentaiTypes;
 		kaikiMoney: bigint;
-		kaikiEmote: Emote | string;
 		welcomeGoodbyeMessage: JSONToMessageOptions;
 	}
 

@@ -25,7 +25,7 @@ export default class Emotes {
     }
 
     // Takes a URL, returns an arrayBuffer
-    static async fetchEmote(url: string) {
+    static async fetchEmote(url: string | URL) {
         const file = await fetch(url);
 
         if ((file.ok || file.body) && file.headers.get("content-type")?.includes("image")) {

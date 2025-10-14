@@ -7,14 +7,17 @@ import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import KaikiUtil from "../../lib/KaikiUtil";
 import Constants from "../../struct/Constants";
 
-type cleanGuildEmote = GuildEmoji & {
-	EmojiId: bigint;
-	Count: bigint;
-	GuildId: bigint;
+// Emote data from database and djs
+type EmoteStats = {
+    EmojiId: bigint;
+    Count: bigint;
+    GuildId: bigint;
 };
-
-type customGuildEmote = cleanGuildEmote | { Count: bigint };
-
+type ExtendedGuildEmoji = GuildEmoji & {
+    Count: bigint;
+    EmojiId?: bigint;
+    GuildId?: bigint;
+};
 @ApplyOptions<KaikiCommandOptions>({
     name: "emotecount",
     aliases: ["emojicount", "ec"],
@@ -27,17 +30,17 @@ type customGuildEmote = cleanGuildEmote | { Count: bigint };
 })
 export default class EmoteCount extends KaikiCommand {
     private hasName(
-        guildEmoji: customGuildEmote
-    ): guildEmoji is cleanGuildEmote {
+        guildEmoji: ExtendedGuildEmoji | { Count: bigint }
+    ): guildEmoji is ExtendedGuildEmoji {
         return "name" in guildEmoji;
     }
 
-    private createSmolString(guildEmoji: customGuildEmote, unav?: string) {
-        return `${unav || !this.hasName(guildEmoji) ? unav : guildEmoji} \`${guildEmoji.Count || 0}\``;
+    private createSmolString(guildEmoji: ExtendedGuildEmoji, available = false) {
+        return `${!this.hasName(guildEmoji) && !available ? "N/A": guildEmoji} \`${guildEmoji.Count || 0}\``;
     }
 
-    private createNormalString(guildEmoji: customGuildEmote, unav?: string) {
-        return `${unav || !this.hasName(guildEmoji) ? unav : guildEmoji} | \`${guildEmoji.Count}\` | \`${this.hasName(guildEmoji) ? guildEmoji.name : "Unknown"}\``;
+    private createNormalString(guildEmoji: ExtendedGuildEmoji, available = false) {
+        return `${!this.hasName(guildEmoji) && !available ? "N/A": guildEmoji} | \`${guildEmoji.Count || 0}\` | \`${this.hasName(guildEmoji) && available ? guildEmoji.name : "N/A"}\``;
     }
 
     public async messageRun(
@@ -54,7 +57,6 @@ export default class EmoteCount extends KaikiCommand {
         const isSmall = args.getFlags("small");
         const isClean = args.getFlags("clean");
 
-        const pages: EmbedBuilder[] = [];
         let guildDB = await this.client.orm.guilds.findUnique({
             where: {
                 Id: BigInt(message.guildId),
@@ -74,79 +76,57 @@ export default class EmoteCount extends KaikiCommand {
             .setAuthor({ name: message.guild.name })
             .withOkColor(message);
 
-        const mappedEmotesFromDb = message.guild.emojis.cache
-            .map((guildEmoji) => {
-                const emoteData = guildDB?.EmojiStats.find(
-                    (e) => String(e.EmojiId) === guildEmoji.id
-                );
-                return Object.assign(guildEmoji, emoteData || { Count: 0n });
-            })
-            .filter((ge) => (isClean ? ge.available : true))
-            .sort(({ Count: b }, { Count: a }) => (a < b ? -1 : a > b ? 1 : 0));
+        const mappedEmotes = message.guild.emojis.cache.map((emoji) => {
+            const dbStat = guildDB?.EmojiStats.find(
+                (e) => String(e.EmojiId) === emoji.id
+            );
+            return Object.assign(emoji, {
+                Count: dbStat ? dbStat.Count : 0n,
+                EmojiId: dbStat?.EmojiId,
+                GuildId: dbStat?.GuildId,
+            }) as ExtendedGuildEmoji;
+        });
 
-        // Throw error when there are no mapped emotes. This can happen when user uses --clean. Rare case.
-        if (!mappedEmotesFromDb.length)
+        // Filter out unavailable emojis if --clean is set
+        const filteredEmotes = isClean
+            ? mappedEmotes.filter((emoji) => emoji.available)
+            : mappedEmotes;
+
+        // Sort by usage count descending
+        filteredEmotes.sort((a, b) => Number(b.Count) - Number(a.Count));
+
+        // Throw error if no emojis left after filter (rare case)
+        if (!filteredEmotes.length) {
             throw new UserError({
                 identifier: "NoAvailableEmotes",
                 message: "There are no available emotes in this server!",
             });
+        }
 
-        const data = mappedEmotesFromDb.map((guildEmoji) => {
-            if (isSmall)
-                return this.createSmolString(
-                    guildEmoji,
-                    guildEmoji.available ? undefined : "Unavailable"
-                );
-            return this.createNormalString(
-                guildEmoji,
-                guildEmoji.available ? undefined : "Unavailable"
-            );
+        // Format emoji strings
+        const displayData = filteredEmotes.map((emoji) => {
+            const unavailable = !emoji.available;
+            return isSmall
+                ? this.createSmolString(emoji, unavailable)
+                : this.createNormalString(emoji, unavailable);
         });
 
-        if (isSmall) {
-            for (
-                let i =
-						Constants.MAGIC_NUMBERS.CMDS.EMOTES.EMOTE_COUNT
-						    .MAX_PR_PAGE,
-                    p = 0;
-                p < data.length;
-                i +=
-					Constants.MAGIC_NUMBERS.CMDS.EMOTES.EMOTE_COUNT.MAX_PR_PAGE,
-                p +=
-						Constants.MAGIC_NUMBERS.CMDS.EMOTES.EMOTE_COUNT
-						    .MAX_PR_PAGE
-            ) {
-                pages.push(
-                    EmbedBuilder.from(baseEmbed).setDescription(
-                        KaikiUtil.trim(
-                            data.slice(p, i).join(""),
-                            Constants.MAGIC_NUMBERS.EMBED_LIMITS.DESCRIPTION
-                        )
+        // Paginate results
+        const pages: EmbedBuilder[] = [];
+        const chunkSize = isSmall
+            ? Constants.MAGIC_NUMBERS.CMDS.EMOTES.EMOTE_COUNT.MAX_PR_PAGE
+            : Constants.MAGIC_NUMBERS.CMDS.EMOTES.EMOTE_COUNT.MIN_PR_PAGE;
+        const separator = isSmall ? "" : "\n";
+
+        for (let p = 0; p < displayData.length; p += chunkSize) {
+            pages.push(
+                EmbedBuilder.from(baseEmbed).setDescription(
+                    KaikiUtil.trim(
+                        displayData.slice(p, p + chunkSize).join(separator),
+                        Constants.MAGIC_NUMBERS.EMBED_LIMITS.DESCRIPTION
                     )
-                );
-            }
-        } else {
-            for (
-                let i =
-						Constants.MAGIC_NUMBERS.CMDS.EMOTES.EMOTE_COUNT
-						    .MIN_PR_PAGE,
-                    p = 0;
-                p < data.length;
-                i +=
-					Constants.MAGIC_NUMBERS.CMDS.EMOTES.EMOTE_COUNT.MIN_PR_PAGE,
-                p +=
-						Constants.MAGIC_NUMBERS.CMDS.EMOTES.EMOTE_COUNT
-						    .MIN_PR_PAGE
-            ) {
-                pages.push(
-                    EmbedBuilder.from(baseEmbed).setDescription(
-                        KaikiUtil.trim(
-                            data.slice(p, i).join("\n"),
-                            Constants.MAGIC_NUMBERS.EMBED_LIMITS.DESCRIPTION
-                        )
-                    )
-                );
-            }
+                )
+            );
         }
 
         return sendPaginatedMessage(message, pages, {});
