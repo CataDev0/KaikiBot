@@ -66,8 +66,8 @@ import Config from "../../lib/ServerConfig/Config";
     ],
 })
 export default class ConfigCommand extends Subcommand {
-    public async defaultMessageRun(message: Message<true>): Promise<void> {
-        return Config.messageRun(message);
+    public async defaultMessageRun(message: Message<true>) {
+        return await Config.messageRun(message);
     }
 
     public dadbotRun(message: Message<true>, args: Args) {

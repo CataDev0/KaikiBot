@@ -1,4 +1,6 @@
 import {
+    ChatInputCommandInteraction,
+    ColorResolvable,
     EmbedBuilder,
     Guild,
     GuildMember,
@@ -34,9 +36,17 @@ declare module "discord.js" {
 	}
 
 	export interface EmbedBuilder {
-		withOkColor(m?: Message | Guild): this;
+		withOkColor(): this;
+		withOkColor(m: Message): this;
+		withOkColor(m: Guild): this;
+		withOkColor(m: ChatInputCommandInteraction): this;
+		withOkColor(m?: Message | Guild | ChatInputCommandInteraction): this;
 
-		withErrorColor(m?: Message | Guild): this;
+		withErrorColor(): this;
+		withErrorColor(m: Message): this;
+		withErrorColor(m: Guild): this;
+		withErrorColor(m: ChatInputCommandInteraction): this;
+		withErrorColor(m?: Message | Guild | ChatInputCommandInteraction): this;
 	}
 
 	export interface ButtonInteraction {
@@ -67,9 +77,15 @@ Message.prototype.isDadBotEnabledInGuildAndChannel = function () {
     return !this.client.dadBotChannels.items.get(this.channelId);
 };
 
-EmbedBuilder.prototype.withErrorColor = function (
-    messageOrGuild?: Message | Guild
-) {
+function withErrorColor(this: EmbedBuilder): EmbedBuilder;
+function withErrorColor(this: EmbedBuilder, m: Message): EmbedBuilder;
+function withErrorColor(this: EmbedBuilder, m: Guild): EmbedBuilder;
+function withErrorColor(this: EmbedBuilder, m: ChatInputCommandInteraction): EmbedBuilder;
+function withErrorColor(this: EmbedBuilder, m: Message | Guild | ChatInputCommandInteraction): EmbedBuilder;
+function withErrorColor(
+    this: EmbedBuilder,
+    messageOrGuild?: Message | Guild | ChatInputCommandInteraction
+): EmbedBuilder {
     if (messageOrGuild) {
         if (messageOrGuild instanceof Message && messageOrGuild.inGuild()) {
             const color = messageOrGuild.client.guildsDb.get(
@@ -78,24 +94,40 @@ EmbedBuilder.prototype.withErrorColor = function (
                 Constants.errorColor
             );
 
-            return this.setColor(Array.isArray(color) ? color : Number(color));
-        } else {
+            return this.setColor(color as ColorResolvable);
+        } else if (messageOrGuild instanceof ChatInputCommandInteraction && messageOrGuild.inGuild()) {
+            const color = messageOrGuild.client.guildsDb.get(
+                messageOrGuild.guildId!,
+                "ErrorColor",
+                Constants.errorColor
+            );
+
+            return this.setColor(color as ColorResolvable);
+        } else if (messageOrGuild instanceof Guild) {
             const color = messageOrGuild.client.guildsDb.get(
                 messageOrGuild.id,
                 "ErrorColor",
                 Constants.errorColor
             );
 
-            return this.setColor(Array.isArray(color) ? color : Number(color));
+            return this.setColor(color as ColorResolvable);
         }
     }
 
     return this.setColor(Constants.errorColor);
-};
+}
 
-EmbedBuilder.prototype.withOkColor = function (
-    messageOrGuild?: Message | Guild
-) {
+EmbedBuilder.prototype.withErrorColor = withErrorColor;
+
+function withOkColor(this: EmbedBuilder): EmbedBuilder;
+function withOkColor(this: EmbedBuilder, m: Message): EmbedBuilder;
+function withOkColor(this: EmbedBuilder, m: Guild): EmbedBuilder;
+function withOkColor(this: EmbedBuilder, m: ChatInputCommandInteraction): EmbedBuilder;
+function withOkColor(this: EmbedBuilder, m: Message | Guild | ChatInputCommandInteraction): EmbedBuilder;
+function withOkColor(
+    this: EmbedBuilder,
+    messageOrGuild?: Message | Guild | ChatInputCommandInteraction
+): EmbedBuilder {
     if (messageOrGuild) {
         if (messageOrGuild instanceof Message && messageOrGuild.inGuild()) {
             const color = messageOrGuild.client.guildsDb.get(
@@ -104,17 +136,27 @@ EmbedBuilder.prototype.withOkColor = function (
                 Constants.okColor
             );
 
-            return this.setColor(Array.isArray(color) ? color : Number(color));
-        } else {
+            return this.setColor(color as ColorResolvable);
+        } else if (messageOrGuild instanceof ChatInputCommandInteraction && messageOrGuild.inGuild()) {
+            const color = messageOrGuild.client.guildsDb.get(
+                messageOrGuild.guildId!,
+                "OkColor",
+                Constants.okColor
+            );
+
+            return this.setColor(color as ColorResolvable);
+        } else if (messageOrGuild instanceof Guild) {
             const color = messageOrGuild.client.guildsDb.get(
                 messageOrGuild.id,
                 "OkColor",
                 Constants.okColor
             );
 
-            return this.setColor(Array.isArray(color) ? color : Number(color));
+            return this.setColor(color as ColorResolvable);
         }
     }
 
     return this.setColor(Constants.okColor);
-};
+}
+
+EmbedBuilder.prototype.withOkColor = withOkColor;
