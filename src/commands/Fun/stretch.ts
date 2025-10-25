@@ -6,6 +6,7 @@ import {
     EmbedBuilder,
     GuildMember,
     Message,
+    User,
 } from "discord.js";
 
 import sharp from "sharp";
@@ -20,7 +21,7 @@ import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 export default class SquishCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args): Promise<Message> {
         
-        const argument = await args.pick("member")
+        const argument = await args.pick("user")
             .catch(() => args.pick("url"))
             .catch(() => {
                 const attachment = message.attachments.first();
@@ -31,7 +32,7 @@ export default class SquishCommand extends KaikiCommand {
 
                 // Return member as default for no arguments
                 if (args.finished) {
-                    return message.member!;
+                    return message.author;
                 }
 
                 // Finally if args were given, throw when none found
@@ -43,7 +44,7 @@ export default class SquishCommand extends KaikiCommand {
 
         let image: Response;
 
-        if (argument instanceof GuildMember) {
+        if (argument instanceof User) {
             image = await fetch(argument.displayAvatarURL({
                 size: 256,
                 extension: "jpg",
