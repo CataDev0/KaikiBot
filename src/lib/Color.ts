@@ -1,6 +1,7 @@
 import sharp from "sharp";
 import Constants from "../struct/Constants";
 import { KaikiColor } from "./Types/KaikiColor";
+import { ColorResolvable, RGBTuple } from "discord.js";
 
 export async function imgFromColor(
     color: KaikiColor,
@@ -18,4 +19,8 @@ export async function imgFromColor(
             .jpeg()
             .toBuffer()
     );
+}
+
+export function ConvertToColorResolvable(color: string | RGBTuple): ColorResolvable {
+    return Array.isArray(color) ? color : Number(color);
 }

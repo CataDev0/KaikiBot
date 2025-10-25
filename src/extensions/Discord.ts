@@ -5,10 +5,12 @@ import {
     Guild,
     GuildMember,
     Message,
+    RGBTuple,
 } from "discord.js";
 import IKaikiClient from "../lib/Kaiki/IKaikiClient";
 import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
 import Constants from "../struct/Constants";
+import { ConvertToColorResolvable } from "src/lib/Color";
 
 declare module "discord.js" {
 	interface Client extends IKaikiClient {
@@ -130,29 +132,29 @@ function withOkColor(
 ): EmbedBuilder {
     if (messageOrGuild) {
         if (messageOrGuild instanceof Message && messageOrGuild.inGuild()) {
-            const color = messageOrGuild.client.guildsDb.get(
+            const color = <string | RGBTuple> messageOrGuild.client.guildsDb.get(
                 messageOrGuild.guildId,
                 "OkColor",
                 Constants.okColor
             );
 
-            return this.setColor(color as ColorResolvable);
+            return this.setColor(ConvertToColorResolvable(color));
         } else if (messageOrGuild instanceof ChatInputCommandInteraction && messageOrGuild.inGuild()) {
-            const color = messageOrGuild.client.guildsDb.get(
+            const color = <string | RGBTuple> messageOrGuild.client.guildsDb.get(
                 messageOrGuild.guildId!,
                 "OkColor",
                 Constants.okColor
             );
 
-            return this.setColor(color as ColorResolvable);
+            return this.setColor(ConvertToColorResolvable(color));
         } else if (messageOrGuild instanceof Guild) {
-            const color = messageOrGuild.client.guildsDb.get(
+            const color = <string | RGBTuple> messageOrGuild.client.guildsDb.get(
                 messageOrGuild.id,
                 "OkColor",
                 Constants.okColor
             );
 
-            return this.setColor(color as ColorResolvable);
+            return this.setColor(ConvertToColorResolvable(color));
         }
     }
 
