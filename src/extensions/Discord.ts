@@ -10,7 +10,7 @@ import {
 import IKaikiClient from "../lib/Kaiki/IKaikiClient";
 import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
 import Constants from "../struct/Constants";
-import { ConvertToColorResolvable } from "src/lib/Color";
+import { ConvertToColorResolvable } from "../lib/Color";
 
 declare module "discord.js" {
 	interface Client extends IKaikiClient {
