@@ -11,7 +11,7 @@
 		"start": "node dist/index.js --color",
 		"version": "auto-changelog -p -u -o CHANGELOG.md -t keepachangelog && git add CHANGELOG.md",
 		"watch": "tsc -p tsconfig.json -w",
-		"deploy": "npm ci --development && npm run build && npm prune --production"
+		"deploy": "npm ci --include=dev && npm run build && npm prune --omit=dev"
 	},
 	"keywords": [
 		"Community",
@@ -69,5 +69,8 @@
 	"engines": {
 		"node": ">=18.17.0",
 		"npm": ">=9.0.0"
+	},
+	"overrides": {
+		"@emnapi/runtime": "0.0.0"
 	}
 }
