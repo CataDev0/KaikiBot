@@ -1,5 +1,5 @@
 import { BlockedCategories, Guilds } from "@prisma/client";
-import { Args, ArgumentError, UserError } from "@sapphire/framework";
+import { Args, UserError } from "@sapphire/framework";
 import { sendPaginatedMessage } from "discord-js-button-pagination-ts";
 import {
     AttachmentBuilder,

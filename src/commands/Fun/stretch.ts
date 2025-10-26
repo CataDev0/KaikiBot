@@ -4,7 +4,6 @@ import {
     Attachment,
     AttachmentBuilder,
     EmbedBuilder,
-    GuildMember,
     Message,
     User,
 } from "discord.js";

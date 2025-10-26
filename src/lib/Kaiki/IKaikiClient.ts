@@ -8,6 +8,7 @@ import AnniversaryRolesService from "../../services/AnniversaryRolesService";
 import HentaiService from "../../services/HentaiService";
 import PackageJSON from "../Interfaces/Common/PackageJSON";
 import { MoneyService } from "../../services/MoneyService";
+import { MusicService } from "../../services/MusicService";
 
 export default interface IKaikiClient {
 	anniversaryService: AnniversaryRolesService;
@@ -22,4 +23,5 @@ export default interface IKaikiClient {
 	owner: User;
 	package: PackageJSON;
 	hentaiService: HentaiService;
+	musicService?: MusicService;
 }

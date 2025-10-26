@@ -1,4 +1,3 @@
-import process from "process";
 import { EmbedBuilder } from "discord.js";
 import Constants from "../struct/Constants";
 import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";

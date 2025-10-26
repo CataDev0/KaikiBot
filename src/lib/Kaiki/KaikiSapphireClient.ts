@@ -36,6 +36,7 @@ import NeofetchCommand from "../../commands/Fun/neofetch";
 import DiscordBotListService from "../../services/DiscordBotListService";
 import { Webserver } from "../../services/Webserver";
 import { BotStats } from "../Types/DiscordBotList";
+import { MusicService } from "../../services/MusicService";
 
 export default class KaikiSapphireClient<Ready extends true>
     extends SapphireClient<Ready>
@@ -54,6 +55,7 @@ export default class KaikiSapphireClient<Ready extends true>
     public package: PackageJSON;
     public hentaiService: HentaiService;
     public dblService: DiscordBotListService;
+    public musicService?: MusicService;
     private webListener: Webserver;
 
     constructor() {
@@ -71,6 +73,7 @@ export default class KaikiSapphireClient<Ready extends true>
                 GatewayIntentBits.GuildMessages,
                 GatewayIntentBits.GuildWebhooks,
                 GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildVoiceStates,
                 GatewayIntentBits.MessageContent
             ],
             partials: [
@@ -287,9 +290,17 @@ export default class KaikiSapphireClient<Ready extends true>
 
         this.hentaiService = new HentaiService();
         this.logger.info("HentaiService | Service initiated");
+
+        // Initialize MusicService only if dependencies are available
+        if (await this.checkMusicDependencies()) {
+            this.musicService = new MusicService();
+            this.logger.info("MusicService | Service initiated");
+        } else {
+            this.logger.warn("MusicService | Skipped initialization due to missing dependencies");
+        }
     }
 
-    private async presenceLoop(): Promise<NodeJS.Timer> {
+    private async presenceLoop(): Promise<NodeJS.Timeout> {
         await this.setPresence();
 
         return setInterval(
@@ -374,6 +385,33 @@ export default class KaikiSapphireClient<Ready extends true>
             }
             NeofetchCommand.usingFastFetch = false;
         }
+
+        // Check if music dependencies are available
+        if (!(await this.checkMusicDependencies())) {
+            const musicCommands = ["play", "skip", "queue", "stop"];
+            for (const cmd of musicCommands) {
+                await commandStore.unload(cmd);
+            }
+            this.logger.warn("Music dependencies not available! Music commands will be disabled.");
+        }
+    }
+
+    private async checkMusicDependencies(): Promise<boolean> {
+        // Check if yt-dlp is installed
+        try {
+            execSync("command -v yt-dlp >/dev/null 2>&1");
+        } catch {
+            return false;
+        }
+
+        // Check if @discordjs/voice is available
+        try {
+            await import("@discordjs/voice");
+        } catch {
+            return false;
+        }
+
+        return true;
     }
 
     public getBotStats(): BotStats {

@@ -3,8 +3,7 @@ import express, { Express } from "express";
 import { container } from "@sapphire/pieces";
 import * as Colorette from "colorette";
 import { Guild, HexColorString } from "discord.js";
-import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoAddBody } from "kaikiwa-types";
-import { APIRole } from "../../KaikiWA-Types";
+import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoAddBody , APIRole } from "kaikiwa-types";
 import { JSONToMessageOptions } from "../lib/GreetHandler";
 import { VoteBody } from "src/lib/Types/DiscordBotList";
 import KaikiSapphireClient from "src/lib/Kaiki/KaikiSapphireClient";
@@ -270,48 +269,48 @@ export class Webserver {
             }
 
             switch (key) {
-                case "icon":
-                    await guild.setIcon(value);
-                    break;
-                case "excluderolename":
-                    await Webserver.SetExcludeRoleName(value, guild);
-                    break;
-                case "excluderolecolor":
-                    await Webserver.SetExcludeRoleColor(value, guild);
-                    break;
-                case "name": 
-                    await guild.setName(value);
-                    break;
-                case "UserRoleColor":
-                    if (!userRoleId) break;
-                    await Webserver.SetUserRoleColor(userRoleId, value, guild);
-                    break;
-                case "UserRoleName":
-                    if (!userRoleId) break;
-                    await Webserver.SetRoleName(userRoleId, value, guild);
-                    break;
-                case "UserRoleIcon":
-                    if (!userRoleId) break;
-                    await Webserver.SetUserRoleIcon(userRoleId, value, guild);
-                    break;
-                case "WelcomeChannel":
-                case "ByeChannel":
-                    embedUpdates[key] = value ? BigInt(value) : null;
-                    break;
+            case "icon":
+                await guild.setIcon(value);
+                break;
+            case "excluderolename":
+                await Webserver.SetExcludeRoleName(value, guild);
+                break;
+            case "excluderolecolor":
+                await Webserver.SetExcludeRoleColor(value, guild);
+                break;
+            case "name": 
+                await guild.setName(value);
+                break;
+            case "UserRoleColor":
+                if (!userRoleId) break;
+                await Webserver.SetUserRoleColor(userRoleId, value, guild);
+                break;
+            case "UserRoleName":
+                if (!userRoleId) break;
+                await Webserver.SetRoleName(userRoleId, value, guild);
+                break;
+            case "UserRoleIcon":
+                if (!userRoleId) break;
+                await Webserver.SetUserRoleIcon(userRoleId, value, guild);
+                break;
+            case "WelcomeChannel":
+            case "ByeChannel":
+                embedUpdates[key] = value ? BigInt(value) : null;
+                break;
 
-                case "WelcomeTimeout":
-                case "ByeTimeout":
-                    embedUpdates[key] = Number(value ?? 0);
-                    break;
+            case "WelcomeTimeout":
+            case "ByeTimeout":
+                embedUpdates[key] = Number(value ?? 0);
+                break;
 
-                case "WelcomeMessage":
-                case "ByeMessage":
-                    embedUpdates[key] = JSON.stringify(new JSONToMessageOptions(value));
-                    break;
+            case "WelcomeMessage":
+            case "ByeMessage":
+                embedUpdates[key] = JSON.stringify(new JSONToMessageOptions(value));
+                break;
                 // This will handle all non-special and non-guildDB parameters
-                default:
-                    await container.client.guildsDb.set(guild.id, key, value);
-                    break;
+            default:
+                await container.client.guildsDb.set(guild.id, key, value);
+                break;
             }
         }
 

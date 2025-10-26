@@ -8,11 +8,6 @@ import KaikiUtil from "../../lib/KaikiUtil";
 import Constants from "../../struct/Constants";
 
 // Emote data from database and djs
-type EmoteStats = {
-    EmojiId: bigint;
-    Count: bigint;
-    GuildId: bigint;
-};
 type ExtendedGuildEmoji = GuildEmoji & {
     Count: bigint;
     EmojiId?: bigint;

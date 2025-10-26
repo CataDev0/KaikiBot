@@ -80,19 +80,19 @@ export default class HentaiService {
         const tag = tags?.join("+").toLowerCase() || "";
 
         switch (type) {
-            case DAPI.E621:
-                return this.e621(
-                    `https://e621.net/posts.json?limit=5&tags=${tag}`
-                );
-            case DAPI.Danbooru:
-                return this.danbooru(
-                    `https://danbooru.donmai.us/posts.json?limit=5&tags=${tag}`
-                );
-            default:
-                throw new UserError({
-                    identifier: "UnknownAPI",
-                    message: "Unknown API type."
-                });
+        case DAPI.E621:
+            return this.e621(
+                `https://e621.net/posts.json?limit=5&tags=${tag}`
+            );
+        case DAPI.Danbooru:
+            return this.danbooru(
+                `https://danbooru.donmai.us/posts.json?limit=5&tags=${tag}`
+            );
+        default:
+            throw new UserError({
+                identifier: "UnknownAPI",
+                message: "Unknown API type."
+            });
         }
     }
 

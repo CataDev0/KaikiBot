@@ -4,7 +4,6 @@ import {
     Attachment,
     AttachmentBuilder,
     EmbedBuilder,
-    GuildMember,
     Message,
     User,
 } from "discord.js";
@@ -69,8 +68,8 @@ export default class CompressCommand extends KaikiCommand {
 
         const attachment = new AttachmentBuilder(
             await picture.toBuffer(), {
-            name: "compressed.jpg",
-        });
+                name: "compressed.jpg",
+            });
 
         const embed = new EmbedBuilder({
             title: "High quality image...",
