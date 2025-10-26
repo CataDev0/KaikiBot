@@ -4,7 +4,7 @@ import { Args } from "@sapphire/framework";
 import { ChannelType, EmbedBuilder, GuildFeature, Message } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
-import Constants, { UndocumentedFeatures } from "../../struct/Constants";
+import Constants from "../../struct/Constants";
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "serverinfo",
@@ -68,19 +68,6 @@ News: **${guild.channels.cache.filter((channel) => channel.type === ChannelType.
                 {
                     name: "Maximum video-channel users",
                     value: String(guild.maxVideoChannelUsers),
-                    inline: false,
-                },
-                {
-                    name: "Features",
-                    value: guild.features.length
-                        ? guild.features
-                            .map(
-                                (f: GuildFeature & UndocumentedFeatures) =>
-                                    `* ${Constants.guildFeatures[f] || f}`
-                            )
-                            .sort()
-                            .join("\n")
-                        : "None",
                     inline: false,
                 },
             ],

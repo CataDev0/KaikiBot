@@ -1,10 +1,12 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args, UserError } from "@sapphire/framework";
 import {
+    Attachment,
     AttachmentBuilder,
     EmbedBuilder,
     GuildMember,
     Message,
+    User,
 } from "discord.js";
 
 import sharp from "sharp";
@@ -19,35 +21,59 @@ import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 })
 export default class CompressCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args) {
-        const member = <GuildMember>await args.pick("member").catch(() => {
-            if (args.finished) {
-                return message.member;
-            }
-            throw new UserError({
-                identifier: "NoMemberProvided",
-                message: "Couldn't find a server member with that name.",
+        const argument = await args.pick("user")
+            .catch(() => args.pick("url"))
+            .catch(() => {
+                const attachment = message.attachments.first();
+                // Returns the first attachemnt if it is an image
+                if (attachment?.contentType?.startsWith("image/")) {
+                    return attachment;
+                }
+
+                // Return member as default for no arguments
+                if (args.finished) {
+                    return message.author;
+                }
+
+                // Finally if args were given, throw when none found
+                throw new UserError({
+                    identifier: "Argument",
+                    message: "Please provide a member, image-url or attached image.",
+                });
             });
-        });
 
-        const avatar = await (
-            await fetch(
-                member.displayAvatarURL({
-                    size: 32,
-                    extension: "jpg",
-                })
-            )
-        ).arrayBuffer();
+        let image: Response;
 
-        const picture = sharp(avatar)
-            .resize(256, 256, { kernel: "nearest" })
+        if (argument instanceof User) {
+            image = await fetch(argument.displayAvatarURL({
+                size: 32,
+                extension: "jpg",
+            }));
+        }
+        else if (argument instanceof URL) {
+            image = await fetch(argument);
+        }
+        else {
+            image = await fetch((argument as Attachment).url)
+        }
+
+        const imageBuffer = await image.arrayBuffer();
+
+        const downscaled = sharp(imageBuffer)
+            .resize({ height: 64, kernel: "nearest", fit: "outside" })
             .webp({ quality: 50 });
 
-        const attachment = new AttachmentBuilder(picture, {
+        const picture = sharp(await downscaled.toBuffer())
+            .resize({ height: 256, kernel: "nearest", fit: "outside" })
+            .webp({ quality: 100 });
+
+        const attachment = new AttachmentBuilder(
+            await picture.toBuffer(), {
             name: "compressed.jpg",
         });
 
         const embed = new EmbedBuilder({
-            title: "High quality avatar",
+            title: "High quality image...",
             image: { url: "attachment://compressed.jpg" },
         }).withOkColor(message);
 

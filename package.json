@@ -10,7 +10,8 @@
 		"lint": "eslint .",
 		"start": "node dist/index.js --color",
 		"version": "auto-changelog -p -u -o CHANGELOG.md -t keepachangelog && git add CHANGELOG.md",
-		"watch": "tsc -p tsconfig.json -w"
+		"watch": "tsc -p tsconfig.json -w",
+        "deploy": "npm ci --development && npm run build && npm prune --production"
 	},
 	"keywords": [
 		"Community",
@@ -39,25 +40,23 @@
 		"discord.js": "^14.20.0",
 		"dotenv": "^16.4.7",
 		"express": "^4.21.0",
-		"kaikiwa-types": "./KaikiWA-Types/",
 		"mysql2": "^3.11.5",
-		"node-gyp": "^11.4.2",
 		"prisma": "^5.22.0",
 		"sharp": "^0.34.2",
 		"source-map-support": "^0.5.21",
-		"utf-8-validate": "^6.0.5",
-		"zlib-sync": "^0.1.9"
+		"utf-8-validate": "^6.0.5"
 	},
 	"devDependencies": {
-		"@types/express": "^5.0.3",
-		"@typescript-eslint/eslint-plugin": "^8.43.0",
-		"@typescript-eslint/parser": "^8.43.0",
-		"auto-changelog": "^2.5.0",
-		"eslint": "^9.35.0",
-		"eslint-import-resolver-typescript": "^4.4.4",
-		"eslint-plugin-import": "^2.32.0",
-		"typescript": "~5.4.5"
-	},
+      "@types/express": "^5.0.3",
+      "@typescript-eslint/eslint-plugin": "^8.43.0",
+      "@typescript-eslint/parser": "^8.43.0",
+      "auto-changelog": "^2.5.0",
+      "eslint": "^9.35.0",
+      "eslint-import-resolver-typescript": "^4.4.4",
+      "eslint-plugin-import": "^2.32.0",
+      "kaikiwa-types": "./KaikiWA-Types/",
+      "typescript": "~5.4.5"
+    },
 	"description": "Discord bot built with Sapphire, Prisma and MySQL2, written in TypeScript.",
 	"repository": {
 		"type": "git",
