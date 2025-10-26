@@ -411,6 +411,8 @@ export default class KaikiSapphireClient<Ready extends true>
             return false;
         }
 
+        if (process.env.DISABLE_MUSIC) return false;
+
         return true;
     }
 
