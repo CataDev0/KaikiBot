@@ -25,4 +25,4 @@ COPY --from=build /kaikibot/dist ./dist
 COPY --from=build /kaikibot/prisma ./prisma
 COPY --from=build /kaikibot/node_modules/.prisma ./node_modules/.prisma
 
-CMD ["node", "dist/index.js", "--color"]
+CMD npx prisma migrate deploy && node dist/index.js --color
