@@ -8,6 +8,7 @@ import {
     entersState,
     joinVoiceChannel,
     StreamType,
+// @ts-ignore
 } from "@discordjs/voice";
 import { VoiceBasedChannel } from "discord.js";
 import { spawn } from "child_process";
@@ -22,7 +23,7 @@ interface Track {
 
 export class MusicService {
     private connection: VoiceConnection | null = null;
-    private player: AudioPlayer;
+    private readonly player: AudioPlayer;
     private queue: Track[] = [];
     private currentTrack: Track | null = null;
     private isPlaying: boolean = false;
@@ -43,7 +44,7 @@ export class MusicService {
             this.isPlaying = true;
         });
 
-        this.player.on("error", (error) => {
+        this.player.on("error", (error: Error) => {
             container.logger.error(`AudioPlayer error: ${error.message}`);
             this.isPlaying = false;
             this.currentTrack = null;

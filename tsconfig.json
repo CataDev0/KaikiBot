@@ -15,6 +15,7 @@
 		"types": ["node"],
 		"declaration": false,
 		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true
-	}
+		"experimentalDecorators": true,
+        "typeRoots": ["node_modules/@types", "src/extensions"]
+    }
 }
