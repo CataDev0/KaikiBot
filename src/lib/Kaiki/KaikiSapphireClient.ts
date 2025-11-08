@@ -406,14 +406,13 @@ export default class KaikiSapphireClient<Ready extends true>
 
         // Check if @discordjs/voice is available
         try {
+            // @ts-ignore
             await import("@discordjs/voice");
         } catch {
             return false;
         }
 
-        if (process.env.DISABLE_MUSIC) return false;
-
-        return true;
+        return !process.env.DISABLE_MUSIC;
     }
 
     public getBotStats(): BotStats {

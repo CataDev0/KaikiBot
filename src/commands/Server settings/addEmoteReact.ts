@@ -16,6 +16,12 @@ import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
     preconditions: ["GuildOnly"],
 })
 export default class EmoteReactCommand extends KaikiCommand {
+
+    static emojiUserError = new UserError({
+        identifier: "NoEmojiProvided",
+        message: "Couldn't find an emoji with that name.",
+    });
+
     public async messageRun(
         message: Message<true>,
         args: Args
@@ -23,11 +29,10 @@ export default class EmoteReactCommand extends KaikiCommand {
         const trigger = (await args.pick("string")).toLowerCase();
         const emoji = await args.pick("emoji")
             .catch(() => {
-                throw new UserError({
-                    identifier: "NoEmojiProvided",
-                    message: "Couldn't find an emoji with that name.",
-                });
+                throw EmoteReactCommand.emojiUserError;
             });
+
+        if (!emoji.id) throw EmoteReactCommand.emojiUserError;
 
         const emojiUrl = `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}`;
         const possibleTrigger = await this.client.orm.emojiReactions.findFirst({

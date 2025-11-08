@@ -1,8 +1,10 @@
 import process from "process";
+// @ts-ignore
 import express, { Express } from "express";
 import { container } from "@sapphire/pieces";
 import * as Colorette from "colorette";
 import { Guild, HexColorString } from "discord.js";
+// @ts-ignore
 import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoAddBody , APIRole } from "kaikiwa-types";
 import { JSONToMessageOptions } from "../lib/GreetHandler";
 import { VoteBody } from "src/lib/Types/DiscordBotList";
