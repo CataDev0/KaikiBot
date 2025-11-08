@@ -405,7 +405,7 @@ export default class KaikiSapphireClient<Ready extends true>
 
         // Check if @discordjs/voice is available
         try {
-            // @ts-expect-error - This is a dynamic import, so it's fine'
+            // @ts-ignore
             await import("@discordjs/voice");
         } catch {
             return false;
