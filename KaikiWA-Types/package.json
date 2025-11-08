@@ -1,6 +1,6 @@
 {
   "name": "kaikiwa-types",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Types for Kaiki WA application",
   "main": "index.d.ts",
   "types": "index.d.ts",

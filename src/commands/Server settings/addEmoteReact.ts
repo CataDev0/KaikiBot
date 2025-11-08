@@ -1,5 +1,5 @@
 import { ApplyOptions } from "@sapphire/decorators";
-import { Args } from "@sapphire/framework";
+import { Args, UserError } from "@sapphire/framework";
 import { EmbedBuilder, Message } from "discord.js";
 import KaikiCache, { ERCacheType } from "../../lib/Cache/KaikiCache";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
@@ -21,11 +21,15 @@ export default class EmoteReactCommand extends KaikiCommand {
         args: Args
     ): Promise<Message> {
         const trigger = (await args.pick("string")).toLowerCase();
-        const emoji = await args.rest("emoji");
+        const emoji = await args.pick("emoji")
+            .catch(() => {
+                throw new UserError({
+                    identifier: "NoEmojiProvided",
+                    message: "Couldn't find an emoji with that name.",
+                });
+            });
+
         const emojiUrl = `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}`;
-
-        if (!emoji.id) throw new Error("");
-
         const possibleTrigger = await this.client.orm.emojiReactions.findFirst({
             where: {
                 GuildId: BigInt(message.guildId),
@@ -64,12 +68,12 @@ export default class EmoteReactCommand extends KaikiCommand {
             this.client.cache.emoteReactCache
                 .get(message.guildId)
                 ?.get(ERCacheType.HAS_SPACE)
-                ?.set(trigger, emoji.id);
+                ?.set(trigger, { id: emoji.id });
         } else {
             this.client.cache.emoteReactCache
                 .get(message.guildId)
                 ?.get(ERCacheType.NO_SPACE)
-                ?.set(trigger, emoji.id);
+                ?.set(trigger, { id: emoji.id });
         }
 
         return message.reply({

@@ -5,23 +5,24 @@
 	"type": "commonjs",
 	"scripts": {
 		"build": "rm -rf dist/ && npx prisma migrate deploy && npx prisma generate && tsc -p tsconfig.json",
+		"deploy": "npm ci --include=dev && npm run build && npm prune --omit=dev",
 		"dev": "npm run watch & npm run start",
 		"format": "prettier --write .",
 		"lint": "eslint .",
 		"start": "node dist/index.js --color",
 		"version": "auto-changelog -p -u -o CHANGELOG.md -t keepachangelog && git add CHANGELOG.md",
-		"watch": "tsc -p tsconfig.json -w",
-		"deploy": "npm ci --include=dev && npm run build && npm prune --omit=dev"
+		"watch": "tsc -p tsconfig.json -w"
 	},
 	"keywords": [
 		"Community",
 		"Customizable",
 		"Discord",
-		"Typescript",
-		"Prisma",
-		"MySQL",
+		"Docker",
 		"Multipurpose",
-		"Docker"
+		"Music",
+		"MySQL",
+		"Prisma",
+		"Typescript"
 	],
 	"author": {
 		"name": "Cata",
@@ -29,25 +30,27 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"@discordjs/voice": "^0.19.0",
 		"@prisma/client": "^5.22.0",
 		"@sapphire/decorators": "^6.1.1",
 		"@sapphire/framework": "^5.3.6",
 		"@sapphire/plugin-logger": "^4.0.2",
 		"@sapphire/plugin-subcommands": "^7.0.1",
 		"@sapphire/shapeshift": "^4.0.0",
-		"@snazzah/davey": "^0.1.7",
 		"bufferutil": "^4.0.8",
 		"discord-js-button-pagination-ts": "^4.2.2-1",
 		"discord.js": "^14.20.0",
 		"dotenv": "^16.4.7",
 		"express": "^4.21.0",
 		"mysql2": "^3.11.5",
-		"opusscript": "^0.0.8",
 		"prisma": "^5.22.0",
 		"sharp": "^0.34.2",
 		"source-map-support": "^0.5.21",
 		"utf-8-validate": "^6.0.5"
+	},
+	"optionalDependencies": {
+		"@discordjs/voice": "^0.19.0",
+		"@snazzah/davey": "^0.1.7",
+		"opusscript": "^0.0.8"
 	},
 	"devDependencies": {
 		"@types/express": "^5.0.3",
