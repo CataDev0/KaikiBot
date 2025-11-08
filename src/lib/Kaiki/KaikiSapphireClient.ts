@@ -392,7 +392,6 @@ export default class KaikiSapphireClient<Ready extends true>
             for (const cmd of musicCommands) {
                 await commandStore.unload(cmd);
             }
-            this.logger.warn("Music dependencies not available! Music commands will be disabled.");
         }
     }
 
@@ -406,7 +405,7 @@ export default class KaikiSapphireClient<Ready extends true>
 
         // Check if @discordjs/voice is available
         try {
-            // @ts-ignore
+            // @ts-expect-error - This is a dynamic import, so it's fine'
             await import("@discordjs/voice");
         } catch {
             return false;
