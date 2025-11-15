@@ -2,6 +2,7 @@ import { VoiceBasedChannel } from "discord.js";
 import { spawn } from "child_process";
 import { Readable } from "stream";
 import { container } from "@sapphire/framework";
+import { AudioPlayerStatus } from "@discordjs/voice";
 
 // @ts-ignore
 type VoiceLib = typeof import("@discordjs/voice");
@@ -49,30 +50,33 @@ export class MusicService {
     }
 
     public async join(channel: VoiceBasedChannel): Promise<void> {
-        const voice = await this.loadVoice();
-        if (!voice) throw new Error("Voice support unavailable");
+        if (!this.player) {
+            await this.init();
+        }
+
+        if (!this.voiceLib) throw new Error("Voice support unavailable");
 
         if (this.connection && this.connection.joinConfig.channelId === channel.id) return;
 
-        this.connection = voice.joinVoiceChannel({
+        this.connection = this.voiceLib.joinVoiceChannel({
             channelId: channel.id,
             guildId: channel.guild.id,
             adapterCreator: channel.guild.voiceAdapterCreator,
         });
 
         try {
-            await voice.entersState(this.connection, voice.VoiceConnectionStatus.Ready, 30_000);
+            await this.voiceLib.entersState(this.connection, this.voiceLib.VoiceConnectionStatus.Ready, 30_000);
         } catch {
             this.connection.destroy();
             this.connection = null;
             throw new Error("Failed to join voice channel within 30 seconds");
         }
 
-        this.connection.on(voice.VoiceConnectionStatus.Disconnected, async () => {
+        this.connection.on(this.voiceLib.VoiceConnectionStatus.Disconnected, async () => {
             try {
                 await Promise.race([
-                    voice.entersState(this.connection!, voice.VoiceConnectionStatus.Signalling, 5_000),
-                    voice.entersState(this.connection!, voice.VoiceConnectionStatus.Connecting, 5_000),
+                    this.voiceLib!.entersState(this.connection!, this.voiceLib!.VoiceConnectionStatus.Signalling, 5_000),
+                    this.voiceLib!.entersState(this.connection!, this.voiceLib!.VoiceConnectionStatus.Connecting, 5_000),
                 ]);
             } catch {
                 this.connection?.destroy();
@@ -110,6 +114,11 @@ export class MusicService {
             });
             
             this.player?.play(resource);
+
+            this.player?.on("stateChange", (state) => {
+                if (state.status === AudioPlayerStatus.Idle) this.playNext();
+            });
+
             await this.voiceLib.entersState(this.player!, this.voiceLib.AudioPlayerStatus.Playing, 10_000);
             return title;
         } catch (error) {
