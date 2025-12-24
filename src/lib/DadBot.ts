@@ -21,10 +21,8 @@ export class DadBot {
         message: Message<true>
     ): message is CustomMessageType {
         if (!message.member) return false;
-
         if (message.content.includes("||")) return false;
-
-        if (!message.isDadBotEnabledInGuildAndChannel()) return false;
+        if (!message.isDadEnabledGuild()) return false;
 
         return !message.member.hasExcludedRole();
     }
@@ -39,14 +37,16 @@ export class DadBot {
                 let match = message.content.match(r)?.groups?.nickname;
                 if (!match) continue;
 
+                if (match.replace(/[\u3164\u2800\u200B-\u200D\uFEFF]/g, "").trim().length === 0)
+                    continue;
+
                 const splits = match.split(new RegExp(`${item}`, "mig"));
                 if (splits.length > 1)
                     match = splits.reduce((a, b) =>
                         a.length <= b.length && a.length > 0 ? a : b
                     );
 
-                if (
-                    match.length &&
+                if (match.length &&
 					match.length <=
 						parseInt(
 						    process.env.DADBOT_NICKNAME_LENGTH ||

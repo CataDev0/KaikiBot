@@ -32,7 +32,7 @@ declare module "discord.js" {
 	export interface Message {
 		getMemberColorAsync(member?: GuildMember): Promise<ColorResolvable>;
 
-		isDadBotEnabledInGuildAndChannel(): boolean;
+		isDadEnabledGuild(): boolean;
 
 		client: KaikiSapphireClient<true>;
 	}
@@ -70,7 +70,10 @@ Guild.prototype.isDadBotEnabledInGuildOnly = function () {
     return !!(this && this.client.guildsDb.get(this.id, "DadBot", false));
 };
 
-Message.prototype.isDadBotEnabledInGuildAndChannel = function () {
+/** 
+ * Checks if DadBot is enabled in the Guild and Channel of the message
+*/
+Message.prototype.isDadEnabledGuild = function () {
     if (!this.inGuild()) return false;
 
     if (!this.guild.isDadBotEnabledInGuildOnly()) return false;
