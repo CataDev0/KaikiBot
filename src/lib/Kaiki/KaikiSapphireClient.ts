@@ -392,7 +392,6 @@ export default class KaikiSapphireClient<Ready extends true>
             for (const cmd of musicCommands) {
                 await commandStore.unload(cmd);
             }
-            this.logger.warn("Music dependencies not available! Music commands will be disabled.");
         }
     }
 

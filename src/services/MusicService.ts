@@ -15,6 +15,9 @@ import { spawn } from "child_process";
 import { Readable } from "stream";
 import { container } from "@sapphire/framework";
 
+// @ts-ignore
+type VoiceLib = typeof import("@discordjs/voice");
+
 interface Track {
     url: string;
     title: string;
@@ -23,18 +26,24 @@ interface Track {
 
 export class MusicService {
     private connection: VoiceConnection | null = null;
-    private readonly player: AudioPlayer;
+    // @ts-ignore
+    private connection: import("@discordjs/voice").VoiceConnection | null = null;
+    // @ts-ignore
+    private player: import("@discordjs/voice").AudioPlayer | null = null;
     private queue: Track[] = [];
     private currentTrack: Track | null = null;
     private isPlaying: boolean = false;
+    private voiceLib: VoiceLib | null = null;
 
-    constructor() {
-        this.player = createAudioPlayer();
-        this.setupPlayerHandlers();
-    }
+    public async init(): Promise<void> {
+        const voice = await this.loadVoice();
+        if (!voice) return;
 
-    private setupPlayerHandlers() {
-        this.player.on(AudioPlayerStatus.Idle, () => {
+        this.player = voice.createAudioPlayer();
+        this.player.on(voice.AudioPlayerStatus.Idle, () => this.playNext());
+        this.player.on(voice.AudioPlayerStatus.Playing, () => (this.isPlaying = true));
+        this.player.on("error", (err: Error) => {
+            container.logger.error(`AudioPlayer error: ${err.message}`);
             this.isPlaying = false;
             this.currentTrack = null;
             this.playNext();
@@ -51,31 +60,46 @@ export class MusicService {
             this.playNext();
         });
     }
+    private async loadVoice(): Promise<VoiceLib | null> {
+        if (this.voiceLib) return this.voiceLib;
+        try {
+            // @ts-ignore
+            this.voiceLib = await import("@discordjs/voice");
+            return this.voiceLib;
+        } catch {
+            container.logger.warn("Music features disabled: @discordjs/voice not installed.");
+            return null;
+        }
+    }
 
     public async join(channel: VoiceBasedChannel): Promise<void> {
-        if (this.connection && this.connection.joinConfig.channelId === channel.id) {
-            return;
+        if (!this.player) {
+            await this.init();
         }
 
-        this.connection = joinVoiceChannel({
+        if (!this.voiceLib) throw new Error("Voice support unavailable");
+
+        if (this.connection && this.connection.joinConfig.channelId === channel.id) return;
+
+        this.connection = this.voiceLib.joinVoiceChannel({
             channelId: channel.id,
             guildId: channel.guild.id,
             adapterCreator: channel.guild.voiceAdapterCreator,
         });
 
         try {
-            await entersState(this.connection, VoiceConnectionStatus.Ready, 30_000);
+            await this.voiceLib.entersState(this.connection, this.voiceLib.VoiceConnectionStatus.Ready, 30_000);
         } catch {
             this.connection.destroy();
             this.connection = null;
             throw new Error("Failed to join voice channel within 30 seconds");
         }
 
-        this.connection.on(VoiceConnectionStatus.Disconnected, async () => {
+        this.connection.on(this.voiceLib.VoiceConnectionStatus.Disconnected, async () => {
             try {
                 await Promise.race([
-                    entersState(this.connection!, VoiceConnectionStatus.Signalling, 5_000),
-                    entersState(this.connection!, VoiceConnectionStatus.Connecting, 5_000),
+                    this.voiceLib!.entersState(this.connection!, this.voiceLib!.VoiceConnectionStatus.Signalling, 5_000),
+                    this.voiceLib!.entersState(this.connection!, this.voiceLib!.VoiceConnectionStatus.Connecting, 5_000),
                 ]);
             } catch {
                 this.connection?.destroy();
@@ -83,11 +107,14 @@ export class MusicService {
             }
         });
 
-        this.connection.subscribe(this.player);
+        this.connection.subscribe(this.player!);
     }
+    
 
     public async play(url: string, requestedBy: string): Promise<string> {
-        if (this.isPlaying || this.player.state.status === AudioPlayerStatus.Playing) {
+        if (!this.voiceLib) throw new Error("Voice support unavailable");
+
+        if (this.isPlaying || this.player?.state.status === this.voiceLib.AudioPlayerStatus?.Playing) {
             const track: Track = { url, title: "Loading...", requestedBy };
             this.queue.push(track);
             return `Added to the queue (Position: ${this.queue.length})`;
@@ -100,15 +127,22 @@ export class MusicService {
     }
 
     private async playTrack(track: Track): Promise<string> {
+        if (!this.voiceLib) throw new Error("Voice support unavailable");
+
         try {
             const { stream, title } = await this.createAudioStream(track.url);
             track.title = title;
-            const resource = createAudioResource(stream, {
-                inputType: StreamType.OggOpus,
+            const resource = this.voiceLib.createAudioResource(stream, {
+                inputType: this.voiceLib.StreamType.OggOpus,
             });
             
-            this.player.play(resource);
-            await entersState(this.player, AudioPlayerStatus.Playing, 10_000);
+            this.player?.play(resource);
+
+            this.player?.on("stateChange", (state) => {
+                if (state.status === AudioPlayerStatus.Idle) this.playNext();
+            });
+
+            await this.voiceLib.entersState(this.player!, this.voiceLib.AudioPlayerStatus.Playing, 10_000);
             return title;
         } catch (error) {
             container.logger.error(`Failed to play track: ${error}`);
@@ -249,16 +283,18 @@ export class MusicService {
     }
 
     public skip(): boolean {
-        if (!this.isPlaying && this.player.state.status !== AudioPlayerStatus.Playing) {
+        if (!this.voiceLib) throw new Error("Voice support unavailable");
+      
+        if (!this.isPlaying && this.player?.state.status !== this.voiceLib.AudioPlayerStatus.Playing) {
             return false;
         }
 
-        this.player.stop();
+        this.player?.stop();
         return this.queue.length > 0;
     }
 
     public disconnect(): void {
-        this.player.stop();
+        this.player?.stop();
         this.connection?.destroy();
         this.connection = null;
         this.queue = [];
@@ -267,9 +303,11 @@ export class MusicService {
     }
 
     public isConnected(): boolean {
+        if (!this.voiceLib) throw new Error("Voice support unavailable");
+      
         return this.connection !== null && 
-               this.connection.state.status !== VoiceConnectionStatus.Disconnected &&
-               this.connection.state.status !== VoiceConnectionStatus.Destroyed;
+               this.connection.state.status !== this.voiceLib.VoiceConnectionStatus.Disconnected &&
+               this.connection.state.status !== this.voiceLib.VoiceConnectionStatus.Destroyed;
     }
 
     public getCurrentTrack(): Track | null {
