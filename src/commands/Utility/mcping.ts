@@ -1,14 +1,12 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args } from "@sapphire/framework";
 import { AttachmentBuilder, EmbedBuilder, Message } from "discord.js";
-
-import {
-    ServerOffline,
-    ServerOnline,
-} from "../../lib/Interfaces/Common/mcsrvstatAPIData";
+import { MinecraftServerUtil } from "../../lib/Minecraft/MinecraftServerUtil";
+import { MinecraftServerStatusResponse } from "../../lib/Interfaces/Common/MinecraftServer";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
-import KaikiUtil from "../../lib/KaikiUtil";
+
+const cache = new Map<string, MinecraftServerStatusResponse>();
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "mcping",
@@ -22,92 +20,82 @@ export default class MinecraftPingCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args): Promise<Message> {
         const term = await args.pick("string");
 
-        const result: ServerOffline | ServerOnline = await fetch(
-            `https://api.mcsrvstat.us/2/${term}`
-        ).then(
-            (response) =>
-				response.json() as Promise<ServerOffline | ServerOnline>
-        );
+        if (cache.has(term)) {
+            const result = cache.get(term)!;
+            return this.sendSuccess(message, term, result);
+        }
 
-        if (result.online) {
-            const attachment = result?.icon?.length
-                ? new AttachmentBuilder(
-                    Buffer.from(
-                        result.icon.slice(result.icon.indexOf(",")),
-                        "base64"
-                    ),
-                    { name: "icon.png" }
-                )
-                : undefined;
+        try {
+            const [host, port] = term.split(":");
+            const result = await MinecraftServerUtil.getStatus(host, port ? parseInt(port) : undefined);
 
-            const embed = new EmbedBuilder()
-                .setTitle("Ping! Server is online")
-                .setDescription(
-                    `${result.ip}:${result.port} ${result?.hostname?.length ? "/ " + result?.hostname : ""}`
-                )
-                .addFields([
-                    {
-                        name: "Version",
-                        value: String(result.version),
-                        inline: true,
-                    },
-                    {
-                        name: "MOTD",
-                        value: result.motd.clean.join("\n"),
-                        inline: true,
-                    },
-                    {
-                        name: "Players",
-                        value: `${result.players.online}/${result.players.max}`,
-                        inline: true,
-                    },
-                    {
-                        name: "Plugins",
-                        value: result.plugins?.names.length
-                            ? KaikiUtil.trim(
-                                result.plugins?.names.join(", "),
-                                1024
-                            )
-                            : "None",
-                        inline: true,
-                    },
-                    {
-                        name: "Software",
-                        value: result?.software ?? "Unknown",
-                        inline: true,
-                    },
-                    {
-                        name: "Mods",
-                        value: result.mods?.names.length
-                            ? KaikiUtil.trim(
-                                result.mods?.names.join(", "),
-                                1024
-                            )
-                            : "None",
-                        inline: true,
-                    },
-                ])
-                .withOkColor(message);
+            cache.set(term, result);
+            // Cache for 1 min
+            setTimeout(() => cache.delete(term), 60000); 
 
-            if (attachment) {
-                embed.setImage("attachment://icon.png");
-                return message.reply({
-                    files: [attachment],
-                    embeds: [embed],
-                });
-            } else {
-                return message.reply({ embeds: [embed] });
-            }
-        } else {
+            return this.sendSuccess(message, term, result);
+        } catch (error) {
             return message.reply({
                 embeds: [
                     new EmbedBuilder()
-                        .setTitle(
-                            "No ping :< Server is offline or address is incorrect."
-                        )
+                        .setTitle("Error connecting to the server")
+                        .setDescription("No ping returned. Server is either offline or the address is incorrect")
                         .withErrorColor(message),
                 ],
             });
+        }
+    }
+
+    private getMotd(description: MinecraftServerStatusResponse["description"]): string {
+        if (typeof description === "string") {
+            return description;
+        } else if (typeof description === "object" && description.text) {
+            let motd = description.text;
+            if (description.extra) {
+                motd += description.extra.map(e => e.text).join("");
+            }
+            return motd;
+        }
+        return "N/A";
+    }
+
+    private async sendSuccess(message: Message, term: string, result: MinecraftServerStatusResponse) {
+        const attachment = result.favicon
+            ? new AttachmentBuilder(
+                Buffer.from(result.favicon.slice(result.favicon.indexOf(",") + 1), "base64"), { name: "icon.png" }
+            )
+            : undefined;
+
+        const embed = new EmbedBuilder()
+            .setTitle("Ping! Server is online")
+            .setDescription(term)
+            .addFields([
+                {
+                    name: "Version",
+                    value: result.version.name,
+                    inline: true,
+                },
+                {
+                    name: "MOTD",
+                    value: this.getMotd(result.description),
+                    inline: true,
+                },
+                {
+                    name: "Players",
+                    value: `${result.players.online}/${result.players.max}`,
+                    inline: true,
+                },
+            ])
+            .withOkColor(message);
+
+        if (attachment) {
+            embed.setImage("attachment://icon.png");
+            return message.reply({
+                files: [attachment],
+                embeds: [embed],
+            });
+        } else {
+            return message.reply({ embeds: [embed] });
         }
     }
 }
