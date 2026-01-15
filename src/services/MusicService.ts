@@ -137,7 +137,7 @@ export class MusicService {
             });
             
             this.player?.play(resource);
-
+            // @ts-ignore
             this.player?.on("stateChange", (state) => {
                 if (state.status === AudioPlayerStatus.Idle) this.playNext();
             });

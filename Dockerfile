@@ -3,7 +3,7 @@ LABEL authors="Catadev"
 
 WORKDIR /kaikibot
 COPY package*.json ./
-RUN npm ci --include=dev
+RUN npm ci --include=dev --omit=optional
 COPY . .
 RUN npx prisma generate && npx tsc -p tsconfig.json
 
@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y curl git && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --omit=optional
 
 COPY --from=build /kaikibot/dist ./dist
 COPY --from=build /kaikibot/prisma ./prisma
