@@ -12,7 +12,7 @@ LABEL authors="Catadev"
 
 WORKDIR /kaikibot
 
-RUN apt-get update && apt-get install -y curl && \
+RUN apt-get update && apt-get install -y curl git && \
     curl -sLO https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb && \
     dpkg -i fastfetch-linux-amd64.deb && \
     rm fastfetch-linux-amd64.deb && \
