@@ -80,6 +80,7 @@ export class MinecraftServerUtil {
             };
 
             socket.on("data", (data) => {
+                if (!Buffer.isBuffer(data)) return;
                 buffer = Buffer.concat([buffer, data]);
                 processBuffer();
             });

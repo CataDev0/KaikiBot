@@ -1,10 +1,8 @@
 import process from "process";
-// @ts-ignore
 import express, { Express } from "express";
 import { container } from "@sapphire/pieces";
 import * as Colorette from "colorette";
 import { Guild, HexColorString } from "discord.js";
-// @ts-ignore
 import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoAddBody , APIRole } from "kaikiwa-types";
 import { JSONToMessageOptions } from "../lib/GreetHandler";
 import { VoteBody } from "src/lib/Types/DiscordBotList";
@@ -40,7 +38,7 @@ export class Webserver {
         container.logger.info(`WebListener server is listening on ports: [${Colorette.greenBright(this.DBL_API_PORT)}, ${Colorette.greenBright(this.SELF_API_PORT)}]`);
     }
 
-    private verifyTokenMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+    private verifyTokenMiddleware(req: express.Request<{ id: string}>, res: express.Response, next: express.NextFunction) {
         Webserver.validateIdParam(req, res);
         Webserver.validateToken(req, res);
         Webserver.logRequest(req);
@@ -79,7 +77,7 @@ export class Webserver {
         return "id" in body && "username" in body;
     }
 
-    private async GETGuilds(req: express.Request, res: express.Response): Promise<express.Response<POSTUserGuildsBody>> {
+    private async GETGuilds(req: express.Request<{ id: string}>, res: express.Response): Promise<express.Response<POSTUserGuildsBody>> {
 
         const userId = req.params.id;
         const guildIds = req.query.ids;
@@ -135,13 +133,13 @@ export class Webserver {
         return res.status(200).send(JSON.stringify(responseObject, (_, value) => typeof value === "bigint" ? value.toString() : value));
     }
 
-    private static logRequest(req: express.Request) {
+    private static logRequest(req: express.Request<{ id: string}>) {
         container.logger.info(`Webserver | ${req.method} request @ ${req.route.path} [${Colorette.greenBright(req.params.id ? req.params.id : req.query.userId as string || "")}]`);
     }
 
     // Response to GET requests for guilds on the dashboard
     // Serves information, stats and data to be edited online
-    private async GETGuild(req: express.Request, res: express.Response): Promise<express.Response<GETGuildBody>> {
+    private async GETGuild(req: express.Request<{ id: string}>, res: express.Response): Promise<express.Response<GETGuildBody>> {
 
         const guild = container.client.guilds.cache.get(req.params.id);
         if (!guild) return res.sendStatus(404);
@@ -231,7 +229,7 @@ export class Webserver {
         return res.send(JSON.stringify(guildBody, (_, value) => typeof value === "bigint" ? value.toString() : value));
     }
 
-    private async PATCHGuild(req: express.Request, res: express.Response) {
+    private async PATCHGuild(req: express.Request<{ id: string}>, res: express.Response) {
 
         if (!req.body) return res
             .sendStatus(400)
@@ -349,7 +347,7 @@ export class Webserver {
         return res.status(500).send(`Not all items were deleted. Count: ${count}`)
     }
 
-    private async POSTUserTodoAdd(req: express.Request, res: express.Response) {
+    private async POSTUserTodoAdd(req: express.Request<{ id: string}>, res: express.Response) {
         if (!req.body) return res
             .status(400)
             .send("Missing request body");
@@ -372,7 +370,7 @@ export class Webserver {
         return res.send(JSON.stringify({ todo }, (_, value) => typeof value === "bigint" ? value.toString() : value));
     }
 
-    private async GETTodos(req: express.Request, res: express.Response) {
+    private async GETTodos(req: express.Request<{ id: string}>, res: express.Response) {
         const userId = req.params.id;
 
         const todos = await container.client.db.orm.todos.findMany({
@@ -427,8 +425,7 @@ export class Webserver {
 
     private static async SetUserRoleColor(userRoleId: string, color: bigint | string | null, guild: Guild) {
         if (!color) return;
-
         return guild.roles.cache.get(userRoleId)
-            ?.setColor(color as HexColorString);
+            ?.setColors({ primaryColor: color as HexColorString });
     }
 }
