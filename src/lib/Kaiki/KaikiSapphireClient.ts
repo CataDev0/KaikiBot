@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import process from "process";
 import { type PrismaClient } from "@prisma/client";
-import { LogLevel, SapphireClient } from "@sapphire/framework";
+import { SapphireClient } from "@sapphire/framework";
 import * as colorette from "colorette";
 import {
     EmbedBuilder,
@@ -21,7 +21,6 @@ import AnniversaryRolesService from "../../services/AnniversaryRolesService";
 import type { ClientImageAPIs } from "../APIs/Common/Types";
 import KawaiiAPI, { EndPointSignatures } from "../APIs/KawaiiAPI";
 import NekosLife from "../APIs/nekos.life";
-import NekosAPI from "../APIs/NekosAPI";
 import PurrBot from "../APIs/PurrBot";
 import WaifuIm from "../APIs/waifu.im";
 import WaifuPics from "../APIs/WaifuPics";
@@ -37,6 +36,7 @@ import DiscordBotListService from "../../services/DiscordBotListService";
 import { Webserver } from "../../services/Webserver";
 import { BotStats } from "../Types/DiscordBotList";
 import { MusicService } from "../../services/MusicService";
+import KaikiClientConfig from "./KaikiClientConfig";
 
 export default class KaikiSapphireClient<Ready extends true>
     extends SapphireClient<Ready>
@@ -59,41 +59,7 @@ export default class KaikiSapphireClient<Ready extends true>
     private webListener: Webserver;
 
     constructor() {
-        super({
-            allowedMentions: { parse: ["users"], repliedUser: true },
-            intents: [
-                GatewayIntentBits.DirectMessageReactions,
-                GatewayIntentBits.DirectMessages,
-                GatewayIntentBits.GuildModeration,
-                GatewayIntentBits.GuildExpressions,
-                GatewayIntentBits.GuildIntegrations,
-                GatewayIntentBits.GuildInvites,
-                GatewayIntentBits.GuildMembers,
-                GatewayIntentBits.GuildMessageReactions,
-                GatewayIntentBits.GuildMessages,
-                GatewayIntentBits.GuildWebhooks,
-                GatewayIntentBits.Guilds,
-                GatewayIntentBits.GuildVoiceStates,
-                GatewayIntentBits.MessageContent
-            ],
-            partials: [
-                Partials.Reaction,
-                Partials.Channel,
-                Partials.GuildMember,
-            ],
-            shards: "auto",
-            loadMessageCommandListeners: true,
-            loadDefaultErrorListeners: false,
-            defaultCooldown: {
-                delay: 1000,
-            },
-            defaultPrefix: process.env.PREFIX,
-            caseInsensitiveCommands: true,
-            logger: {
-                level: LogLevel.Debug,
-            },
-            typing: true,
-        });
+        super(KaikiClientConfig);
 
         this.db = new Database(this);
         (async () => await this.db.initializeDatabase())().catch((e) => {
@@ -207,7 +173,6 @@ export default class KaikiSapphireClient<Ready extends true>
 
     public imageAPIs: ClientImageAPIs = {
         KawaiiAPI: new KawaiiAPI(),
-        NekosAPI: new NekosAPI(),
         NekosLife: new NekosLife(),
         PurrBot: new PurrBot(),
         WaifuIm: new WaifuIm(),
