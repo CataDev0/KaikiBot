@@ -2,7 +2,7 @@ import process from "process";
 import express, { Express } from "express";
 import { container } from "@sapphire/pieces";
 import * as Colorette from "colorette";
-import { Guild, HexColorString } from "discord.js";
+import { Guild, HexColorString, resolveColor } from "discord.js";
 import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoAddBody , APIRole } from "kaikiwa-types";
 import { JSONToMessageOptions } from "../lib/GreetHandler";
 import { VoteBody } from "src/lib/Types/DiscordBotList";
@@ -269,6 +269,10 @@ export class Webserver {
             }
 
             switch (key) {
+            case "OkColor":
+            case "ErrorColor":
+                await container.client.guildsDb.set(guild.id, key, resolveColor(value));
+                break;
             case "icon":
                 await guild.setIcon(value);
                 break;
@@ -297,12 +301,10 @@ export class Webserver {
             case "ByeChannel":
                 embedUpdates[key] = value ? BigInt(value) : null;
                 break;
-
             case "WelcomeTimeout":
             case "ByeTimeout":
                 embedUpdates[key] = Number(value ?? 0);
                 break;
-
             case "WelcomeMessage":
             case "ByeMessage":
                 embedUpdates[key] = JSON.stringify(new JSONToMessageOptions(value));
