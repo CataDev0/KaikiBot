@@ -37,8 +37,8 @@
 		"@sapphire/plugin-subcommands": "^7.0.1",
 		"@sapphire/shapeshift": "^4.0.0",
 		"bufferutil": "^4.0.8",
-		"discord-js-button-pagination-ts": "^4.2.2-1",
-		"discord.js": "^14.20.0",
+		"discord-js-button-pagination-ts": "^4.2.4",
+		"discord.js": "^14.25.1",
 		"dotenv": "^16.4.7",
 		"express": "^5.2.1",
 		"mysql2": "^3.11.5",
@@ -77,6 +77,7 @@
 		"npm": ">=9.0.0"
 	},
 	"overrides": {
-		"@emnapi/runtime": "0.0.0"
+		"@emnapi/runtime": "0.0.0",
+		"undici": "^6.23.0"
 	}
 }
