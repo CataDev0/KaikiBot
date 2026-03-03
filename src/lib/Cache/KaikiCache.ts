@@ -1,13 +1,11 @@
 import pkg from "@prisma/client";
-import { Message, Snowflake } from "discord.js";
+import { Message } from "discord.js";
 import { Pool, ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { APIs, ClientImageAPIs } from "../APIs/Common/Types";
-import KaikiUtil from "../KaikiUtil";
 import Constants from "../../struct/Constants";
 import {
     EmoteTrigger,
     GuildString,
-    PartitionResult,
     TriggerObject,
 } from "../Interfaces/Kaiki/KaikiCache";
 
@@ -189,9 +187,9 @@ export default class KaikiCache {
     }
 
     private populateImageAPICache() {
-        Object.keys(this.imageAPIs).forEach((api: APIs) => {
+        Object.keys(this.imageAPIs).forEach(api => {
             this.imageAPICache.set(
-                api,
+                api as APIs,
                 new Map<string, Record<string, unknown>>()
             );
         });

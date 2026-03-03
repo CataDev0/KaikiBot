@@ -1,8 +1,14 @@
-import { GuildMember, Message } from "discord.js";
 import Constants from "../../struct/Constants";
-import APIProcessor from "./APIProcessor";
 import ImageAPI from "./Common/ImageAPI";
 import type { ImageAPIOptions } from "./Common/Types";
+
+export enum EndPointSignatures {
+    uniform = "uniform",
+    maid = "maid",
+    selfies = "selfies",
+    marinKitagawa = "marin-kitagawa",
+    ero = "ero",
+}
 
 export default class WaifuIm extends ImageAPI<EndPointSignatures> {
     constructor(
@@ -11,26 +17,7 @@ export default class WaifuIm extends ImageAPI<EndPointSignatures> {
         super(imageAPIData);
     }
 
-    public async sendImageAPIRequest<T extends EndPointSignatures>(
-        message: Message,
-        endPoint: T,
-        mention?: GuildMember | null,
-        nsfw = false
-    ) {
-        return message.reply({
-            embeds: [
-                await APIProcessor.processImageAPIRequest(
-                    message,
-                    this.url(endPoint, nsfw),
-                    this.endPoints[endPoint],
-                    this.objectIndex,
-                    mention
-                ),
-            ],
-        });
-    }
-
-    static data: ImageAPIOptions<EndPointSignatures> = {
+    static readonly data: ImageAPIOptions<EndPointSignatures> = {
         endPointData: {
             uniform: {
                 action: "",
@@ -57,12 +44,4 @@ export default class WaifuIm extends ImageAPI<EndPointSignatures> {
         url: (string: string, nsfw = false) =>
             `https://api.waifu.im/search/?included_tags=${string}&is_nsfw=${nsfw}`,
     };
-}
-
-export enum EndPointSignatures {
-    uniform = "uniform",
-    maid = "maid",
-    selfies = "selfies",
-    marinKitagawa = "marin-kitagawa",
-    ero = "ero"
 }

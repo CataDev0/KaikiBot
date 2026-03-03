@@ -1,33 +1,30 @@
-import { GuildMember, Message } from "discord.js";
 import Constants from "../../struct/Constants";
-import APIProcessor from "./APIProcessor";
 import ImageAPI from "./Common/ImageAPI";
 import type { ImageAPIOptions } from "./Common/Types";
+
+export enum APIs {
+    bonk = "bonk",
+    cry = "cry",
+    cuddle = "cuddle",
+    hug = "hug",
+    kiss = "kiss",
+    pat = "pat",
+    waifu = "waifu",
+    yeet = "yeet",
+    bully = "bully",
+    megumin = "megumin",
+    neko = "neko",
+    shinobu = "shinobu",
+    nom = "nom",
+    slap = "slap",
+}
 
 export default class WaifuPics extends ImageAPI<APIs> {
     constructor(imageApiData: ImageAPIOptions<APIs> = WaifuPics.data) {
         super(imageApiData);
     }
 
-    public async sendImageAPIRequest<T extends APIs>(
-        message: Message,
-        endPoint: T,
-        mention?: GuildMember | null
-    ) {
-        return message.reply({
-            embeds: [
-                await APIProcessor.processImageAPIRequest(
-                    message,
-                    this.url(endPoint),
-                    this.endPoints[endPoint],
-                    this.objectIndex,
-                    mention
-                ),
-            ],
-        });
-    }
-
-    static data: ImageAPIOptions<APIs> = {
+    static readonly data: ImageAPIOptions<APIs> = {
         endPointData: {
             waifu: {
                 action: false,
@@ -95,21 +92,4 @@ export default class WaifuPics extends ImageAPI<APIs> {
         objectIndex: "url",
         url: (string: string) => `https://api.waifu.pics/sfw/${string}`,
     };
-}
-
-export enum APIs {
-    bonk = "bonk",
-    cry = "cry",
-    cuddle = "cuddle",
-    hug = "hug",
-    kiss = "kiss",
-    pat = "pat",
-    waifu = "waifu",
-    yeet = "yeet",
-    bully = "bully",
-    megumin = "megumin",
-    neko = "neko",
-    shinobu = "shinobu",
-    nom = "nom",
-    slap = "slap"
 }

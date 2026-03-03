@@ -2,8 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import { container } from "@sapphire/framework";
 
 export class MoneyService {
-    public currencyName: string;
-    public currencySymbol: string;
+    public currencyName!: string;
+    public currencySymbol!: string;
     private orm: PrismaClient;
 
     constructor(connection: PrismaClient) {
@@ -39,7 +39,7 @@ export class MoneyService {
 
         const bIntId = BigInt(id);
 
-        this.lazyCreateCurrencyTransactions(bIntId, amount, reason);
+        this.recordTransaction(bIntId, amount, reason);
 
         const query = await this.orm.discordUsers.upsert({
             where: { UserId: bIntId },
@@ -49,7 +49,7 @@ export class MoneyService {
         return query.Amount;
     }
 
-    async tryTake(
+    public async tryTake(
         id: string,
         amount: bigint,
         reason: string
@@ -65,7 +65,7 @@ export class MoneyService {
         });
 
         if (currentAmount && currentAmount.Amount >= amount) {
-            this.lazyCreateCurrencyTransactions(bIntId, -amount, reason);
+            this.recordTransaction(bIntId, -amount, reason);
             await this.orm.discordUsers.update({
                 where: {
                     UserId: bIntId,
@@ -76,23 +76,22 @@ export class MoneyService {
             });
             return true;
         } else if (!currentAmount) {
+            // User row doesn't exist yet — create it, but don't record a
+            // debit transaction since the take did not succeed.
             await this.orm.discordUsers.create({
                 data: { UserId: bIntId },
             });
-            this.lazyCreateCurrencyTransactions(bIntId, -amount, reason);
         }
         return false;
     }
 
-    private lazyCreateCurrencyTransactions(id: bigint, amount: bigint, reason: string) {
-        return setTimeout(async () => {
-            await this.orm.currencyTransactions.create({
-                data: {
-                    UserId: id,
-                    Amount: amount,
-                    Reason: reason,
-                },
-            }).catch(e => container.client.logger.error(`Currency transaction failed: ${e}`));
-        }, 0);
+    private recordTransaction(id: bigint, amount: bigint, reason: string): void {
+        void this.orm.currencyTransactions.create({
+            data: {
+                UserId: id,
+                Amount: amount,
+                Reason: reason,
+            },
+        }).catch(e => container.client.logger.error(`Currency transaction failed: ${e}`));
     }
 }

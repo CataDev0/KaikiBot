@@ -11,7 +11,7 @@ export type ImageAPIEndPointTypes<T extends string> = {
 
 export interface ImageAPIOptions<T extends string> {
 	endPointData: ImageAPIEndPointTypes<T>;
-	url: (endPoint: T) => string;
+	url: (endPoint: T, nsfw?: boolean) => string;
 	objectIndex: string | string[];
 	token?: string | undefined;
 }

@@ -1,6 +1,4 @@
-import { GuildMember, Message } from "discord.js";
 import Constants from "../../struct/Constants";
-import APIProcessor from "./APIProcessor";
 import ImageAPI from "./Common/ImageAPI";
 import { ImageAPIOptions } from "./Common/Types";
 
@@ -11,25 +9,7 @@ export default class PurrBot extends ImageAPI<EndpointSignatures> {
         super(data);
     }
 
-    public async sendImageAPIRequest<T extends EndpointSignatures>(
-        message: Message,
-        endPoint: T,
-        mention?: GuildMember | null
-    ) {
-        return message.reply({
-            embeds: [
-                await APIProcessor.processImageAPIRequest(
-                    message,
-                    this.url(endPoint),
-                    this.endPoints[endPoint],
-                    this.objectIndex,
-                    mention
-                ),
-            ],
-        });
-    }
-
-    static data: ImageAPIOptions<EndpointSignatures> = {
+    static readonly data: ImageAPIOptions<EndpointSignatures> = {
         endPointData: {
             bite: {
                 action: "just bit",

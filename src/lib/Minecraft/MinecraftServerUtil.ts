@@ -17,7 +17,7 @@ export class MinecraftServerUtil {
                 connectHost = addresses[0].name;
                 connectPort = addresses[0].port;
             }
-        } catch (e) {
+        } catch {
             // SRV lookup failed, proceed with original host/port
         }
 

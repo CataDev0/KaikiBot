@@ -87,7 +87,7 @@ export default class KaikiSapphireClient<Ready extends true>
         }
 
         if (!process.env.DATABASE_URL) {
-            throw new Error("Missing DATABASE_URL! Set a valid url in .env");
+            throw new Error("Missing DATABASE_URL! Set a valid DATABASE_URL environment variable in .env");
         }
 
         void this.loadPackageJSON();
