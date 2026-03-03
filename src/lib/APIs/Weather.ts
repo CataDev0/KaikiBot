@@ -67,7 +67,7 @@ export class Weather {
                 throw new Error("Invalid weather data received from API");
             }
 
-            } catch (error) {
+        } catch (error) {
             console.error("Weather fetch error - ", error);
             return {
                 embeds: [
@@ -81,97 +81,97 @@ export class Weather {
             };
         }
 
-            const country = data.sys.country;
-            const name = data.name;
-            const currentUnits = data.main;
-            const currentWeather = data.weather[0];
-            const weatherIconUrl = currentWeather.icon 
-                ? `https://openweathermap.org/img/wn/${currentWeather.icon}@2x.png` 
-                : null;
+        const country = data.sys.country;
+        const name = data.name;
+        const currentUnits = data.main;
+        const currentWeather = data.weather[0];
+        const weatherIconUrl = currentWeather.icon 
+            ? `https://openweathermap.org/img/wn/${currentWeather.icon}@2x.png` 
+            : null;
 
-            const fields = [
-                {
-                    name: "🌡️ Temperature",
-                    value: `${Math.round(currentUnits.temp)}°C / ${Math.round(this.CelsiusToFahrenheit(currentUnits.temp))}°F`,
-                    inline: true,
-                },
-                {
-                    name: "🤔 Feels Like",
-                    value: `${Math.round(currentUnits.feels_like)}°C / ${Math.round(this.CelsiusToFahrenheit(currentUnits.feels_like))}°F`,
-                    inline: true,
-                },
-                {
-                    name: "📊 Min/Max",
-                    value: `${Math.round(currentUnits.temp_min)}°C / ${Math.round(currentUnits.temp_max)}°C`,
-                    inline: true,
-                },
-                {
-                    name: "💨 Wind",
-                    value: `${Math.round(data.wind.speed)} m/s (${Math.round(this.MpsToMph(data.wind.speed))} mph) ${this.DegToCompass(data.wind.deg)} (${data.wind.deg}°)`,
-                    inline: true,
-                },
-                {
-                    name: "💧 Humidity",
-                    value: `${currentUnits.humidity}%`,
-                    inline: true,
-                },
-                {
-                    name: "☁️ Cloudiness",
-                    value: `${data.clouds.all}%`,
-                    inline: true,
-                },
-                {
-                    name: "👁️ Visibility",
-                    value: `${(data.visibility / 1000).toFixed(1)} km`,
-                    inline: true,
-                },
-                {
-                    name: "🔽 Pressure",
-                    value: `${currentUnits.pressure} hPa`,
-                    inline: true,
-                },
-                {
-                    name: "🌅 Sunrise/Sunset",
-                    value: `${this.formatTime(data.sys.sunrise)} / ${this.formatTime(data.sys.sunset)}`,
-                    inline: true,
-                },
-            ];
+        const fields = [
+            {
+                name: "🌡️ Temperature",
+                value: `${Math.round(currentUnits.temp)}°C / ${Math.round(this.CelsiusToFahrenheit(currentUnits.temp))}°F`,
+                inline: true,
+            },
+            {
+                name: "🤔 Feels Like",
+                value: `${Math.round(currentUnits.feels_like)}°C / ${Math.round(this.CelsiusToFahrenheit(currentUnits.feels_like))}°F`,
+                inline: true,
+            },
+            {
+                name: "📊 Min/Max",
+                value: `${Math.round(currentUnits.temp_min)}°C / ${Math.round(currentUnits.temp_max)}°C`,
+                inline: true,
+            },
+            {
+                name: "💨 Wind",
+                value: `${Math.round(data.wind.speed)} m/s (${Math.round(this.MpsToMph(data.wind.speed))} mph) ${this.DegToCompass(data.wind.deg)} (${data.wind.deg}°)`,
+                inline: true,
+            },
+            {
+                name: "💧 Humidity",
+                value: `${currentUnits.humidity}%`,
+                inline: true,
+            },
+            {
+                name: "☁️ Cloudiness",
+                value: `${data.clouds.all}%`,
+                inline: true,
+            },
+            {
+                name: "👁️ Visibility",
+                value: `${(data.visibility / 1000).toFixed(1)} km`,
+                inline: true,
+            },
+            {
+                name: "🔽 Pressure",
+                value: `${currentUnits.pressure} hPa`,
+                inline: true,
+            },
+            {
+                name: "🌅 Sunrise/Sunset",
+                value: `${this.formatTime(data.sys.sunrise)} / ${this.formatTime(data.sys.sunset)}`,
+                inline: true,
+            },
+        ];
 
-            // Add rain data if available
-            if (data.rain) {
-                const rainAmount = data.rain["1h"] || data.rain["3h"] || 0;
-                const timeframe = data.rain["1h"] ? "1h" : "3h";
-                fields.push({
-                    name: "🌧️ Rain",
-                    value: `${rainAmount} mm (${timeframe})`,
-                    inline: true,
-                });
-            }
+        // Add rain data if available
+        if (data.rain) {
+            const rainAmount = data.rain["1h"] || data.rain["3h"] || 0;
+            const timeframe = data.rain["1h"] ? "1h" : "3h";
+            fields.push({
+                name: "🌧️ Rain",
+                value: `${rainAmount} mm (${timeframe})`,
+                inline: true,
+            });
+        }
 
-            // Add snow data if available
-            if (data.snow) {
-                const snowAmount = data.snow["1h"] || data.snow["3h"] || 0;
-                const timeframe = data.snow["1h"] ? "1h" : "3h";
-                fields.push({
-                    name: "❄️ Snow",
-                    value: `${snowAmount} mm (${timeframe})`,
-                    inline: true,
-                });
-            }
+        // Add snow data if available
+        if (data.snow) {
+            const snowAmount = data.snow["1h"] || data.snow["3h"] || 0;
+            const timeframe = data.snow["1h"] ? "1h" : "3h";
+            fields.push({
+                name: "❄️ Snow",
+                value: `${snowAmount} mm (${timeframe})`,
+                inline: true,
+            });
+        }
 
-            const embed = new EmbedBuilder()
-                .setTitle(
-                    `Weather in ${name}, ${country} ${this.countryCodeToFlag(country)}`
-                )
-                .setDescription(`${this.weatherIcons[currentWeather.icon] || ""} ${currentWeather.main} - ${currentWeather.description}`)
-                .setThumbnail(weatherIconUrl)
-                .addFields(fields)
-                .setFooter({
-                    text: "Weather data provided by OpenWeatherMap",
-                })
-                .withOkColor(context);
+        const embed = new EmbedBuilder()
+            .setTitle(
+                `Weather in ${name}, ${country} ${this.countryCodeToFlag(country)}`
+            )
+            .setDescription(`${this.weatherIcons[currentWeather.icon] || ""} ${currentWeather.main} - ${currentWeather.description}`)
+            .setThumbnail(weatherIconUrl)
+            .addFields(fields)
+            .setFooter({
+                text: "Weather data provided by OpenWeatherMap",
+            })
+            .withOkColor(context);
 
-            return { embeds: [embed] };
+        return { embeds: [embed] };
     }
 
     public static async fetchForecast(location: string, context?: Message | ChatInputCommandInteraction): Promise<{ embeds: EmbedBuilder[] }> {
@@ -223,26 +223,30 @@ export class Weather {
                 weatherIconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
             }
 
-            // Target times: 09:00, 15:00, 21:00
+            // Target times: 09:00, 15:00, 21:00 — each maps to a fixed column (0, 1, 2).
+            // Only pick an item that falls within ±3 hours of the target so that
+            // a missing 09:00 slot is left null instead of being filled by the 15:00 reading.
             const targets = [9, 15, 21];
+            const TARGET_WINDOW_HRS = 3;
             const selectedItems: (ForecastItem | null)[] = [null, null, null];
 
             const getHour = (dt_txt: string) => parseInt(dt_txt.split(" ")[1].split(":")[0]);
 
             targets.forEach((target, index) => {
-                // Find closest item to target hour
-                // If items is empty, stays null
-                if (items.length > 0) {
-                    const closest = items.reduce((prev, curr) => {
-                        return Math.abs(getHour(curr.dt_txt) - target) < Math.abs(getHour(prev.dt_txt) - target)
-                            ? curr : prev;
-                    });
-                    
-                    selectedItems[index] = closest;
-                }
+                const candidates = items.filter(
+                    item => Math.abs(getHour(item.dt_txt) - target) <= TARGET_WINDOW_HRS
+                );
+                if (candidates.length === 0) return;
+
+                selectedItems[index] = candidates.reduce((prev, curr) =>
+                    Math.abs(getHour(curr.dt_txt) - target) < Math.abs(getHour(prev.dt_txt) - target)
+                        ? curr : prev
+                );
             });
-            
-            const uniqueIds = new Set();
+
+            // Safety-net: if two targets resolved to the same reading, keep it only in the
+            // earlier column and null out the duplicate.
+            const uniqueIds = new Set<number>();
             selectedItems.forEach((item, idx) => {
                 if (item) {
                     if (uniqueIds.has(item.dt)) {
@@ -265,8 +269,8 @@ export class Weather {
             const dailyMin = Math.round(Math.min(...items.map(i => i.main.temp_min)));
 
             selectedItems.forEach((item, index) => {
-                const colName = index === 0 ? `**${dateStr}** (${dailyMax}°C / ${dailyMin}°C)` : "\u200b"; 
-                // Show date & daily high/low in first col
+                // Col 0 always carries the date header; its value is blank when 09:00 is unavailable.
+                const colName = index === 0 ? `**${dateStr}** (${dailyMax}°C / ${dailyMin}°C)` : "\u200b";
 
                 if (item) {
                     const temp = Math.round(item.main.temp);
@@ -279,6 +283,13 @@ export class Weather {
                     fields.push({
                         name: colName,
                         value: `\`${time}\` **${temp}°C** ${icon}${popStr}\n*${weatherDesc}*`,
+                        inline: true,
+                    });
+                }
+                else {
+                    fields.push({
+                        name: colName,
+                        value: "\u200b",
                         inline: true,
                     });
                 }
@@ -344,22 +355,22 @@ export class Weather {
         const defaultDescription = `An error occurred while fetching ${type} data. Please try again later.`;
 
         switch (response.status) {
-            case 404:
-                description = `Location **${location}** not found. Please check the spelling or try a different location name.`;
-                break;
-            case 401:
-                title = "API Authentication Error";
-                description = "Invalid API key. Please contact the bot administrator.";
-                break;
-            case 429:
-                title = "Rate Limit Exceeded";
-                description = "Too many requests. Please try again in a moment.";
-                break;
-            case 400:
-                description = `Invalid request for **${location}**. ${errorMessage}`;
-                break;
-            default:
-                description = `Error ${response.status}: ${errorMessage}`;
+        case 404:
+            description = `Location **${location}** not found. Please check the spelling or try a different location name.`;
+            break;
+        case 401:
+            title = "API Authentication Error";
+            description = "Invalid API key. Please contact the bot administrator.";
+            break;
+        case 429:
+            title = "Rate Limit Exceeded";
+            description = "Too many requests. Please try again in a moment.";
+            break;
+        case 400:
+            description = `Invalid request for **${location}**. ${errorMessage}`;
+            break;
+        default:
+            description = `Error ${response.status}: ${errorMessage}`;
         }
 
         if (response.status !== 404) {
