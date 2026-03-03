@@ -111,31 +111,30 @@ export default class Constants {
 
     static readonly MAGIC_NUMBERS = Object.freeze({
         CACHE: {
-            FIFTEEN_MINUTES_MS: 900000,
+            FIFTEEN_MINUTES_MS: 900_000,
         },
         CMDS: {
             ADMIN: {
-                SB_MSG_DEL_SECONDS: 604800,
+                SB_MSG_DEL_SECONDS: 604_800,
             },
-            ANIME: {},
             EMOTES: {
                 ADD_EMOTE: {
                     NAME_MAX_LENGTH: 32,
                 },
                 DELETE_EMOTE: {
-                    DELETE_DELAY: 3500,
+                    DELETE_DELAY: 3_500,
                 },
 
                 EMOTE_COUNT: {
                     MIN_PR_PAGE: 25,
                     MAX_PR_PAGE: 50,
                 },
-                MAX_FILESIZE: 25600,
+                MAX_FILESIZE: 25_600,
                 MAX_WIDTH_HEIGHT: 128,
             },
             ETC: {
                 BOT_MENTION: {
-                    DELETE_TIMEOUT: 10000,
+                    DELETE_TIMEOUT: 10_000,
                 },
                 DAD_BOT: {
                     DADBOT_NICK_LENGTH: 32,
@@ -150,7 +149,7 @@ export default class Constants {
                     DISTROS_PR_PAGE: 150,
                 },
                 REDDIT: {
-                    NSFW_DEL_TIMEOUT: 7500,
+                    NSFW_DEL_TIMEOUT: 7_500,
                 },
             },
             GAMBLING: {
@@ -186,8 +185,8 @@ export default class Constants {
                     MESSAGE_LIMIT_JSON: 1960,
                 },
                 UPDATE: {
-                    DESC_STR_LIMIT: 4048,
-                    TIMEOUT: 300000,
+                    DESC_STR_LIMIT: 4_048,
+                    TIMEOUT: 300_000,
                 },
             },
             ROLES: {
@@ -237,7 +236,7 @@ export default class Constants {
         LIB: {
             GAMES: {
                 TTT: {
-                    MSG_DEL_TIMEOUT: 4500,
+                    MSG_DEL_TIMEOUT: 4_500,
                 },
             },
             HENTAI: {
@@ -253,7 +252,8 @@ export default class Constants {
                     // ABSOLUTE ZERO IN BINARY
                     MIN_INT: 0b0,
                 },
-                PRESENCE_UPDATE_TIMEOUT: 300000,
+                GUILD_MEMBER_FETCH_INTERVAL_MS: 30_000,
+                PRESENCE_UPDATE_TIMEOUT: 300_000,
             },
             MONEY: {
                 MONEY_SERVICE: {
@@ -270,7 +270,7 @@ export default class Constants {
             },
         },
         SERVICES: {
-            DBL_POST_INTERVAL_MS: 3600000
+            DBL_POST_INTERVAL_MS: 3_600_000,
         }
     });
 

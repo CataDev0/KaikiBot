@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import fs from "fs/promises";
 import process from "process";
 import { type PrismaClient } from "@prisma/client";
 import { SapphireClient } from "@sapphire/framework";
@@ -6,9 +7,7 @@ import * as colorette from "colorette";
 import {
     EmbedBuilder,
     Events,
-    GatewayIntentBits,
     Guild,
-    Partials,
     Team,
     User,
 } from "discord.js";
@@ -29,7 +28,6 @@ import type PackageJSON from "../Interfaces/Common/PackageJSON";
 import KaikiUtil from "../KaikiUtil";
 import { MoneyService } from "../../services/MoneyService";
 import IKaikiClient from "./IKaikiClient";
-import fs from "fs/promises";
 import { container } from "@sapphire/pieces";
 import NeofetchCommand from "../../commands/Fun/neofetch";
 import DiscordBotListService from "../../services/DiscordBotListService";
@@ -57,20 +55,32 @@ export default class KaikiSapphireClient<Ready extends true>
     public dblService: DiscordBotListService;
     public musicService?: MusicService;
     private webListener: Webserver;
+    private musicDepsAvailable?: boolean;
+
+    public imageAPIs: ClientImageAPIs = {
+        KawaiiAPI: new KawaiiAPI(),
+        NekosLife: new NekosLife(),
+        PurrBot: new PurrBot(),
+        WaifuIm: new WaifuIm(),
+        WaifuPics: new WaifuPics(),
+    };
+
+    public fetchPrefix = async ({ guild }: { guild: Guild | null }) => {
+        if (!guild) {
+            return String(process.env.PREFIX);
+        }
+        return String(
+            this.guildsDb.get(guild.id, "Prefix", process.env.PREFIX)
+        );
+    };
 
     constructor() {
         super(KaikiClientConfig);
 
         this.db = new Database(this);
-        (async () => await this.db.initializeDatabase())().catch((e) => {
-            throw new Error(e);
+        this.db.initializeDatabase().catch((e) => {
+            throw new Error("Database initialization failed", { cause: e });
         });
-
-        if (!process.env) {
-            throw new Error(
-                `Missing .env file. Please double-check the guide! (${Constants.LINKS.GUIDE})`
-            );
-        }
 
         if (!process.env.PREFIX || process.env.PREFIX === "[YOUR_PREFIX]") {
             throw new Error("Missing prefix! Set a prefix in .env");
@@ -85,7 +95,7 @@ export default class KaikiSapphireClient<Ready extends true>
         // Not using logger here. Because it resets multiline color
         console.log(colorette.green(Constants.KaikiBotASCII));
 
-        super.login(process.env.CLIENT_TOKEN).then(async () => this.init(this));
+        super.login(process.env.CLIENT_TOKEN).then(async () => this.init());
 
         // Run only once "ready"
         super.once(Events.ClientReady, () => {
@@ -93,8 +103,8 @@ export default class KaikiSapphireClient<Ready extends true>
         });
     }
 
-    private async init(client: this) {
-        if (!client.user) {
+    private async init() {
+        if (!this.user) {
             throw new Error("Missing bot client user!");
         }
 
@@ -103,32 +113,32 @@ export default class KaikiSapphireClient<Ready extends true>
             this.dblService.startPosting();
         }
 
-        await client.application?.fetch();
+        await this.application?.fetch();
 
-        if (!client.application?.owner) {
+        if (!this.application?.owner) {
             return KaikiSapphireClient.noBotOwner();
         }
 
         const owner =
-			client.application.owner instanceof Team
-			    ? client.application.owner.owner?.user
-			    : client.application.owner;
+            this.application.owner instanceof Team
+                ? this.application.owner.owner?.user
+                : this.application.owner;
 
         if (!owner) return KaikiSapphireClient.noBotOwner();
 
-        client.owner = owner;
+        this.owner = owner;
 
-        client.logger.info(
-            `Bot account: ${colorette.greenBright(client.user.username)}`
+        this.logger.info(
+            `Bot account: ${colorette.greenBright(this.user.username)}`
         );
 
-        client.logger.info(
-            `Bot owner: ${colorette.greenBright(client.owner.username)}`
+        this.logger.info(
+            `Bot owner: ${colorette.greenBright(this.owner.username)}`
         );
 
         await Promise.all([
-            client.filterOptionalCommands(),
-            client.sendOnlineMsg(),
+            this.filterOptionalCommands(),
+            this.sendOnlineMsg(),
         ]);
     }
 
@@ -160,33 +170,11 @@ export default class KaikiSapphireClient<Ready extends true>
     }
 
     private async loadPackageJSON() {
-        if (!process.env.npm_package_json) {
-            this.package = await fs
-                .readFile("package.json")
-                .then((file) => JSON.parse(file.toString()));
-        } else {
-            this.package = await fs
-                .readFile(process.env.npm_package_json)
-                .then((file) => JSON.parse(file.toString()));
-        }
+        const path = process.env.npm_package_json ?? "package.json";
+        this.package = await fs
+            .readFile(path)
+            .then((file) => JSON.parse(file.toString()) as PackageJSON);
     }
-
-    public imageAPIs: ClientImageAPIs = {
-        KawaiiAPI: new KawaiiAPI(),
-        NekosLife: new NekosLife(),
-        PurrBot: new PurrBot(),
-        WaifuIm: new WaifuIm(),
-        WaifuPics: new WaifuPics(),
-    };
-
-    public fetchPrefix = async ({ guild }: { guild: Guild | null }) => {
-        if (!guild) {
-            return String(process.env.PREFIX);
-        }
-        return String(
-            this.guildsDb.get(guild.id, "Prefix", process.env.PREFIX)
-        );
-    };
 
     private async dailyResetTimer(): Promise<void> {
         setTimeout(async () => {
@@ -257,7 +245,7 @@ export default class KaikiSapphireClient<Ready extends true>
         this.logger.info("HentaiService | Service initiated");
 
         // Initialize MusicService only if dependencies are available
-        if (await this.checkMusicDependencies()) {
+        if (this.checkMusicDependencies()) {
             this.musicService = new MusicService();
             this.logger.info("MusicService | Service initiated");
         } else {
@@ -267,13 +255,8 @@ export default class KaikiSapphireClient<Ready extends true>
 
     private async presenceLoop(): Promise<NodeJS.Timeout> {
         await this.setPresence();
-
         return setInterval(
-            ((scope: KaikiSapphireClient<true>) => {
-                return async () => {
-                    await scope.setPresence();
-                };
-            })(this),
+            () => void this.setPresence(),
             Constants.MAGIC_NUMBERS.LIB.KAIKI.PRESENCE_UPDATE_TIMEOUT
         );
     }
@@ -308,8 +291,7 @@ export default class KaikiSapphireClient<Ready extends true>
             }
             // Fetch guild members
             await guild.members.fetch();
-            // Half a minute
-        }, 30000);
+        }, Constants.MAGIC_NUMBERS.LIB.KAIKI.GUILD_MEMBER_FETCH_INTERVAL_MS);
     }
 
     public async resetDailyClaims(): Promise<void> {
@@ -352,7 +334,7 @@ export default class KaikiSapphireClient<Ready extends true>
         }
 
         // Check if music dependencies are available
-        if (!(await this.checkMusicDependencies())) {
+        if (!this.checkMusicDependencies()) {
             const musicCommands = ["play", "skip", "queue", "stop"];
             for (const cmd of musicCommands) {
                 await commandStore.unload(cmd);
@@ -360,23 +342,22 @@ export default class KaikiSapphireClient<Ready extends true>
         }
     }
 
-    private async checkMusicDependencies(): Promise<boolean> {
-        // Check if yt-dlp is installed
+    private checkMusicDependencies(): boolean {
+        if (this.musicDepsAvailable !== undefined) return this.musicDepsAvailable;
+
         try {
             execSync("command -v yt-dlp >/dev/null 2>&1");
         } catch {
-            return false;
+            return (this.musicDepsAvailable = false);
         }
 
-        // Check if @discordjs/voice is available
         try {
-            // @ts-ignore
-            await import("@discordjs/voice");
+            require.resolve("@discordjs/voice");
         } catch {
-            return false;
+            return (this.musicDepsAvailable = false);
         }
 
-        return !process.env.DISABLE_MUSIC;
+        return (this.musicDepsAvailable = !process.env.DISABLE_MUSIC);
     }
 
     public getBotStats(): BotStats {
