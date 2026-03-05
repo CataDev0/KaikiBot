@@ -223,15 +223,14 @@ export class Weather {
                 weatherIconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
             }
 
-            // Target times: 09:00, 15:00, 21:00 — each maps to a fixed column (0, 1, 2).
-            // Only pick an item that falls within ±3 hours of the target so that
-            // a missing 09:00 slot is left null instead of being filled by the 15:00 reading.
+            // Target daytime hours
             const targets = [9, 15, 21];
             const TARGET_WINDOW_HRS = 3;
             const selectedItems: (ForecastItem | null)[] = [null, null, null];
 
             const getHour = (dt_txt: string) => parseInt(dt_txt.split(" ")[1].split(":")[0]);
 
+            // Find the forecast item closest to each target hour
             targets.forEach((target, index) => {
                 const candidates = items.filter(
                     item => Math.abs(getHour(item.dt_txt) - target) <= TARGET_WINDOW_HRS
@@ -244,8 +243,7 @@ export class Weather {
                 );
             });
 
-            // Safety-net: if two targets resolved to the same reading, keep it only in the
-            // earlier column and null out the duplicate.
+            // Remove duplicates
             const uniqueIds = new Set<number>();
             selectedItems.forEach((item, idx) => {
                 if (item) {
@@ -269,7 +267,7 @@ export class Weather {
             const dailyMin = Math.round(Math.min(...items.map(i => i.main.temp_min)));
 
             selectedItems.forEach((item, index) => {
-                // Col 0 always carries the date header; its value is blank when 09:00 is unavailable.
+                // Place title only on the first column of the day
                 const colName = index === 0 ? `**${dateStr}** (${dailyMax}°C / ${dailyMin}°C)` : "\u200b";
 
                 if (item) {
