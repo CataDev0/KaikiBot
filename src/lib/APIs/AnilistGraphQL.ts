@@ -120,6 +120,37 @@ query ($page: Int, $perPage: Int, $search: String, $type: MediaType) {
         }
 `;
 
+    static characterQuery = `
+query ($search: String) {
+  Character(search: $search) {
+    image {
+      medium
+    }
+  }
+}
+`;
+
+    static async fetchCharacterImage(name: string): Promise<string | null> {
+        try {
+            const res = await fetch("https://graphql.anilist.co", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({
+                    query: AnilistGraphQL.characterQuery,
+                    variables: { search: name },
+                }),
+            });
+            const json = await AnilistGraphQL.handleResponse(res);
+            return (json?.data?.Character?.image?.medium as string) ?? null;
+        }
+        catch {
+            return null;
+        }
+    }
+
     static async handleResponse(response: {
     json: () => Promise<any>;
     ok: any;

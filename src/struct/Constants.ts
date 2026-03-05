@@ -151,6 +151,22 @@ export default class Constants {
                 REDDIT: {
                     NSFW_DEL_TIMEOUT: 7_500,
                 },
+                PERSONALITY_TEST: {
+                    ANSWER_TIMEOUT: 30_000,
+                    COLORS: {
+                        KAREN: "#f4a261" as HexColorString,
+                        HITAGI: "#6a4c93" as HexColorString,
+                        TSUBASA: "#2ec4b6" as HexColorString,
+                        MEME: "#457b9d" as HexColorString,
+                        MAYOI: "#e9c46a" as HexColorString,
+                        TSUKIHI: "#e63946" as HexColorString,
+                        YOTSUGI: "#48cae4" as HexColorString,
+                        OUGI: "#2d1b69" as HexColorString,
+                        IZUKO: "#ffd60a" as HexColorString,
+                        NADEKO: "#c77dff" as HexColorString,
+                        FALLBACK: "#aaaaaa" as HexColorString,
+                    },
+                },
             },
             GAMBLING: {
                 BET_ROLL: {

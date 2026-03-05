@@ -39,8 +39,10 @@ export class Webserver {
     }
 
     private verifyTokenMiddleware(req: express.Request<{ id: string}>, res: express.Response, next: express.NextFunction) {
-        Webserver.validateIdParam(req, res);
-        Webserver.validateToken(req, res);
+        const idValid = Webserver.validateIdParam(req, res);
+        if (!idValid) return;
+        const tokenValid = Webserver.validateToken(req, res);
+        if (!tokenValid) return;
         Webserver.logRequest(req);
         next();
     }
@@ -387,16 +389,19 @@ export class Webserver {
     static validateIdParam(req: express.Request, res: express.Response) {
         if (Number.isNaN(Number(req.params.id))) {
             res.sendStatus(400);
-            throw new Error("Missing request guildId parameter");
+            return false;
         }
+        return true;
     }
 
     // Throws 401 unauthorized if token is wrong
-    static validateToken(req: express.Request, res: express.Response): void {
+    static validateToken(req: express.Request, res: express.Response): boolean {
         if (req.headers.authorization !== process.env.SELF_API_TOKEN) {
             res.sendStatus(401);
-            throw new Error("Unauthorized");
+            container.logger.warn(`Webserver | Unauthorized request with token: [${Colorette.redBright(String(req.headers.authorization))}]`);
+            return false;
         }
+        return true;
     }
 
     private static async SetExcludeRoleName(data: string | null, guild: Guild) {
