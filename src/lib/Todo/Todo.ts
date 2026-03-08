@@ -6,6 +6,7 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonInteraction,
+    ButtonStyle,
     EmbedBuilder,
     Message,
     ModalSubmitInteraction,
@@ -20,7 +21,7 @@ export class Todo {
     public static reminderArray(todoArray: Todos[]) {
         return todoArray.map(
             (todo, i) =>
-                `${+i + 1}. ${KaikiUtil.trim(todo.String.split(/\r?\n/).join(" "), Constants.MAGIC_NUMBERS.CMDS.UTILITY.TODO.INPUT_MAX_LENGTH)}`
+                `${i + 1}. ${KaikiUtil.trim(todo.String.split(/\r?\n/).join(" "), Constants.MAGIC_NUMBERS.CMDS.UTILITY.TODO.INPUT_MAX_LENGTH)}`
         );
     }
 
@@ -33,19 +34,19 @@ export class Todo {
                 new ButtonBuilder()
                     .setCustomId(`${currentTime}Add`)
                     .setEmoji("➕")
-                    .setStyle(3)
+                    .setStyle(ButtonStyle.Success)
             )
             .addComponents(
                 new ButtonBuilder()
                     .setCustomId(`${currentTime}Remove`)
                     .setEmoji("➖")
-                    .setStyle(4)
+                    .setStyle(ButtonStyle.Danger)
             )
             .addComponents(
                 new ButtonBuilder()
                     .setCustomId(`${currentTime}Clear`)
                     .setEmoji("⬛")
-                    .setStyle(4)
+                    .setStyle(ButtonStyle.Danger)
             );
 
         const rowTwo = new ActionRowBuilder<ButtonBuilder>()
@@ -53,13 +54,13 @@ export class Todo {
                 new ButtonBuilder()
                     .setCustomId(`${currentTime}Backward`)
                     .setEmoji("⬅")
-                    .setStyle(2)
+                    .setStyle(ButtonStyle.Secondary)
             )
             .addComponents(
                 new ButtonBuilder()
                     .setCustomId(`${currentTime}Forward`)
                     .setEmoji("➡")
-                    .setStyle(2)
+                    .setStyle(ButtonStyle.Secondary)
             );
 
         return { row, rowTwo, currentTime };
