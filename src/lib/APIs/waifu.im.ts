@@ -40,8 +40,8 @@ export default class WaifuIm extends ImageAPI<EndPointSignatures> {
                 color: Constants.hexColorTable["hotpink"],
             },
         },
-        objectIndex: ["images", "0", "url"],
+        objectIndex: ["items", "0", "url"],
         url: (string: string, nsfw = false) =>
-            `https://api.waifu.im/search/?included_tags=${string}&is_nsfw=${nsfw}`,
+            `https://api.waifu.im/images/?IncludedTags=${string}&IsNsfw=${nsfw}&PageSize=1`,
     };
 }

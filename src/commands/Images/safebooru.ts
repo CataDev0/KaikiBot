@@ -7,61 +7,47 @@ import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import KaikiUtil from "../../lib/KaikiUtil";
 
 @ApplyOptions<KaikiCommandOptions>({
-    name: "danbooru",
-    description: "Search for a random image on Danbooru. Separate tags with spaces.",
-    usage: ["thighs wet_skin"],
+    name: "safebooru",
+    description: "Search for a random image on Safebooru. Separate tags with spaces.",
+    usage: ["cat_girl", "touhou reimu"],
     typing: true,
-    nsfw: true,
     cooldownDelay: 3000,
 })
-export default class DanbooruCommand extends KaikiCommand {
-    private static readonly videoExtensions = [".mp4", ".webm", ".ts", ".mkv"];
-
+export default class SafebooruCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args): Promise<Message> {
         const tags = await args.repeat("string").catch(() => undefined);
 
         const post = await this.client.hentaiService.makeRequest(
             tags || null,
-            DAPI.Danbooru
+            DAPI.Safebooru
         );
 
         if (!post)
             throw new UserError({
                 message: "No posts received, please try again.",
-                identifier: "NoHentaiPost",
+                identifier: "NoSafebooruPost",
             });
 
-        const imageURL = post.file_url || post.large_file_url || null;
-        const isVideo = DanbooruCommand.videoExtensions.some((ext) =>
-            imageURL?.endsWith(ext)
-        );
-
         const emb = new EmbedBuilder()
-            .setAuthor({ name: post.tag_string_artist || "*Artist missing*" })
+            .setAuthor({ name: post.owner })
             .setDescription(
-                KaikiUtil.trim(`**Tags**: ${post.tag_string_general}`, 2048)
+                KaikiUtil.trim(`**Tags**: ${post.tags}`, 2048)
             )
+            .setImage(post.file_url)
             .withOkColor(message);
 
-        if (!isVideo && imageURL) {
-            emb.setImage(imageURL);
-        }
-
-        if (post.tag_string_character) {
+        if (post.source) {
             emb.addFields([
                 {
-                    name: "Character(s)",
-                    value: post.tag_string_character,
+                    name: "Source",
+                    value: post.source.length > 1024
+                        ? `[link](${post.source})`
+                        : post.source,
                     inline: true,
                 },
             ]);
         }
 
-        const reply = await message.reply({
-            content: isVideo && imageURL ? imageURL : undefined,
-            embeds: [emb],
-        });
-
-        return reply;
+        return message.reply({ embeds: [emb] });
     }
 }
