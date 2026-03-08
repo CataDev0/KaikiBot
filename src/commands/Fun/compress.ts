@@ -11,6 +11,7 @@ import {
 import sharp from "sharp";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
+import Constants from "../../struct/Constants";
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "compress",
@@ -26,6 +27,12 @@ export default class CompressCommand extends KaikiCommand {
                 const attachment = message.attachments.first();
                 // Returns the first attachemnt if it is an image
                 if (attachment?.contentType?.startsWith("image/")) {
+                    if (attachment.size > Constants.MAGIC_NUMBERS.CMDS.FUN.COMPRESS.MAX_FILE_SIZE) {
+                        throw new UserError({
+                            identifier: "FileTooLarge",
+                            message: `Image must be under ${Constants.MAGIC_NUMBERS.CMDS.FUN.COMPRESS.MAX_FILE_SIZE / 1024 / 1024} MB.`,
+                        });
+                    }
                     return attachment;
                 }
 
@@ -41,39 +48,52 @@ export default class CompressCommand extends KaikiCommand {
                 });
             });
 
-        let image: Response;
+        let url: string;
 
         if (argument instanceof User) {
-            image = await fetch(argument.displayAvatarURL({
-                size: 32,
-                extension: "jpg",
-            }));
+            url = argument.displayAvatarURL({ size: 32, extension: "jpg" });
         }
         else if (argument instanceof URL) {
-            image = await fetch(argument);
+            url = argument.toString();
         }
         else {
-            image = await fetch((argument as Attachment).url)
+            url = (argument as Attachment).url;
         }
 
-        const imageBuffer = await image.arrayBuffer();
+        const imageBuffer = await (await fetch(url)).arrayBuffer();
 
-        const downscaled = sharp(imageBuffer)
-            .resize({ height: 64, kernel: "nearest", fit: "outside" })
-            .webp({ quality: 50 });
-
-        const picture = sharp(await downscaled.toBuffer())
-            .resize({ height: 256, kernel: "nearest", fit: "outside" })
-            .webp({ quality: 100 });
-
-        const attachment = new AttachmentBuilder(
-            await picture.toBuffer(), {
-                name: "compressed.jpg",
+        if (imageBuffer.byteLength > Constants.MAGIC_NUMBERS.CMDS.FUN.COMPRESS.MAX_FILE_SIZE) {
+            throw new UserError({
+                identifier: "FileTooLarge",
+                message: `Image must be under ${Constants.MAGIC_NUMBERS.CMDS.FUN.COMPRESS.MAX_FILE_SIZE / 1024 / 1024} MB.`,
             });
+        }
+
+        const { width = 0, height = 0 } = await sharp(imageBuffer).metadata();
+        if (width > Constants.MAGIC_NUMBERS.CMDS.FUN.COMPRESS.MAX_DIMENSION || height > Constants.MAGIC_NUMBERS.CMDS.FUN.COMPRESS.MAX_DIMENSION) {
+            throw new UserError({
+                identifier: "ImageTooLarge",
+                message: `Image dimensions must not exceed ${Constants.MAGIC_NUMBERS.CMDS.FUN.COMPRESS.MAX_DIMENSION}px.`,
+            });
+        }
+
+        const downscaledBuffer = await sharp(imageBuffer)
+            .resize({ height: 64, kernel: "nearest", fit: "outside" })
+            .webp({ quality: 50 })
+            .toBuffer();
+
+        const pictureBuffer = await sharp(downscaledBuffer)
+            .resize({ height: 256, kernel: "nearest", fit: "outside" })
+            .webp({ quality: 100 })
+            .toBuffer();
+
+        const attachment = new AttachmentBuilder(pictureBuffer, {
+            name: "compressed.webp",
+        });
 
         const embed = new EmbedBuilder({
             title: "High quality image...",
-            image: { url: "attachment://compressed.jpg" },
+            image: { url: "attachment://compressed.webp" },
         }).withOkColor(message);
 
         return message.reply({ files: [attachment], embeds: [embed] });
