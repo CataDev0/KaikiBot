@@ -3,7 +3,6 @@ import { Args, ApplicationCommandRegistry } from "@sapphire/framework";
 import {
     Awaitable,
     ChatInputCommandInteraction,
-    EmbedBuilder,
     Message,
 } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";

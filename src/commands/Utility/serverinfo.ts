@@ -1,7 +1,7 @@
 import { time } from "@discordjs/builders";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args } from "@sapphire/framework";
-import { ChannelType, EmbedBuilder, Message } from "discord.js";
+import { ChannelType, EmbedBuilder, GuildMFALevel, Message } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 
@@ -18,10 +18,21 @@ export default class ServerInfoCommand extends KaikiCommand {
             ? await args.pick("guild").catch(() => message.guild)
             : await args.pick("guild");
 
-        const emb = new EmbedBuilder({
-            thumbnail: {
-                url: <string>guild.iconURL({ extension: "png", size: 2048 }),
+        const channelCounts = guild.channels.cache.reduce(
+            (acc, channel) => {
+                if (channel.type === ChannelType.GuildText) acc.text++;
+                else if (channel.type === ChannelType.GuildVoice) acc.voice++;
+                else if (channel.type === ChannelType.GuildAnnouncement) acc.news++;
+                return acc;
             },
+            { text: 0, voice: 0, news: 0 }
+        );
+
+        const iconURL = guild.iconURL({ extension: "png", size: 2048 });
+        const mfaLevel = guild.mfaLevel === GuildMFALevel.Elevated ? "Elevated" : "None";
+
+        const emb = new EmbedBuilder({
+            ...(iconURL && { thumbnail: { url: iconURL } }),
             title: `${guild.name} [${guild.id}]`,
             author: { name: "Server info" },
             fields: [
@@ -54,19 +65,17 @@ export default class ServerInfoCommand extends KaikiCommand {
                 },
                 {
                     name: "MFA level",
-                    value: String(guild.mfaLevel),
+                    value: mfaLevel,
                     inline: true,
                 },
                 {
                     name: "Channels",
-                    value: `Text: **${guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildText).size}**
-Voice: **${guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildVoice).size}**
-News: **${guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildAnnouncement).size}**`,
+                    value: `Text: **${channelCounts.text}**\nVoice: **${channelCounts.voice}**\nNews: **${channelCounts.news}**`,
                     inline: true,
                 },
                 {
                     name: "Maximum video-channel users",
-                    value: String(guild.maxVideoChannelUsers),
+                    value: String(guild.maxVideoChannelUsers ?? "N/A"),
                     inline: false,
                 },
             ],

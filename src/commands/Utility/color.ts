@@ -1,5 +1,5 @@
 import { ApplyOptions } from "@sapphire/decorators";
-import { Args } from "@sapphire/framework";
+import { Args, UserError } from "@sapphire/framework";
 import { sendPaginatedMessage } from "discord-js-button-pagination-ts";
 import { AttachmentBuilder, EmbedBuilder, Message } from "discord.js";
 import { imgFromColor } from "../../lib/Color";
@@ -24,34 +24,25 @@ export default class ColorCommand extends KaikiCommand {
         const list = args.getFlags("list");
 
         if (list) {
-            const colorList = Object.keys(Constants.hexColorTable),
-                embedColor =
-					Constants.hexColorTable[
-						colorList[
-						    Math.floor(Math.random() * colorList.length)
-						] as keyof ColorNames
-					],
-                pages: EmbedBuilder[] = [];
+            const colorList = Object.keys(Constants.hexColorTable);
+            const randomColor =
+                Constants.hexColorTable[
+                    colorList[
+                        Math.floor(Math.random() * colorList.length)
+                    ] as keyof ColorNames
+                ];
+            const pages: EmbedBuilder[] = [];
+            const FILES_PER_PAGE =
+                Constants.MAGIC_NUMBERS.CMDS.UTILITY.COLOR.CLR_NAMES_PR_PAGE;
 
-            for (
-                let index = Number(
-                        Constants.MAGIC_NUMBERS.CMDS.UTILITY.COLOR
-                            .CLR_NAMES_PR_PAGE
-                    ),
-                    p = 0;
-                p < colorList.length;
-                index +=
-					Constants.MAGIC_NUMBERS.CMDS.UTILITY.COLOR
-					    .CLR_NAMES_PR_PAGE,
-                p +=
-						Constants.MAGIC_NUMBERS.CMDS.UTILITY.COLOR
-						    .CLR_NAMES_PR_PAGE
-            ) {
+            for (let i = 0; i < colorList.length; i += FILES_PER_PAGE) {
                 pages.push(
                     new EmbedBuilder({
                         title: "List of all available color names",
-                        description: colorList.slice(p, index).join("\n"),
-                        color: Number(embedColor),
+                        description: colorList
+                            .slice(i, i + FILES_PER_PAGE)
+                            .join("\n"),
+                        color: Number(randomColor),
                         footer: {
                             text: `Try ${await this.client.fetchPrefix(message)}colorlist for a visual representation of the color list`,
                         },
@@ -64,30 +55,48 @@ export default class ColorCommand extends KaikiCommand {
 
         const colorArray = await args.repeat("kaikiColor", { times: 10 });
 
-        const attachments: AttachmentBuilder[] = [];
-        const embeds = colorArray.map(async (color) => {
-            const random = Math.round(Math.random() * Date.now());
-            const hex = KaikiUtil.convertRGBToHex(color);
-            const colorInteger = parseInt(hex.replace("#", ""), 16);
-            const colorString = `Hex: **${hex}** [${colorInteger}]\nRed: **${color.r}**\nGreen: **${color.g}**\nBlue: **${color.b}**\n`;
-            attachments.push(
-                new AttachmentBuilder(await imgFromColor(color), {
-                    name: `${random}color.jpg`,
-                })
-            );
-
-            return new EmbedBuilder({
-                description: colorString,
-                color: colorInteger,
-                image: {
-                    url: `attachment://${random}color.jpg`,
-                },
+        if (!colorArray.length) {
+            throw new UserError({
+                identifier: "NoColors",
+                message:
+                    "Please provide valid colors. Usage: `color #ff0000` or `color --list`",
             });
-        });
+        }
+
+        const results = await Promise.all(
+            colorArray.map(async (color, index) => {
+                const attachmentName = `${index}color.jpg`;
+                const hex = KaikiUtil.convertRGBToHex(color);
+                const colorInteger = (color.r << 16) | (color.g << 8) | color.b;
+                const name = Object.entries(Constants.hexColorTable).find(
+                    ([, h]) => h === hex
+                )?.[0];
+                const colorString = `Hex: **${hex}** [${colorInteger}]\nRed: **${color.r}**\nGreen: **${color.g}**\nBlue: **${color.b}**`;
+
+                const attachment = new AttachmentBuilder(
+                    await imgFromColor(color),
+                    {
+                        name: attachmentName,
+                    }
+                );
+
+                const embed = new EmbedBuilder({
+                    description: colorString,
+                    color: colorInteger,
+                    image: {
+                        url: `attachment://${attachmentName}`,
+                    },
+                });
+
+                if (name) embed.setTitle(name);
+
+                return { attachment, embed };
+            })
+        );
 
         return message.reply({
-            files: attachments,
-            embeds: await Promise.all(embeds),
+            files: results.map((r) => r.attachment),
+            embeds: results.map((r) => r.embed),
         });
     }
 }
