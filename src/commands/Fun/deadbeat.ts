@@ -1,11 +1,6 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args, UserError } from "@sapphire/framework";
-import {
-    AttachmentBuilder,
-    cleanContent,
-    GuildMember,
-    Message,
-} from "discord.js";
+import { AttachmentBuilder, GuildMember, Message } from "discord.js";
 import sharp from "sharp";
 import Images from "../../data/images.json";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
@@ -25,7 +20,7 @@ export default class DeadbeatCommand extends KaikiCommand {
     private backgroundUrl = Images.fun.commands.deadbeat;
 
     public async messageRun(message: Message, args: Args) {
-        const member = <GuildMember>await args.pick("member").catch(() => {
+        const member = await args.pick("member").catch(() => {
             if (args.finished) {
                 return message.member;
             }
@@ -33,7 +28,7 @@ export default class DeadbeatCommand extends KaikiCommand {
                 identifier: "NoMemberProvided",
                 message: "Couldn't find a server member with that name.",
             });
-        });
+        }) as GuildMember;
 
         const buffer = await KaikiUtil.loadImage(
             member.displayAvatarURL({ extension: "jpg", size: 256 })
@@ -43,7 +38,7 @@ export default class DeadbeatCommand extends KaikiCommand {
             .resize({ height: 189, width: 205 })
             .toBuffer();
 
-        const image = sharp(await this.background()).composite([
+        const image = sharp(await KaikiUtil.loadImage(this.backgroundUrl)).composite([
             { input: modified, top: 88, left: 570 },
         ]);
 
@@ -51,12 +46,9 @@ export default class DeadbeatCommand extends KaikiCommand {
             name: "deadBeats.jpg",
         });
         await message.reply({
-            content: cleanContent(`Deadbeat 👉 ${member}!`, message.channel),
+            content: `Deadbeat 👉 ${member}!`,
             files: [attachment],
+            allowedMentions: { users: [] },
         });
-    }
-
-    private async background() {
-        return KaikiUtil.loadImage(this.backgroundUrl);
     }
 }
