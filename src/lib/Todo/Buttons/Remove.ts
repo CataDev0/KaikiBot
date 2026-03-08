@@ -1,19 +1,19 @@
 import { Todos } from "@prisma/client";
 import {
-    ActionRowBuilder,
     ButtonInteraction,
-    CacheType,
     EmbedBuilder,
-    ModalActionRowComponentBuilder,
+    LabelBuilder,
+    MessageFlags,
     ModalBuilder,
     TextInputBuilder,
+    TextInputStyle,
 } from "discord.js";
 import { Todo } from "../Todo";
 import { ButtonAdd } from "./Add";
 
 export class ButtonRemove {
     static async Remove(
-        buttonInteraction: ButtonInteraction<CacheType>,
+        buttonInteraction: ButtonInteraction,
         currentTime: number,
         todoArray: Todos[]
     ) {
@@ -25,7 +25,7 @@ export class ButtonRemove {
         });
 
         if (!interaction.deferred)
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const input = interaction.fields.getTextInputValue(
             `${currentTime}text2`
@@ -88,7 +88,6 @@ export class ButtonRemove {
             ],
             // Only show arrows if necessary
             components: todoArray.length > 10 ? [row, rowTwo] : [row],
-            options: { fetchReply: true },
         });
 
         await Todo.handleFurtherInteractions(
@@ -105,15 +104,16 @@ export class ButtonRemove {
         new ModalBuilder()
             .setTitle("Remove a TODO item")
             .setCustomId(`${currentTime}RemoveModal`)
-            .addComponents(
-                new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
-                    new TextInputBuilder()
-                        .setStyle(1)
-                        .setMaxLength(4)
-                        .setMinLength(1)
-                        .setLabel("Input number to remove")
-                        .setCustomId(`${currentTime}text2`)
-                        .setRequired()
-                )
+            .addLabelComponents(
+                new LabelBuilder()
+                    .setLabel("Input number to remove")
+                    .setTextInputComponent(
+                        new TextInputBuilder()
+                            .setStyle(TextInputStyle.Short)
+                            .setMaxLength(4)
+                            .setMinLength(1)
+                            .setCustomId(`${currentTime}text2`)
+                            .setRequired()
+                    )
             );
 }

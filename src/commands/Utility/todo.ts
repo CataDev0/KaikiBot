@@ -13,9 +13,9 @@ import { Todo } from "../../lib/Todo/Todo";
 		"A personal todo list. The items are limited to 204 characters. Intended for small notes.",
 })
 export default class TodoCommand extends KaikiCommand {
-    public async messageRun(message: Message<true>, args: Args) {
+    public async messageRun(message: Message, args: Args) {
         let page = await args.pick("number").catch(() => 1);
-        page = (page <= 1 ? 0 : page - 1) || 0;
+        page = Math.max(0, page - 1);
 
         const emb = new EmbedBuilder()
             .setTitle("Todo")
@@ -35,7 +35,7 @@ export default class TodoCommand extends KaikiCommand {
             },
         });
 
-        let sentMsg: Message<true>;
+        let sentMsg: Message;
         const pages: EmbedBuilder[] = [];
         const { row, rowTwo, currentTime } = Todo.createButtons();
 

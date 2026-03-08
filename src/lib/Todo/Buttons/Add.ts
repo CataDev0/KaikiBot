@@ -1,12 +1,13 @@
 import { Todos } from "@prisma/client";
 import {
-    ActionRowBuilder,
     ButtonInteraction,
     EmbedBuilder,
+    LabelBuilder,
     Message,
-    ModalActionRowComponentBuilder,
+    MessageFlags,
     ModalBuilder,
     TextInputBuilder,
+    TextInputStyle,
 } from "discord.js";
 import Constants from "../../../struct/Constants";
 import { Todo } from "../Todo";
@@ -16,19 +17,20 @@ export class ButtonAdd {
         new ModalBuilder()
             .setTitle("Add a TODO item")
             .setCustomId(`${currentTime}AddModal`)
-            .addComponents(
-                new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
-                    new TextInputBuilder()
-                        .setStyle(2)
-                        .setMaxLength(
-                            Constants.MAGIC_NUMBERS.CMDS.UTILITY.TODO
-                                .INPUT_MAX_LENGTH
-                        )
-                        .setMinLength(2)
-                        .setLabel("TODO")
-                        .setCustomId(`${currentTime}text1`)
-                        .setRequired()
-                )
+            .addLabelComponents(
+                new LabelBuilder()
+                    .setLabel("TODO")
+                    .setTextInputComponent(
+                        new TextInputBuilder()
+                            .setStyle(TextInputStyle.Paragraph)
+                            .setMaxLength(
+                                Constants.MAGIC_NUMBERS.CMDS.UTILITY.TODO
+                                    .INPUT_MAX_LENGTH
+                            )
+                            .setMinLength(2)
+                            .setCustomId(`${currentTime}text1`)
+                            .setRequired()
+                    )
             );
 
     static Embed = (message?: Message) =>
@@ -74,7 +76,7 @@ export class ButtonAdd {
         });
 
         if (!interaction.deferred)
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         // Make sure our local copy is up-to-date
         todoArray.push({
@@ -106,7 +108,6 @@ export class ButtonAdd {
                 embeds: [pages.at(-1) || pages[0]],
                 // Only show arrows if necessary
                 components: todoArray.length > 10 ? [row, rowTwo] : [row],
-                options: { fetchReply: true },
             }),
             sentMsg.delete(),
         ]);
@@ -136,7 +137,7 @@ export class ButtonAdd {
             });
 
             if (!interaction.deferred)
-                await interaction.deferReply({ ephemeral: true });
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
             const uId = BigInt(interaction.user.id);
 
@@ -189,7 +190,6 @@ export class ButtonAdd {
                 embeds: [pages.at(-1) || pages[0]],
                 // Only show arrows if necessary
                 components: todoArray.length > 10 ? [row, rowTwo] : [row],
-                options: { fetchReply: true },
             });
 
             await Todo.handleFurtherInteractions(
