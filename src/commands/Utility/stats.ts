@@ -1,4 +1,4 @@
-import * as process from "process";
+import process from "process";
 import { ApplyOptions } from "@sapphire/decorators";
 import { version as sapphireVersion } from "@sapphire/framework";
 import { sendPaginatedMessage } from "discord-js-button-pagination-ts";
@@ -8,7 +8,6 @@ import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import Constants from "../../struct/Constants";
 
 @ApplyOptions<KaikiCommandOptions>({
-    aliases: ["stats"],
     name: "stats",
     usage: "",
     description: "Statistics and information about the bot application",
@@ -47,30 +46,19 @@ export default class StatsCommand extends KaikiCommand {
                     },
                     {
                         name: "Presence",
-                        value: `Guilds: **${cache.size}**\nText channels: **${cache
-                            .map(
-                                (g) =>
-                                    g.channels.cache.filter(
-                                        (channel) =>
-                                            channel.type !==
-												ChannelType.GuildVoice &&
-											channel.type !==
-												ChannelType.GuildCategory
-                                    ).size
-                            )
-                            .reduce(
-                                (a, b) => a + b,
-                                0
-                            )}**\nVoice channels: **${cache
-                            .map(
-                                (g) =>
-                                    g.channels.cache.filter(
-                                        (channel) =>
-                                            channel.type ===
-											ChannelType.GuildVoice
-                                    ).size
-                            )
-                            .reduce((a, b) => a + b, 0)}**`,
+                        value: (() => {
+                            const counts = cache.reduce(
+                                (acc, g) => {
+                                    g.channels.cache.forEach((ch) => {
+                                        if (ch.type === ChannelType.GuildVoice) acc.voice++;
+                                        else if (ch.type !== ChannelType.GuildCategory) acc.text++;
+                                    });
+                                    return acc;
+                                },
+                                { text: 0, voice: 0 }
+                            );
+                            return `Guilds: **${cache.size}**\nText channels: **${counts.text}**\nVoice channels: **${counts.voice}**`;
+                        })(),
                         inline: true,
                     },
                 ])
@@ -95,7 +83,7 @@ export default class StatsCommand extends KaikiCommand {
                     }
                 ])
                 .setAuthor({
-                    name: "© 2025 @Cata",
+                    name: `© ${new Date().getFullYear()} @Cata`,
                     iconURL: message.client.user.displayAvatarURL(),
                     url: packageJSON.repository.url,
                 })

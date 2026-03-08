@@ -30,27 +30,14 @@ import Constants from "../../struct/Constants";
     minorCategory: "Info",
 })
 export default class InfoCommand extends KaikiCommand {
-    private NoArgumentFoundError = new UserError({
+    private readonly NoArgumentFoundError = new UserError({
         identifier: "NoArgumentFound",
         message:
 			"I couldn't find any relevant information for the argument you provided. Please check your input and try again.",
     });
 
     public async messageRun(message: Message<true>, args: Args) {
-        const obj = args.finished
-            ? message.member || message.author
-            : await Promise.resolve(
-                args
-                    .pick("member")
-                    .catch(async () => args.pick("user"))
-                    .catch(async () => args.pick("guildChannel"))
-                    .catch(async () => args.pick("role"))
-                    .catch(async () => args.pick("message"))
-                    .catch(async () => args.pick("emoji"))
-                    .catch(async () => {
-                        throw this.NoArgumentFoundError;
-                    })
-            );
+        const obj = await this.resolveTarget(message, args);
 
         let emb: EmbedBuilder[] = [];
 
@@ -71,6 +58,32 @@ export default class InfoCommand extends KaikiCommand {
         }
 
         return message.reply({ embeds: emb });
+    }
+
+    private async resolveTarget(message: Message<true>, args: Args) {
+        if (args.finished) {
+            if (message.stickers.size) return message.stickers;
+            return message.member || message.author;
+        }
+
+        const strategies = [
+            () => args.pick("member"),
+            () => args.pick("user"),
+            () => args.pick("guildChannel"),
+            () => args.pick("role"),
+            () => args.pick("message"),
+            () => args.pick("emoji"),
+        ];
+
+        for (const strategy of strategies) {
+            try {
+                return await strategy();
+            } catch {
+                continue;
+            }
+        }
+
+        throw this.NoArgumentFoundError;
     }
 
     private async gMember(message: Message<true>, obj: GuildMember | User) {
@@ -168,342 +181,168 @@ export default class InfoCommand extends KaikiCommand {
         message: Message<true>,
         obj: GuildChannel | ThreadChannel
     ) {
-        // Base embed
-        const emb = [new EmbedBuilder().withOkColor(message)];
-
-        if (obj.isVoiceBased()) {
-            emb[0].setTitle(`Info about voice channel: ${obj.name}`).addFields([
-                {
-                    name: "ID",
-                    value: obj.id,
-                },
-                {
-                    name: "Type",
-                    value: Constants.channelTypes[
-						ChannelType[obj.type] as keyof typeof ChannelType
-                    ],
-                },
-                {
-                    name: "User limit",
-                    value:
-						obj.userLimit === 0
-						    ? "No limit"
-						    : String(obj.userLimit),
-                },
-                {
-                    name: "Created at",
-                    value: time(obj.createdAt),
-                },
-                {
-                    name: "Bitrate",
-                    value: obj.bitrate / 1000 + "kbps",
-                },
-                {
-                    name: "Link",
-                    value: obj.url,
-                },
-            ]);
-
-            if (obj.parent) {
-                emb[0].addFields([
-                    {
-                        name: "Parent",
-                        value: `${obj.parent.name} [${obj.parentId}]`,
-                    },
-                ]);
-            }
-        } else if (obj.isTextBased()) {
-            if (obj.isThread()) {
-                emb[0].setTitle(`Info about Thread: ${obj.name}`).addFields([
+        const emb = [
+            new EmbedBuilder()
+                .withOkColor(message)
+                .setTitle(`Info about ${this.getChannelTypeName(obj)}: ${obj.name}`)
+                .addFields(
+                    { name: "ID", value: obj.id, inline: true },
                     {
                         name: "Type",
                         value: Constants.channelTypes[
-							ChannelType[obj.type] as keyof typeof ChannelType
+                                ChannelType[obj.type] as keyof typeof ChannelType
                         ],
-                    },
-                    {
-                        name: "ID",
-                        value: obj.id,
+                        inline: true,
                     },
                     {
                         name: "Created at",
                         value: obj.createdAt ? time(obj.createdAt) : "N/A",
+                        inline: true,
                     },
-                    {
-                        name: "Link",
-                        value: obj.url,
-                    },
-                ]);
+                    { name: "Link", value: obj.url, inline: true }
+                ),
+        ];
 
-                if (obj.ownerId) {
-                    emb[0].addFields([
-                        {
-                            name: "Author",
-                            value:
-								message.guild.members.cache.get(obj.ownerId)
-								    ?.user.username || obj.ownerId,
-                        },
-                    ]);
-                }
-            } else {
-                emb[0]
-                    .setTitle(`Info about text channel: ${obj.name}`)
-                    .addFields(
-                        {
-                            name: "ID",
-                            value: obj.id,
-                        },
-                        {
-                            name: "Type",
-                            value: Constants.channelTypes[
-								ChannelType[
-								    obj.type
-								] as keyof typeof ChannelType
-                            ],
-                        },
-                        {
-                            name: "NSFW",
-                            value: obj.nsfw ? "Enabled" : "Disabled",
-                        },
-                        {
-                            name: "Created at",
-                            value: time(obj.createdAt),
-                        },
-                        {
-                            name: "Link",
-                            value: obj.url,
-                        }
-                    );
-
-                if (obj.parent) {
-                    emb[0].addFields([
-                        {
-                            name: "Parent",
-                            value: `${obj.parent.name} [${obj.parentId}]`,
-                        },
-                    ]);
-                }
-            }
-        } else if (obj instanceof CategoryChannel) {
-            emb[0]
-                .setTitle(`Info about category channel: ${obj.name}`)
-                .addFields([
-                    {
-                        name: "ID",
-                        value: obj.id,
-                    },
-                    {
-                        name: "Type",
-                        value: Constants.channelTypes[
-							ChannelType[obj.type] as keyof typeof ChannelType
-                        ],
-                    },
-                    {
-                        name: "Children",
-                        value: String(obj.children.cache.size),
-                    },
-                    {
-                        name: "Created at",
-                        value: time(obj.createdAt),
-                    },
-                    {
-                        name: "Link",
-                        value: obj.url,
-                    },
-                ]);
+        if (obj.parent) {
+            emb[0].addFields({
+                name: "Parent",
+                value: `${obj.parent.name} [${obj.parentId}]`,
+                inline: true,
+            });
         }
 
-        // Generic GuildChannel. Probably unnecessary, however it is required for the interpreter...
-        else {
-            emb[0].setTitle(`Info about text channel: ${obj.name}`).addFields(
+        if (obj.isVoiceBased()) {
+            emb[0].addFields(
                 {
-                    name: "ID",
-                    value: obj.id,
+                    name: "Bitrate",
+                    value: `${obj.bitrate / 1000}kbps`,
+                    inline: true,
                 },
                 {
-                    name: "Type",
-                    value: Constants.channelTypes[
-						ChannelType[obj.type] as keyof typeof ChannelType
-                    ],
-                },
-                {
-                    name: "Created at",
-                    value: obj.createdAt ? time(obj.createdAt) : "N/A",
-                },
-                {
-                    name: "Link",
-                    value: obj.url,
+                    name: "User limit",
+                    value: obj.userLimit === 0 ? "No limit" : String(obj.userLimit),
+                    inline: true,
                 }
             );
+        }
 
-            if (obj.parent) {
-                emb[0].addFields([
-                    {
-                        name: "Parent",
-                        value: `${obj.parent.name} [${obj.parentId}]`,
-                    },
-                ]);
+        if (obj.isTextBased()) {
+            if (obj.isThread()) {
+                if (obj.ownerId) {
+                    const owner = message.guild.members.cache.get(obj.ownerId);
+                    emb[0].addFields({
+                        name: "Author",
+                        value: owner ? owner.user.username : obj.ownerId,
+                        inline: true,
+                    });
+                }
+            } else if ("nsfw" in obj) {
+                emb[0].addFields({
+                    name: "NSFW",
+                    value: obj.nsfw ? "Enabled" : "Disabled",
+                    inline: true,
+                });
             }
+        }
+
+        if (obj instanceof CategoryChannel) {
+            emb[0].addFields({
+                name: "Children",
+                value: String(obj.children.cache.size),
+                inline: true,
+            });
         }
 
         return emb;
+    }
+
+    private getChannelTypeName(obj: GuildChannel | ThreadChannel): string {
+        if (obj.isVoiceBased()) return "voice channel";
+        if (obj.isThread()) return "thread";
+        if (obj instanceof CategoryChannel) return "category";
+        return "text channel";
     }
 
     private async gRole(message: Message<true>, obj: Role) {
-        // Base embed
-        const emb = [new EmbedBuilder().withOkColor(message)];
-
-        emb[0].setTitle(`Info about role: ${obj.name}`).addFields([
-            {
-                name: "ID",
-                value: obj.id,
-                inline: true,
-            },
-            {
-                name: "Created at",
-                value: time(obj.createdAt),
-                inline: true,
-            },
-            {
-                name: "Color",
-                value: obj.hexColor,
-                inline: true,
-            },
-            {
-                name: "Members",
-                value: String(obj.members.size),
-                inline: true,
-            },
-            {
-                name: "Mentionable",
-                value: String(obj.mentionable),
-                inline: true,
-            },
-            {
-                name: "Hoisted",
-                value: String(obj.hoist),
-                inline: true,
-            },
-            {
-                name: "Position",
-                value: String(obj.position),
-                inline: true,
-            },
-        ]);
-
-        return emb;
+        return [
+            new EmbedBuilder()
+                .withOkColor(message)
+                .setTitle(`Info about role: ${obj.name}`)
+                .addFields(
+                    { name: "ID", value: obj.id, inline: true },
+                    { name: "Created at", value: time(obj.createdAt), inline: true },
+                    { name: "Color", value: obj.hexColor, inline: true },
+                    { name: "Members", value: String(obj.members.size), inline: true },
+                    {
+                        name: "Mentionable",
+                        value: String(obj.mentionable),
+                        inline: true,
+                    },
+                    { name: "Hoisted", value: String(obj.hoist), inline: true },
+                    { name: "Position", value: String(obj.position), inline: true }
+                ),
+        ];
     }
 
     private async gMessage(message: Message<true>, obj: Message<boolean>) {
-        // Base embed
-        const emb = [new EmbedBuilder().withOkColor(message)];
-
-        emb[0]
-            .setTitle(
-                `Info about message in channel: ${(obj.channel as TextChannel).name}`
-            )
-            .addFields([
-                {
-                    name: "ID",
-                    value: obj.id,
-                    inline: true,
-                },
-                {
-                    name: "Created at",
-                    value: time(obj.createdAt),
-                },
-                {
-                    name: "Author",
-                    value: obj.author.username,
-                    inline: true,
-                },
-                {
-                    name: "Link",
-                    value: obj.url,
-                    inline: true,
-                },
-            ]);
-
-        return emb;
+        return [
+            new EmbedBuilder()
+                .withOkColor(message)
+                .setTitle(
+                    `Info about message in channel: ${(obj.channel as TextChannel).name}`
+                )
+                .addFields(
+                    { name: "ID", value: obj.id, inline: true },
+                    { name: "Created at", value: time(obj.createdAt), inline: false },
+                    { name: "Author", value: obj.author.username, inline: true },
+                    { name: "Link", value: obj.url, inline: true }
+                ),
+        ];
     }
 
     private async emoji(message: Message<true>, obj: EmojiObject) {
-        // Base embed
-        const emb = [new EmbedBuilder().withOkColor(message)];
-
-        const id = obj.id;
+        const id = obj.id!;
         const link = `https://cdn.discordapp.com/emojis/${id}.${obj.animated ? "gif" : "png"}`;
 
-        emb[0]
-            .setTitle("Info about custom emoji")
-            .setImage(link)
-            .addFields([
-                {
-                    name: "Name",
-                    value: obj.name || "N/A",
-                    inline: true,
-                },
-                {
-                    name: "ID",
-                    value: id || "N/A",
-                    inline: true,
-                },
-                {
-                    name: "Raw",
-                    value: `\`:${obj.name}:\``,
-                    inline: true,
-                },
-                {
-                    name: "Link",
-                    value: link,
-                    inline: true,
-                },
-            ]);
-
-        return emb;
+        return [
+            new EmbedBuilder()
+                .withOkColor(message)
+                .setTitle("Info about custom emoji")
+                .setImage(link)
+                .addFields(
+                    { name: "Name", value: obj.name || "N/A", inline: true },
+                    { name: "ID", value: id || "N/A", inline: true },
+                    { name: "Raw", value: `\`:${obj.name}:\``, inline: true },
+                    { name: "Link", value: link, inline: true }
+                ),
+        ];
     }
 
     private async sticker(
         message: Message<true>,
         obj: Collection<string, Sticker>
     ) {
-        const emb: EmbedBuilder[] = [];
-
-        let i = 0;
-        obj.forEach(
-            (sticker) =>
-                (emb[i++] = new EmbedBuilder()
-                    .setTitle(`Info about Sticker: ${sticker.name}`)
-                    .setImage(sticker.url)
-                    .addFields(
-                        {
-                            name: "ID",
-                            value: sticker.id,
-                            inline: true,
-                        },
-                        {
-                            name: "Tags",
-                            value: sticker.tags || "N/A",
-                            inline: true,
-                        },
-                        {
-                            name: "Description",
-                            value: sticker.description || "N/A",
-                            inline: true,
-                        },
-                        {
-                            name: "Type",
-                            value:
-								sticker.type === StickerType.Standard
-								    ? "Official"
-								    : "Guild",
-                            inline: true,
-                        }
-                    )
-                    .withOkColor(message))
+        return obj.map((sticker) =>
+            new EmbedBuilder()
+                .setTitle(`Info about Sticker: ${sticker.name}`)
+                .setImage(sticker.url)
+                .addFields(
+                    { name: "ID", value: sticker.id, inline: true },
+                    { name: "Tags", value: sticker.tags || "N/A", inline: true },
+                    {
+                        name: "Description",
+                        value: sticker.description || "N/A",
+                        inline: true,
+                    },
+                    {
+                        name: "Type",
+                        value:
+                            sticker.type === StickerType.Standard ? "Official" : "Guild",
+                        inline: true,
+                    }
+                )
+                .withOkColor(message)
         );
-
-        return emb;
     }
 
     private isEmojiObject(obj: unknown): obj is EmojiObject {

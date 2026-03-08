@@ -2,8 +2,9 @@ import { ApplyOptions } from "@sapphire/decorators";
 import {
     ActionRowBuilder,
     ButtonBuilder,
+    ButtonStyle,
+    ComponentType,
     EmbedBuilder,
-    InteractionCollector,
     Message,
 } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
@@ -24,53 +25,60 @@ export default class ForgetMeCommand extends KaikiCommand {
                     )
                     .withOkColor(message),
             ],
-            isInteraction: true,
             components: [
                 new ActionRowBuilder<ButtonBuilder>({
                     components: [
                         new ButtonBuilder()
-                            .setCustomId("1")
+                            .setCustomId("forget_confirm")
                             .setLabel("Yes")
                             .setEmoji("⚠️")
-                            .setStyle(4),
+                            .setStyle(ButtonStyle.Danger),
                         new ButtonBuilder()
-                            .setCustomId("2")
+                            .setCustomId("forget_cancel")
                             .setLabel("No")
                             .setEmoji("❌")
-                            .setStyle(2),
+                            .setStyle(ButtonStyle.Secondary),
                     ],
                 }),
             ],
         });
 
-        const buttonListener = new InteractionCollector(message.client, {
-            message: deleteMsg,
-            time: 20000,
-            filter: (m) => m.user.id === message.author.id,
-        });
+        try {
+            const i = await deleteMsg.awaitMessageComponent({
+                filter: (m) => m.user.id === message.author.id,
+                time: 20000,
+                componentType: ComponentType.Button,
+            });
 
-        buttonListener.once("collect", async (i) => {
-            if (i.isButton()) {
-                if (i.customId === "1") {
-                    const userData = await this.client.orm.discordUsers.delete({
+            if (i.customId === "forget_confirm") {
+                try {
+                    const user = await this.client.orm.discordUsers.findUnique({
+                        where: {
+                            UserId: BigInt(message.author.id),
+                        },
                         select: {
                             Amount: true,
-                            CreatedAt: true,
-                            Todos: true,
+                            _count: {
+                                select: {
+                                    Todos: true,
+                                    GuildUsers: true,
+                                },
+                            },
                         },
+                    });
+
+                    if (!user) {
+                        throw new Error("User not found");
+                    }
+
+                    await this.client.orm.discordUsers.delete({
                         where: {
                             UserId: BigInt(message.author.id),
                         },
                     });
 
-                    const guildData =
-						await this.client.orm.guildUsers.deleteMany({
-						    where: {
-						        UserId: BigInt(message.author.id),
-						    },
-						});
-
-                    message.reply({
+                    await i.update({
+                        components: [],
                         embeds: [
                             new EmbedBuilder()
                                 .setTitle("Deleted data")
@@ -80,29 +88,43 @@ export default class ForgetMeCommand extends KaikiCommand {
                                 .addFields([
                                     {
                                         name: "Cleared user-data",
-                                        value: userData.Todos.length
-                                            ? `${userData.Todos.length + guildData.count} entrie(s) deleted`
-                                            : "N/A",
+                                        value: `${
+                                            user._count.Todos +
+                                            user._count.GuildUsers
+                                        } entries deleted`,
                                     },
                                     {
                                         name: "Cleared money-data",
-                                        value: userData.Amount
-                                            ? `${userData.Amount} currency deleted`
-                                            : "N/A",
+                                        value: `${user.Amount} currency deleted`,
                                     },
                                 ])
                                 .withOkColor(message),
                         ],
                     });
-                } else {
-                    await message.delete();
+                } catch {
+                    await i.update({
+                        components: [],
+                        embeds: [
+                            new EmbedBuilder()
+                                .setDescription(
+                                    "No data found in the database to delete."
+                                )
+                                .withErrorColor(message),
+                        ],
+                    });
                 }
-                buttonListener.stop();
+            } else {
+                await i.update({
+                    components: [],
+                    embeds: [
+                        new EmbedBuilder()
+                            .setDescription("Deletion cancelled.")
+                            .withOkColor(message),
+                    ],
+                });
             }
-        });
-
-        buttonListener.once("end", async () => {
+        } catch {
             await deleteMsg.delete();
-        });
+        }
     }
 }

@@ -11,6 +11,7 @@ import Constants from "../../struct/Constants";
     aliases: ["listservers", "servers"],
     description: "Lists all servers the bot is in. 15 servers per page.",
     usage: ["", "7"],
+    preconditions: ["OwnerOnly"],
     requiredClientPermissions: ["SendMessages"],
 })
 export default class ServerList extends KaikiCommand {
@@ -20,21 +21,21 @@ export default class ServerList extends KaikiCommand {
         const { GUILDS_PER_PAGE } =
 			Constants.MAGIC_NUMBERS.CMDS.UTILITY.SERVER_LIST;
         const pages = [];
+        const guilds = [...this.client.guilds.cache.values()];
+        const totalPages = Math.ceil(guilds.length / GUILDS_PER_PAGE);
         const embed = new EmbedBuilder()
-            .setDescription("Server list")
-            .setTitle(`Total Servers: ${this.client.guilds.cache.size}`)
+            .setTitle(`Total Servers: ${guilds.length}`)
             .withOkColor(message);
 
         for (
-            let from = 0,
-                to = GUILDS_PER_PAGE,
-                guilds = [...this.client.guilds.cache.values()];
-            from <= guilds.length;
-            from += GUILDS_PER_PAGE, to += GUILDS_PER_PAGE
+            let from = 0, to = GUILDS_PER_PAGE, page = 1;
+            from < guilds.length;
+            from += GUILDS_PER_PAGE, to += GUILDS_PER_PAGE, page++
         ) {
             const currentPageGuilds = guilds.slice(from, to);
 
-            const emb = EmbedBuilder.from(embed);
+            const emb = EmbedBuilder.from(embed)
+                .setFooter({ text: `Page ${page}/${totalPages}` });
 
             currentPageGuilds.forEach((guild) => {
                 emb.addFields({

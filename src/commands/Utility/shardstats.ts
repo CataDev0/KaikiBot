@@ -1,17 +1,8 @@
 import { ApplyOptions } from "@sapphire/decorators";
-import { Message } from "discord.js";
+import { Message, Status } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import KaikiUtil from "../../lib/KaikiUtil";
-
-enum ShardStats {
-	"READY",
-	"CONNECTING",
-	"RECONNECTING",
-	"IDLE",
-	"NEARLY",
-	"DISCONNECTED",
-}
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "shardstats",
@@ -25,17 +16,15 @@ export default class ShardStatisticsCommand extends KaikiCommand {
     public async messageRun(message: Message<true>) {
         const { ws } = message.client;
 
+        const shardList = Array.from(ws.shards.values())
+            .map((w) => `ID: [${w.id}] | Ping: ${w.ping}ms | Status: ${Status[w.status]}`)
+            .join("\n");
+
         return message.reply({
-            content: `${await KaikiUtil.codeblock(`This guild is managed by shard: [${message.guild.shardId}]`, "xl")}
-    ${await KaikiUtil.codeblock(
-        Array.from(ws.shards.entries())
-            .map(
-                ([, w]) =>
-                    `ID: [${w.id}] | Ping: ${w.ping}ms | Status: ${ShardStats[w.status]}`
-            )
-            .join("\n"),
-        "xl"
-    )}`,
+            content: [
+                await KaikiUtil.codeblock(`This guild is managed by shard: [${message.guild.shardId}]`, "xl"),
+                await KaikiUtil.codeblock(shardList, "xl"),
+            ].join("\n"),
         });
     }
 }
