@@ -1,6 +1,6 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args, UserError } from "@sapphire/framework";
-import { Message } from "discord.js";
+import { EmbedBuilder, Message } from "discord.js";
 import HentaiService from "../../services/HentaiService";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
@@ -8,15 +8,17 @@ import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 @ApplyOptions<KaikiCommandOptions>({
     name: "hentaibomb",
     aliases: ["hb"],
-    description: "Posts 5 NSFW images, using the waifu.pics API",
+    description: "Posts 5 NSFW images from waifu.pics. Optionally specify a category.",
     usage: ["waifu", "neko", "femboy", "blowjob"],
+    typing: true,
     nsfw: true,
+    cooldownDelay: 10000,
 })
 export default class HentaiBombCommand extends KaikiCommand {
     public async messageRun(
         message: Message,
         args: Args
-    ): Promise<Message | Message[]> {
+    ): Promise<Message> {
         const category = await args.pick("kaikiHentai").catch(() => {
             if (args.finished) {
                 return null;
@@ -27,18 +29,21 @@ export default class HentaiBombCommand extends KaikiCommand {
             });
         });
 
-        const megaResponse = (
-            await this.client.hentaiService.grabHentai(
-                category ??
-					HentaiService.hentaiArray[
-					    Math.floor(
-					        Math.random() * HentaiService.hentaiArray.length
-					    )
-					],
-                "bomb"
-            )
-        ).splice(0, 5);
+        const chosenCategory =
+            category ??
+            HentaiService.hentaiArray[
+                Math.floor(Math.random() * HentaiService.hentaiArray.length)
+            ];
 
-        return message.reply({ content: megaResponse.join("\n") });
+        const urls = await this.client.hentaiService.grabHentai(
+            chosenCategory,
+            "bomb"
+        );
+
+        return message.reply({
+            embeds: urls.map((url) =>
+                new EmbedBuilder().setImage(url).withOkColor(message)
+            ),
+        });
     }
 }

@@ -6,10 +6,11 @@ import { EndPointSignatures } from "../../lib/APIs/waifu.im";
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "ero",
-    description: "Returns a nsfw ero picture",
+    description: "Returns a random NSFW ero picture from waifu.im",
     usage: [""],
     typing: true,
     nsfw: true,
+    cooldownDelay: 3000,
 })
 export default class Ero extends KaikiCommand {
     public async messageRun(message: Message): Promise<Message> {
