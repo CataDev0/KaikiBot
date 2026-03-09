@@ -20,7 +20,7 @@ export default class SnakesAndLaddersCommand extends KaikiCommand {
         const opponent = message.mentions.users.first();
 
         if (!opponent || opponent.bot || opponent.id === message.author.id) {
-            return message.channel.send("❌ Please mention a valid user to play against. Usage: `snakesandladders @opponent`");
+            return message.channel.send(`❌ Please mention a valid user to play against. Usage: \`${message.client.fetchPrefix(message)}snakesandladders @opponent\``);
         }
 
         // Invite prompt
