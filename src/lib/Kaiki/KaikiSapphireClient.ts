@@ -333,6 +333,14 @@ export default class KaikiSapphireClient<Ready extends true>
             NeofetchCommand.usingFastFetch = false;
         }
 
+        // Check if ImageMagick (convert) is available for the magicwarp command
+        try {
+            execSync("command -v convert >/dev/null 2>&1");
+        } catch {
+            await commandStore.unload("magicwarp");
+            this.logger.warn("ImageMagick (convert) wasn't detected! Magic warp command will be disabled.");
+        }
+
         // Check if music dependencies are available
         if (!this.checkMusicDependencies()) {
             const musicCommands = ["play", "skip", "queue", "stop"];

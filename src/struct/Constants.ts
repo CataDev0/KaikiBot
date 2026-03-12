@@ -146,6 +146,10 @@ export default class Constants {
                     MAX_FILE_SIZE: 8 * 1024 * 1024, // 8 MB
                     MAX_DIMENSION: 4000, // px
                 },
+                MAGIC_WARP: {
+                    MAX_FILE_SIZE: 8 * 1024 * 1024, // 8 MB
+                    MAX_DIMENSION: 2000, // px – liquid-rescale is CPU intensive on large images
+                },
                 NAMES: {
                     NAMES_PR_PAGE: 60,
                 },
