@@ -2,9 +2,7 @@ import { exec } from "child_process";
 import * as process from "process";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args } from "@sapphire/framework";
-import { sendPaginatedMessage } from "discord-js-button-pagination-ts";
-import { EmbedBuilder, Message } from "discord.js";
-import { distros } from "../../data/distros.json";
+import { Message, AttachmentBuilder } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import KaikiUtil from "../../lib/KaikiUtil";
@@ -25,19 +23,11 @@ export default class NeofetchCommand extends KaikiCommand {
     public static usingFastFetch = true;
 
     private static neofetchArgument = Args.make<string>((parameter) => {
-        const success = distros.find((str) => {
-            const k = str.toLowerCase();
-
-            return parameter
-                .toLowerCase()
-                .startsWith(k.slice(0, Math.max(parameter.length - 1, 1)));
-        });
-
-        if (!success) {
+        const sanitized = parameter.toLowerCase().replace(/[^a-z0-9_.-]/g, "");
+        if (!sanitized) {
             return Args.ok("");
         }
-
-        return Args.ok(success);
+        return Args.ok(sanitized);
     });
 
     public async messageRun(message: Message, args: Args) {
@@ -48,60 +38,52 @@ export default class NeofetchCommand extends KaikiCommand {
             .catch(() => undefined);
 
         if (list) {
-            const pages: EmbedBuilder[] = [];
-            for (
-                let i =
-						Constants.MAGIC_NUMBERS.CMDS.FUN.NEOFETCH
-						    .DISTROS_PR_PAGE,
-                    p = 0;
-                p < distros.length;
-                i =
-					i +
-					Constants.MAGIC_NUMBERS.CMDS.FUN.NEOFETCH.DISTROS_PR_PAGE,
-                p =
-						p +
-						Constants.MAGIC_NUMBERS.CMDS.FUN.NEOFETCH
-						    .DISTROS_PR_PAGE
-            ) {
-                pages.push(
-                    new EmbedBuilder()
-                        .setTitle("ascii_distro list")
-                        .setThumbnail(message.author.displayAvatarURL())
-                        .setDescription(
-                            await KaikiUtil.codeblock(
-                                distros.slice(p, i).join(", "),
-                                "json"
-                            )
-                        )
-                        .withOkColor(message)
-                );
+            if (!NeofetchCommand.usingFastFetch) {
+                return message.reply({
+                    content: "Listing supported distros is only natively supported with fastfetch. Neofetch does not have a built-in list command."
+                });
             }
-            return sendPaginatedMessage(message, pages, {});
-        } else {
 
-            let cmd = `neofetch -L --ascii_distro ${os}|sed 's/\x1B\\[[0-9;?]*[a-zA-Z]//g'`;
+            const listCmd = "fastfetch --list-logos | sed 's/\x1B\\[[0-9;?]*[a-zA-Z]//g'";
+
+            exec(listCmd, async (error, stdout, stderr) => {
+                if (error || stderr) {
+                    this.container.logger.error(error);
+                }
+
+                const cleanStdout = stdout.replace(Constants.NeoFetchRegExp, "").trim() || "No logos found or error occurred.";
+
+                const attachment = new AttachmentBuilder(Buffer.from(cleanStdout), { name: "logos.txt" });
+
+                return message.reply({
+                    content: "Here is the list of available ascii distros in fastfetch:",
+                    files: [attachment]
+                });
+            });
+        } else {
             const { platform } = process;
 
-            if (!os && platform !== "win32")
-                cmd = "neofetch -L | sed 's/\x1B\\[[0-9;\\?]*[a-zA-Z]//g'";
+            let cmd = `neofetch -L --ascii_distro ${os} | sed 's/\x1B\\[[0-9;?]*[a-zA-Z]//g'`;
 
-            if (NeofetchCommand.usingFastFetch) cmd = `fastfetch --config external/fastfetch.jsonc -l ${os}`;
+            if (!os && platform !== "win32") {
+                cmd = "neofetch -L | sed 's/\x1B\\[[0-9;\\?]*[a-zA-Z]//g'";
+            }
+
+            if (NeofetchCommand.usingFastFetch) {
+                cmd = `fastfetch --config external/fastfetch.jsonc ${os ? `-l ${os}` : ""}`;
+            }
 
             exec(cmd, async (error, stdout, stderr) => {
                 if (error || stderr) {
                     return this.container.logger.error(error);
                 }
+                
+                const formattedOutput = stdout
+                    .replace(/```/g, "\u0300`\u0300`\u0300`\u0300")
+                    .replace(Constants.NeoFetchRegExp, "");
+
                 return message.reply(
-                    await KaikiUtil.codeblock(
-                        "\u00AD" +
-                        stdout.replace(
-							    /```/g,
-							    "\u0300`\u0300`\u0300`\u0300"
-                        ).replace(
-                            Constants.NeoFetchRegExp,
-                            ""
-                        )
-                    )
+                    await KaikiUtil.codeblock("\u00AD" + formattedOutput)
                 );
             });
         }
