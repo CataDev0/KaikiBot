@@ -1,9 +1,11 @@
 import process from "process";
 
-process.on("unhandledRejection", (reason: Error, promise) =>
-    console.warn(reason, promise)
-);
+process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+    process.exit(1);
+});
 
-process.on("uncaughtException", (reason: Error, promise) =>
-    console.warn(reason, promise)
-);
+process.on("uncaughtException", (error) => {
+    console.error("Uncaught Exception:", error);
+    process.exit(1);
+});
