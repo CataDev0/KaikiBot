@@ -33,8 +33,8 @@ export default class Constants {
         Administration: "For server admins. Manage bans and channels.",
         Anime: "Search anime, manga and quotes.",
         Emotes: "Steal or create new emotes",
-        Fun: "Silly commands. Has avatar manipulation, games and more",
-        Gambling: "Try your game at betting. Gain and lose. Lose a lot",
+        Fun: "Silly commands. Has avatar and image manipulation, games and more",
+        Gambling: "Try your hand at betting. Gain and lose. Lose a lot",
         Interactions:
             "Put your feelings on display with kiss, or just hug, or something else?",
         Images: "Spawn cute anime waifus!",
