@@ -28,6 +28,9 @@ const execFileAsync = promisify(execFile);
     typing: true,
 })
 export default class MagicWarpCommand extends KaikiCommand {
+
+    private titles: string[] = ["Magic warped...", "Sim salabim!", "Abracadabra!", "Enhanced(?)", "Magically(?) warped..."];
+
     public async messageRun(message: Message, args: Args): Promise<Message> {
         const argument = await args.pick("user")
             .catch(() => args.pick("url"))
@@ -110,7 +113,7 @@ export default class MagicWarpCommand extends KaikiCommand {
             });
 
             const embed = new EmbedBuilder({
-                title: "Magic warped...",
+                title: this.titles[Math.floor(Math.random() * this.titles.length)],
                 image: { url: "attachment://magicwarp.png" },
             }).withOkColor(message);
 
