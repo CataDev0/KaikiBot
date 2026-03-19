@@ -11,7 +11,8 @@
 		"lint": "eslint .",
 		"start": "node dist/index.js --color",
 		"version": "auto-changelog -p -u -o CHANGELOG.md -t keepachangelog && git add CHANGELOG.md",
-		"watch": "tsc -p tsconfig.json -w"
+		"watch": "tsc -p tsconfig.json -w",
+		"prepare": "husky"
 	},
 	"keywords": [
 		"Community",
@@ -60,6 +61,7 @@
 		"eslint": "^9.35.0",
 		"eslint-import-resolver-typescript": "^4.4.4",
 		"eslint-plugin-import": "^2.32.0",
+		"husky": "^9.1.7",
 		"kaikiwa-types": "./KaikiWA-Types/",
 		"typescript": "~5.4.5"
 	},
