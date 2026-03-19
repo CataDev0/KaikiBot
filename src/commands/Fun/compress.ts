@@ -13,52 +13,18 @@ import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions"
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import Constants from "../../struct/Constants";
 
+import KaikiArgumentsTypes from "../../lib/Kaiki/KaikiArgumentsTypes";
+
 @ApplyOptions<KaikiCommandOptions>({
     name: "compress",
     description: "Compresses given member's avatar...",
     usage: ["@dreb"],
     preconditions: ["GuildOnly"],
+    minorCategory: "Image Manipulation",
 })
 export default class CompressCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args) {
-        const argument = await args.pick("user")
-            .catch(() => args.pick("url"))
-            .catch(() => {
-                const attachment = message.attachments.first();
-                // Returns the first attachemnt if it is an image
-                if (attachment?.contentType?.startsWith("image/")) {
-                    if (attachment.size > Constants.MAGIC_NUMBERS.CMDS.FUN.COMPRESS.MAX_FILE_SIZE) {
-                        throw new UserError({
-                            identifier: "FileTooLarge",
-                            message: `Image must be under ${Constants.MAGIC_NUMBERS.CMDS.FUN.COMPRESS.MAX_FILE_SIZE / 1024 / 1024} MB.`,
-                        });
-                    }
-                    return attachment;
-                }
-
-                // Return member as default for no arguments
-                if (args.finished) {
-                    return message.author;
-                }
-
-                // Finally if args were given, throw when none found
-                throw new UserError({
-                    identifier: "Argument",
-                    message: "Please provide a member, image-url or attached image.",
-                });
-            });
-
-        let url: string;
-
-        if (argument instanceof User) {
-            url = argument.displayAvatarURL({ size: 32, extension: "jpg" });
-        }
-        else if (argument instanceof URL) {
-            url = argument.toString();
-        }
-        else {
-            url = (argument as Attachment).url;
-        }
+        const url = await KaikiArgumentsTypes.checkImageArgument(message, args);
 
         const imageBuffer = await (await fetch(url)).arrayBuffer();
 

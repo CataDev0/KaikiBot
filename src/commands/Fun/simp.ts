@@ -14,6 +14,7 @@ import KaikiUtil from "../../lib/KaikiUtil";
     usage: "@dreb",
     description: "Expose your friend as a disgusting simp!",
     preconditions: ["GuildOnly"],
+    minorCategory: "Image Manipulation",
 })
 export default class SimpCommand extends KaikiCommand {
     private backgroundUrl = Images.fun.commands.simp;

@@ -1,4 +1,4 @@
-import { Args, Argument } from "@sapphire/framework";
+import { Args, Argument, Identifiers } from "@sapphire/framework";
 import { Message } from "discord.js";
 import Constants from "../../struct/Constants";
 
@@ -64,6 +64,51 @@ export default class KaikiArgumentsTypes {
             });
         }
     );
+
+    public static imageArgument = Args.make<string>(
+        async (parameter: string, context: Argument.Context<string>) => {
+            const { args } = context;
+            const user = await args.pick("user").catch(() => undefined);
+            if (user) return Args.ok(user.displayAvatarURL({ size: 1024, extension: "png" }));
+
+            // Check for emoji
+            const emoji = await args.pick("emoji").catch(() => undefined);
+            if (emoji) {
+                return Args.ok(`https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}`);
+            }
+
+            const url = await args.pick("url").catch(() => undefined);
+            if (url) return Args.ok(url.href);
+
+            if (context.message.attachments.size) {
+                const attachment = context.message.attachments.first();
+                if (attachment?.contentType?.startsWith("image/")) {
+                    return Args.ok(attachment.url);
+                }
+            }
+
+            return Args.error({
+                parameter,
+                argument: context.argument,
+                identifier: "Argument",
+                message: "Please provide a member, image-url or attached image.",
+            });
+        }
+    );
+
+    static async checkImageArgument(message: Message, args: Args): Promise<string> {
+        return args.pick(KaikiArgumentsTypes.imageArgument)
+            .catch(async (err) => {
+                if (err.identifier === Identifiers.ArgsMissing) {
+                    const attachment = message.attachments.first();
+                    if (attachment?.contentType?.startsWith("image/")) {
+                        return attachment.url;
+                    }
+                    return message.member!.displayAvatarURL({ size: 512, extension: "png" });
+                }
+                throw err;
+            });
+    }
 
     public static gamblingCommandsArgument = Args.make<GamblingCommands>(
         async (

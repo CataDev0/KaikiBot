@@ -15,6 +15,7 @@ import KaikiUtil from "../../lib/KaikiUtil";
     typing: true,
     cooldownDelay: 8000,
     preconditions: ["GuildOnly"],
+    minorCategory: "Image Manipulation",
 })
 export default class DeadbeatCommand extends KaikiCommand {
     private backgroundUrl = Images.fun.commands.deadbeat;

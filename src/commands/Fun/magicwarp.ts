@@ -18,57 +18,27 @@ import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions"
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import Constants from "../../struct/Constants";
 
+import KaikiArgumentsTypes from "../../lib/Kaiki/KaikiArgumentsTypes";
+
 const execFileAsync = promisify(execFile);
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "magicwarp",
     aliases: ["liquidrescale", "lqr", "warp"],
-    description: "Liquid-rescales (magic warps) a given image using ImageMagick.",
+    description: "Liquid-rescales a given image using ImageMagick.",
     usage: ["@dreb", "https://example.com/image.png"],
     typing: true,
+    minorCategory: "Image Manipulation",
 })
 export default class MagicWarpCommand extends KaikiCommand {
 
     private titles: string[] = ["Magic warped...", "Sim salabim!", "Abracadabra!", "Enhanced(?)", "Magically(?) warped..."];
 
     public async messageRun(message: Message, args: Args): Promise<Message> {
-        const argument = await args.pick("user")
-            .catch(() => args.pick("url"))
-            .catch(() => {
-                const attachment = message.attachments.first();
-                if (attachment?.contentType?.startsWith("image/")) {
-                    if (attachment.size > Constants.MAGIC_NUMBERS.CMDS.FUN.MAGIC_WARP.MAX_FILE_SIZE) {
-                        throw new UserError({
-                            identifier: "FileTooLarge",
-                            message: `Image must be under ${Constants.MAGIC_NUMBERS.CMDS.FUN.MAGIC_WARP.MAX_FILE_SIZE / 1024 / 1024} MB.`,
-                        });
-                    }
-                    return attachment;
-                }
-
-                if (args.finished) {
-                    return message.author;
-                }
-
-                throw new UserError({
-                    identifier: "Argument",
-                    message: "Please provide a member, image-url or attached image.",
-                });
-            });
-
-        let url: string;
-
-        if (argument instanceof User) {
-            url = argument.displayAvatarURL({ size: 256, extension: "png" });
-        }
-        else if (argument instanceof URL) {
-            url = argument.toString();
-        }
-        else {
-            url = (argument as Attachment).url;
-        }
+        const url = await KaikiArgumentsTypes.checkImageArgument(message, args);
 
         const imageBuffer = await (await fetch(url)).arrayBuffer();
+
 
         if (imageBuffer.byteLength > Constants.MAGIC_NUMBERS.CMDS.FUN.MAGIC_WARP.MAX_FILE_SIZE) {
             throw new UserError({
