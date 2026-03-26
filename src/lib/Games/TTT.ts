@@ -91,11 +91,11 @@ export default class TicTacToe {
         this.currentPlayerTurn = async (p: GuildMember, m: Message) =>
             this.message.reply(`It's ${p}'s turn`).then(async (m2) => {
                 setTimeout(
-                    async () => m.delete(),
+                    async () => m.delete().catch(() => null),
                     Constants.MAGIC_NUMBERS.LIB.GAMES.TTT.MSG_DEL_TIMEOUT
                 );
                 setTimeout(
-                    async () => m2.delete(),
+                    async () => m2.delete().catch(() => null),
                     Constants.MAGIC_NUMBERS.LIB.GAMES.TTT.MSG_DEL_TIMEOUT
                 );
             });
@@ -137,14 +137,14 @@ export default class TicTacToe {
         const { player, sign } = playerObject;
 
         if (!TicTacToe.numbers.includes(m.content.trim())) {
-            await m.delete();
+            await m.delete().catch(() => null);
             return this.awaitInput(playerObject);
         }
 
         const int = parseInt(m.content) - 1;
 
         if (this.stateDict[int] === Sign.PLAYER1 || this.stateDict[int] === Sign.PLAYER2) {
-            await m.delete();
+            await m.delete().catch(() => null);
             return this.awaitInput(playerObject);
         }
 
