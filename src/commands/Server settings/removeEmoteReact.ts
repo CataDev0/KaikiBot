@@ -34,7 +34,7 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
 
         const emoji = message.guild?.emojis.cache.get(String(db?.EmojiId));
 
-        if (db && emoji) {
+        if (db) {
             await this.client.orm.emojiReactions.delete({
                 where: {
                     Id: db.Id,

@@ -15,6 +15,9 @@ import Constants from "../../struct/Constants";
 })
 export default class EvalCommand extends KaikiCommand {
     private clean = (text: string) => {
+        if (this.client.token) {
+            text = text.replace(new RegExp(this.client.token, "gi"), "[REDACTED_TOKEN]");
+        }
         return text
             .replace(/`/g, "`" + String.fromCharCode(8203))
             .replace(/@/g, "@" + String.fromCharCode(8203));

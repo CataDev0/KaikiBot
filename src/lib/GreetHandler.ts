@@ -121,9 +121,15 @@ export default class GreetHandler {
         if (!data.message) {
             return GreetHandler.emptyMessageOptions(this.guildMember.guild);
         }
-        const messageOptions: MessageCreateOptions = JSON.parse(
-            await this.parsePlaceHolders(data.message)
-        );
+
+        let messageOptions: MessageCreateOptions;
+        try {
+            messageOptions = JSON.parse(
+                await this.parsePlaceHolders(data.message)
+            );
+        } catch (e) {
+            return GreetHandler.emptyMessageOptions(this.guildMember.guild);
+        }
 
         if (
             !messageOptions.embeds?.every(
@@ -144,7 +150,7 @@ export default class GreetHandler {
 			(await this.guildMember.guild.client.channels.fetch(
 			    String(data.channel),
 			    { cache: true }
-			));
+			).catch(() => null));
 
         if (!channel) return false;
 
@@ -167,7 +173,7 @@ export default class GreetHandler {
 
         return channel.send(parsedMessageOptions).then((m) => {
             if (data.timeout) {
-                setTimeout(() => m.delete(), data.timeout * 1000);
+                setTimeout(() => m.delete().catch(() => null), data.timeout * 1000);
                 return m;
             }
             return m;
@@ -180,7 +186,9 @@ export default class GreetHandler {
         for (const [key, value] of this.replacements) {
             if (lowercase.includes(key)) {
                 const regex = new RegExp(key, "ig");
-                input = input.replace(regex, value(this.guildMember));
+                const replacement = value(this.guildMember);
+                const escapedReplacement = JSON.stringify(replacement).slice(1, -1);
+                input = input.replace(regex, () => escapedReplacement);
             }
         }
         return input;

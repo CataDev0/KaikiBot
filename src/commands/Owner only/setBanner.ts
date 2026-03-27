@@ -15,7 +15,7 @@ import Constants from "../../struct/Constants";
     ],
     preconditions: ["OwnerOnly"],
 })
-export default class SetAvatarCommand extends KaikiCommand {
+export default class SetBannerCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args): Promise<Message> {
         const url = await args.rest("url");
 

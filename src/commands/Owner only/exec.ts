@@ -31,7 +31,7 @@ export default class ExecCommand extends KaikiCommand {
                             .setDescription(
                                 await KaikiUtil.codeblock(
                                     KaikiUtil.trim(
-                                        String(e ?? "Unknown error"),
+                                        String(e ?? "Unknown error").replace(new RegExp(this.client.token, "gi"), "[REDACTED_TOKEN]"),
                                         Constants.MAGIC_NUMBERS.CMDS.OWNER_ONLY
                                             .EVAL.MAX_STRING
                                     )
@@ -52,7 +52,7 @@ export default class ExecCommand extends KaikiCommand {
                         .setDescription(
                             await KaikiUtil.codeblock(
                                 KaikiUtil.trim(
-                                    stdout ?? "Command executed",
+                                    String(stdout ?? "Command executed").replace(new RegExp(this.client.token, "gi"), "[REDACTED_TOKEN]"),
                                     Constants.MAGIC_NUMBERS.CMDS.OWNER_ONLY.EVAL
                                         .MAX_STRING
                                 )

@@ -14,7 +14,7 @@ import Constants from "../../struct/Constants";
     usage: ["SELECT * FROM DiscordUsers LIMIT 5"],
     preconditions: ["OwnerOnly"],
 })
-export default class SetNameCommand extends KaikiCommand {
+export default class SqlSelectCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args): Promise<Message> {
         const str = await args.rest("string");
 

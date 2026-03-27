@@ -19,7 +19,7 @@ export default class WelcomeDeleteCommand extends KaikiCommand {
         message: Message<true>,
         args: Args
     ): Promise<Message> {
-        const time = await args.rest("number").catch(() => null);
+        const time = await args.rest("number", { maximum: 86400, minimum: 0 }).catch(() => null);
 
         await this.client.orm.guilds.update({
             where: {

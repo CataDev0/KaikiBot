@@ -14,7 +14,7 @@ import Constants from "../../struct/Constants";
     usage: ["UPDATE DiscordUsers SET amount=amount+69420"],
     preconditions: ["OwnerOnly"],
 })
-export default class SetNameCommand extends KaikiCommand {
+export default class SqlExecCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args): Promise<Message> {
         const str = await args.rest("string");
 

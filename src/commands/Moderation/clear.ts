@@ -48,7 +48,7 @@ export default class ClearCommand extends KaikiCommand {
             })
             .then((m) =>
                 setTimeout(
-                    () => m.delete(),
+                    () => m.delete().catch(() => null),
                     manualDelete.size *
 						Constants.MAGIC_NUMBERS.CMDS.MODERATION.CLEAR
 						    .DELETE_TIMEOUT
@@ -56,13 +56,9 @@ export default class ClearCommand extends KaikiCommand {
             );
 
         let i = 0;
-        manualDelete.each(async (m) => {
+        manualDelete.each((m) => {
             i += Constants.MAGIC_NUMBERS.CMDS.MODERATION.CLEAR.DELETE_TIMEOUT;
-            setTimeout(async () => {
-                await m.delete().catch((e) => {
-                    throw new Error(e);
-                });
-            }, i);
+            setTimeout(() => m.delete().catch(() => null), i);
         });
     }
 }

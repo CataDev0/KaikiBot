@@ -45,7 +45,7 @@ export default class BanCommand extends KaikiCommand {
         }).withOkColor(message);
 
         // If user is currently in the guild
-        const guildMember = message.guild?.members.cache.get(user.id);
+        const guildMember = await message.guild?.members.fetch(user.id).catch(() => null);
 
         if (!guildMember) {
             await message.guild?.members.ban(user, { reason: reason });
