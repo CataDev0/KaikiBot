@@ -1,1 +1,3 @@
-npm install && git diff --quiet package-lock.json || (echo "package-lock.json was out of sync and has been updated. Please commit the changes and push again." && exit 1)
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
