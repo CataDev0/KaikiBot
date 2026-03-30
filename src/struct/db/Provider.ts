@@ -1,5 +1,4 @@
 import { Collection } from "discord.js";
-import { FieldPacket, QueryResult } from "mysql2/promise";
 
 export abstract class Provider {
     public items: Collection<string, any>;
@@ -41,7 +40,7 @@ export abstract class Provider {
 		id: string,
 		key: string,
 		value: any
-	): Promise<[QueryResult, FieldPacket[]]>;
+	): Promise<any>;
 
 	/**
 	 * Deletes a value.

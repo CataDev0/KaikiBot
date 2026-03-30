@@ -1,10 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { ActivityType } from "discord.js";
-import {
-    createPool,
-    FieldPacket,
-    Pool, PoolOptions
-} from "mysql2/promise";
 import KaikiSapphireClient from "../../lib/Kaiki/KaikiSapphireClient";
 import process from "process";
 import DatabaseProvider from "./DatabaseProvider";
@@ -15,29 +10,12 @@ import { MoneyService } from "../../services/MoneyService";
 export default class Database {
     private _client: KaikiSapphireClient<true>;
     public orm: PrismaClient;
-    private _mySQLConnection: Pool;
 
     public constructor(client: KaikiSapphireClient<true>) {
         this._client = client;
     }
 
-    public get mySQLConnection(): Pool {
-        return this._mySQLConnection;
-    }
-
-    private createConfig(): PoolOptions {
-        return {
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            host: process.env.DB_HOST,
-            port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
-            database: process.env.DB_NAME,
-            supportBigNumbers: true,
-            waitForConnections: true,
-        };
-    }
     public async init(): Promise<Database> {
-        this._mySQLConnection = createPool(this.createConfig());
         this.orm = new PrismaClient();
 
         const botSettings = await this.orm.botSettings.findFirst();
@@ -111,7 +89,7 @@ export default class Database {
             const database = await this.init();
 
             this._client.orm = database.orm;
-            this._client.connection = database.mySQLConnection;
+            
         }
 
         catch (e) {
@@ -120,7 +98,7 @@ export default class Database {
         }
 
         this._client.botSettings = new DatabaseProvider(
-            this._client.connection,
+            this._client.orm,
             "BotSettings",
             { idColumn: "Id" },
             false
@@ -134,7 +112,7 @@ export default class Database {
             )
             .catch((e) => this.dbRejected(e));
 
-        this._client.guildsDb = new DatabaseProvider(this._client.connection, "Guilds", {
+        this._client.guildsDb = new DatabaseProvider(this._client.orm, "Guilds", {
             idColumn: "Id",
         });
         this._client.guildsDb
@@ -145,7 +123,7 @@ export default class Database {
             .catch((e) => this.dbRejected(e));
 
         this._client.dadBotChannels = new DatabaseProvider(
-            this._client.connection,
+            this._client.orm,
             "DadBotChannels",
             { idColumn: "ChannelId" }
         );
@@ -158,12 +136,12 @@ export default class Database {
             )
             .catch((e) => this.dbRejected(e));
 
-        this._client.cache = new KaikiCache(this.orm, this._client.connection, this._client.imageAPIs);
+        this._client.cache = new KaikiCache(this.orm, this._client.imageAPIs);
         this._client.money = await new MoneyService(this.orm).init();
     }
 
     private dbRejected(e: unknown) {
-        this._client.logger.fatal("Failed to connect to database using MySQL2.", e);
+        this._client.logger.fatal("Failed to connect to database using Prisma.", e);
         process.exit(1);
     }
 }
@@ -176,8 +154,7 @@ export class BotConfig {
     private dailyEnabled: boolean;
     private dailyAmount: number;
 
-    constructor(array: [any, FieldPacket[]]) {
-        const data = array[0][0];
+    constructor(data: any) {
         this.activity = data.Activity;
         this.activityType = data.ActivityType;
         this.currencyName = data.CurrencyName;

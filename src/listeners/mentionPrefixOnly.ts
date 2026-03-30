@@ -4,6 +4,8 @@ import Constants from "../struct/Constants";
 
 export class MentionPrefixOnly extends Listener {
     public async run(msg: Message) {
+        if (msg.author.bot || msg.system) return;
+
         const embed = msg.reply({
             embeds: [
                 new EmbedBuilder({

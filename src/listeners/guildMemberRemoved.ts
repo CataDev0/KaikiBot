@@ -15,7 +15,7 @@ export default class GuildMemberRemoved extends Listener {
 
         const { client } = this.container;
 
-        const leaveRoles = member.roles.cache.map((role) => {
+        const leaveRoles = member.roles.cache.filter((role) => role.id !== member.guild.id).map((role) => {
             return client.orm.leaveRoles.create({
                 data: {
                     RoleId: BigInt(role.id),

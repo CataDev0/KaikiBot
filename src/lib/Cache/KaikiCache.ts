@@ -1,6 +1,5 @@
 import pkg from "@prisma/client";
 import { Message } from "discord.js";
-import { Pool, ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { APIs, ClientImageAPIs } from "../APIs/Common/Types";
 import Constants from "../../struct/Constants";
 import {
@@ -17,16 +16,15 @@ export enum ERCacheType {
 export default class KaikiCache {
     public cmdStatsCache = new Map<string, number>();
     public emoteReactCache = new Map<GuildString, Map<ERCacheType, Map<EmoteTrigger, TriggerObject>>>();
-    public dailyProvider: MySQLDailyProvider;
+    public dailyProvider: DailyProvider;
     public imageAPICache = new Map<APIs, Map<string, Record<string, unknown>>>();
     private imageAPIs: ClientImageAPIs;
 
     constructor(
         orm: pkg.PrismaClient,
-        connection: Pool,
         imageAPIs: ClientImageAPIs
     ) {
-        this.dailyProvider = new MySQLDailyProvider(connection);
+        this.dailyProvider = new DailyProvider(orm);
         this.imageAPIs = imageAPIs;
 
         void this.init(orm);
@@ -195,30 +193,30 @@ export default class KaikiCache {
         });
     }}
 
-class MySQLDailyProvider {
-    private connection: Pool;
+class DailyProvider {
+    private orm: pkg.PrismaClient;
 
-    constructor(connection: Pool) {
-        this.connection = connection;
+    constructor(orm: pkg.PrismaClient) {
+        this.orm = orm;
     }
 
     async hasClaimedDaily(id: string) {
-        const [rows] = await this.connection.query<RowDataPacket[]>(
+        const rows = await this.orm.$queryRawUnsafe<any[]>(
             "SELECT ClaimedDaily FROM DiscordUsers WHERE UserId = ?",
-            [BigInt(id)]
+            BigInt(id)
         );
         return rows[0]?.ClaimedDaily ?? true;
     }
 
     // Sets claimed status to true
     async setClaimed(id: string) {
-        return this.connection
-            .query<ResultSetHeader>(
+        return this.orm
+            .$executeRawUnsafe(
                 "UPDATE DiscordUsers SET ClaimedDaily = ? WHERE UserId = ?",
-                [true, BigInt(id)]
+                true, BigInt(id)
             )
-            .then(([result]) =>
-                result.affectedRows ? result.affectedRows > 0 : false
+            .then((affectedRows) =>
+                affectedRows ? affectedRows > 0 : false
             )
             .catch(() => false);
     }

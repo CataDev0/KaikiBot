@@ -51,6 +51,7 @@ export default class BotConfigCommand extends Subcommand {
     private client = container.client;
 
     public async showRun(message: Message) {
+        const settings = await this.client.orm.$queryRawUnsafe<any[]>("SELECT * FROM BotSettings");
         return message.reply({
             embeds: [
                 new EmbedBuilder()
@@ -59,11 +60,7 @@ export default class BotConfigCommand extends Subcommand {
                             name: "Bot config",
                             value: await KaikiUtil.codeblock(
                                 JSON.stringify(
-                                    new BotConfig(
-                                        await this.client.connection.query(
-                                            "SELECT * FROM BotSettings"
-                                        )
-                                    ),
+                                    new BotConfig(settings[0]),
                                     null,
                                     4
                                 ),

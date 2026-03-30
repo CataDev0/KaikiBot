@@ -11,6 +11,7 @@ import Emotes from "../lib/Emotes/Emotes";
 export default class NonPrefixedMessage extends Listener {
     public async run(message: Message) {
         if (!message.inGuild()) return;
+        if (message.author.bot || message.system) return;
          
         let promise;
 

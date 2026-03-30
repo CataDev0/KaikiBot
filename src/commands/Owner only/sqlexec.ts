@@ -1,7 +1,6 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args } from "@sapphire/framework";
 import { Message } from "discord.js";
-import { ResultSetHeader } from "mysql2/promise";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import KaikiUtil from "../../lib/KaikiUtil";
@@ -18,12 +17,12 @@ export default class SqlExecCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args): Promise<Message> {
         const str = await args.rest("string");
 
-        const res = await this.client.connection.query<ResultSetHeader>(str);
+        const res = await this.client.orm.$executeRawUnsafe(str);
 
         return message.reply(
             await KaikiUtil.codeblock(
                 KaikiUtil.trim(
-                    JSON.stringify(res[0], null, 4),
+                    JSON.stringify(res, null, 4),
                     Constants.MAGIC_NUMBERS.CMDS.OWNER_ONLY.SQL
                         .MESSAGE_LIMIT_JSON
                 ),

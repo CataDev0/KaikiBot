@@ -11,7 +11,6 @@ import {
     Team,
     User,
 } from "discord.js";
-import { Pool } from "mysql2/promise";
 import KaikiCache from "../Cache/KaikiCache";
 import Constants from "../../struct/Constants";
 import Database from "../../struct/db/Database";
@@ -43,7 +42,6 @@ export default class KaikiSapphireClient<Ready extends true>
     public anniversaryService: AnniversaryRolesService;
     public botSettings: DatabaseProvider;
     public cache: KaikiCache;
-    public connection: Pool;
     public dadBotChannels: DatabaseProvider;
     public guildsDb: DatabaseProvider;
     public money: MoneyService;

@@ -52,15 +52,20 @@ export class BlockedCategoriesPrecondition extends AllFlowsPrecondition {
         if (messageOrInteraction.guildId === null || !cmd.category)
             return this.ok();
 
+        const categoryEnum = CategoriesEnum[cmd.category as Categories];
+        
+        if (categoryEnum === undefined)
+            return this.ok();
+
         const isBlocked = await Result.fromAsync(
             (
-				messageOrInteraction.client as KaikiSapphireClient<true>
+            messageOrInteraction.client as KaikiSapphireClient<true>
             ).orm.blockedCategories.findFirstOrThrow({
                 where: {
                     GuildId: BigInt(messageOrInteraction.guildId),
-                    CategoryTarget: CategoriesEnum[cmd.category as Categories],
+                    CategoryTarget: categoryEnum,
                 },
-            })
+            }),
         );
 
         // SQL query failed, therefore no guild was found, therefore the guild is not banned.

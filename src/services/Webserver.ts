@@ -415,7 +415,7 @@ export class Webserver {
         if (!data) return;
         return guild.roles.cache
             .get(container.client.guildsDb.get(guild.id, "ExcludeRole", null))
-            ?.setColor(data as HexColorString);
+            ?.setColors({ primaryColor: data as HexColorString });
     }
 
     private static async SetUserRoleIcon(userRoleId: string, icon: string | null, guild: Guild) {
