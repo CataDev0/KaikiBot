@@ -4,7 +4,7 @@
 	"main": "./dist/index.js",
 	"type": "commonjs",
 	"scripts": {
-		"build": "rm -rf dist/ && npx prisma migrate deploy && npx prisma generate && tsc -p tsconfig.json",
+		"build": "rm -rf dist/ && npx prisma generate && tsc -p tsconfig.json && node -e \"if(process.env.NODE_ENV === 'production') { require('child_process').execSync('npx prisma migrate deploy', { stdio: 'inherit' }) }\"",
 		"deploy": "npm ci --include=dev && npm run build && npm prune --omit=dev",
 		"dev": "npm run watch & npm run start",
 		"format": "prettier --write .",
@@ -57,6 +57,7 @@
 	"devDependencies": {
 		"@types/express": "^5.0.3",
 		"@types/jest": "^30.0.0",
+		"@types/node": "^20.0.0",
 		"@typescript-eslint/eslint-plugin": "^8.43.0",
 		"@typescript-eslint/parser": "^8.43.0",
 		"auto-changelog": "^2.5.0",
@@ -84,6 +85,7 @@
 	},
 	"overrides": {
 		"@emnapi/runtime": "0.0.0",
-		"undici": "^6.23.0"
+		"undici": "^6.23.0",
+		"@types/node": "^20.0.0"
 	}
 }
