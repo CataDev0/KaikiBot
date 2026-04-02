@@ -20,6 +20,7 @@ import KaikiEmbeds from "../../lib/Kaiki/KaikiEmbeds";
 		"Starts a TicTacToe game, where you play against an @mentioned person.",
     usage: ["@Dreb"],
     preconditions: ["GuildOnly"],
+    minorCategory: "Games"
 })
 export default class TicTacToeCommand extends KaikiCommand {
     public async messageRun(message: Message<true>, args: Args) {

@@ -40,7 +40,8 @@ export default class DeepfryCommand extends KaikiCommand {
         }
         
         const outBuffer = await image
-            .resize({ width: width > 1024 ? 1024 : undefined, fit: "inside" }) // Ensure reasonable size for processing
+            // Ensure reasonable size for processing
+            .resize({ width: width > 1024 ? 1024 : undefined, fit: "inside" }) 
             .modulate({
                 brightness: 1.5,
                 saturation: 5,

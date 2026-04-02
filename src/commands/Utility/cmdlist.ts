@@ -53,7 +53,7 @@ export default class CommandsList extends KaikiCommand {
                 message,
                 await this.client.fetchPrefix(message)
             );
-
+            
             // Add every category as embed fields
             for (const cat of filteredCategories) {
                 embed.addFields([
@@ -120,24 +120,21 @@ export default class CommandsList extends KaikiCommand {
 
         const filtered = cmds.filter((cmd) => cmd.minorCategory !== undefined);
 
-        [...new Set(filtered.map((value) => value.minorCategory))].forEach(
-            (cmd) => {
-                if (!cmd) return;
+        const uniqueCategories = new Set(filtered.map((cmd) => cmd.minorCategory));
 
-                emb.addFields([
-                    {
-                        name: cmd,
-                        value:
-							this.mapCommands(
-							    filtered
-							        .filter((c) => c.minorCategory === cmd)
-							        .sort()
-							) || "Empty",
-                        inline: true,
-                    },
-                ]);
-            }
-        );
+        for (const minorCategory of uniqueCategories) {
+            if (!minorCategory) continue;
+
+            const minorCmds = filtered.filter((c) => c.minorCategory === minorCategory);
+
+            emb.addFields([
+                {
+                    name: minorCategory,
+                    value: this.mapCommands(minorCmds) || "Empty",
+                    inline: true,
+                },
+            ]);
+        }
 
         return message.reply({
             embeds: [emb],
@@ -193,7 +190,7 @@ export default class CommandsList extends KaikiCommand {
 
             const cmds = this.store.filter(
                 (c) => c.category === category
-            ) as  unknown as Collection<string, KaikiCommand>;
+            ) as unknown as Collection<string, KaikiCommand>;
 
             const filtered = cmds.filter(
                 (cmd) => cmd.minorCategory !== undefined
@@ -205,31 +202,24 @@ export default class CommandsList extends KaikiCommand {
                 ) || "Empty"
             );
 
+            emb.setThumbnail(null);
             emb.setFields([]);
 
-            [
-                ...new Set(
-                    filtered.map((value: KaikiCommand) => value.minorCategory)
-                ),
-            ].forEach((cmd) => {
-                if (!cmd) return;
+            const uniqueCategories = new Set(filtered.map((cmd) => cmd.minorCategory));
+
+            for (const minorCategory of uniqueCategories) {
+                if (!minorCategory) continue;
+
+                const minorCmds = filtered.filter((c) => c.minorCategory === minorCategory);
 
                 emb.addFields([
                     {
-                        name: cmd,
-                        value:
-							this.mapCommands(
-							    filtered
-							        .filter(
-							            (c: KaikiCommand) =>
-							                c.minorCategory === cmd
-							        )
-							        .sort()
-							) || "Empty",
+                        name: minorCategory,
+                        value: this.mapCommands(minorCmds) || "Empty",
                         inline: true,
                     },
                 ]);
-            });
+            }
 
             await message.edit({
                 embeds: [emb],

@@ -93,7 +93,7 @@ export default class Database {
         }
 
         catch (e) {
-            this._client.logger.error(e)
+            this._client.logger.fatal("Database initialization failed - Make sure the database is running and reachable", e);
             process.exit(1);
         }
 

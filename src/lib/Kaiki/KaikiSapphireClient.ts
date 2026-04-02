@@ -76,9 +76,7 @@ export default class KaikiSapphireClient<Ready extends true>
         super(KaikiClientConfig);
 
         this.db = new Database(this);
-        this.db.initializeDatabase().catch((e) => {
-            throw new Error("Database initialization failed", { cause: e });
-        });
+        this.db.initializeDatabase();
 
         if (!process.env.PREFIX || process.env.PREFIX === "[YOUR_PREFIX]") {
             throw new Error("Missing prefix! Set a prefix in .env");
