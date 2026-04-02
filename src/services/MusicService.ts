@@ -22,6 +22,7 @@ interface Track {
     url: string;
     title: string;
     requestedBy: string;
+    getDisplayTitle?: () => string;
 }
 
 export class MusicService {
@@ -34,6 +35,7 @@ export class MusicService {
     private currentTrack: Track | null = null;
     private isPlaying: boolean = false;
     private voiceLib: VoiceLib | null = null;
+    public onTrackTitleUpdate?: (track: Track) => void;
 
     public async init(): Promise<void> {
         const voice = await this.loadVoice();
@@ -44,17 +46,6 @@ export class MusicService {
         this.player.on(voice.AudioPlayerStatus.Playing, () => (this.isPlaying = true));
         this.player.on("error", (err: Error) => {
             container.logger.error(`AudioPlayer error: ${err.message}`);
-            this.isPlaying = false;
-            this.currentTrack = null;
-            this.playNext();
-        });
-
-        this.player.on(AudioPlayerStatus.Playing, () => {
-            this.isPlaying = true;
-        });
-
-        this.player.on("error", (error: Error) => {
-            container.logger.error(`AudioPlayer error: ${error.message}`);
             this.isPlaying = false;
             this.currentTrack = null;
             this.playNext();
@@ -117,7 +108,10 @@ export class MusicService {
         if (this.isPlaying || this.player?.state.status === this.voiceLib.AudioPlayerStatus?.Playing) {
             const track: Track = { url, title: "Loading...", requestedBy };
             this.queue.push(track);
-            return `Added to the queue (Position: ${this.queue.length})`;
+            const fetchPromise = this.fetchTitleForTrack(track).catch((err) => container.logger.warn(`Failed to fetch queued track title: ${err?.message ?? err}`));
+            const timeout = new Promise<void>((resolve) => setTimeout(resolve, 10_000));
+            await Promise.race([fetchPromise, timeout]);
+            return `Added **${track.title}** to the queue (Position: ${this.queue.length})`;
         }
 
         const track: Track = { url, title: "Loading...", requestedBy };
@@ -137,10 +131,6 @@ export class MusicService {
             });
             
             this.player?.play(resource);
-            // @ts-ignore
-            this.player?.on("stateChange", (state) => {
-                if (state.status === AudioPlayerStatus.Idle) this.playNext();
-            });
 
             await this.voiceLib.entersState(this.player!, this.voiceLib.AudioPlayerStatus.Playing, 10_000);
             return title;
@@ -289,8 +279,9 @@ export class MusicService {
             return false;
         }
 
+        const lengthBefore = this.queue.length > 0;
         this.player?.stop();
-        return this.queue.length > 0;
+        return lengthBefore;
     }
 
     public disconnect(): void {
@@ -316,5 +307,66 @@ export class MusicService {
 
     public getQueue(): Track[] {
         return this.queue;
+    }
+
+    /**
+     * Return a friendly display title for a queued track.
+     */
+    public getTrackDisplayTitle(track: Track): string {
+        return track.title && track.title !== "Loading..." ? track.title : "Loading...";
+    }
+
+    /**
+     * Fetch the title for a queued track using yt-dlp without downloading the media.
+     * Updates the track.title and calls onTrackTitleUpdate if provided.
+     */
+    public fetchTitleForTrack(track: Track): Promise<void> {
+        return new Promise((resolve, reject) => {
+            try {
+                const ytdlp = spawn("yt-dlp", ["--print-json", "--skip-download", track.url]);
+                let buffer = "";
+                let resolved = false;
+
+                ytdlp.stdout.on("data", (chunk) => {
+                    buffer += chunk.toString();
+                    // Try parse as JSON once we have a complete object
+                    try {
+                        const json = JSON.parse(buffer);
+                        if (json && json.title) {
+                            const old = track.title;
+                            track.title = json.title;
+                            if (old !== track.title && this.onTrackTitleUpdate) this.onTrackTitleUpdate(track);
+                        }
+                        resolved = true;
+                        resolve();
+                    } catch {
+                        // keep buffering until valid JSON
+                    }
+                });
+
+                ytdlp.on("error", (err) => {
+                    if (!resolved) reject(err);
+                });
+
+                ytdlp.on("close", () => {
+                    if (!resolved) {
+                        // Try final parse
+                        try {
+                            const json = JSON.parse(buffer);
+                            if (json && json.title) {
+                                const old = track.title;
+                                track.title = json.title;
+                                if (old !== track.title && this.onTrackTitleUpdate) this.onTrackTitleUpdate(track);
+                            }
+                        } catch {
+                            // ignore
+                        }
+                        resolve();
+                    }
+                });
+            } catch (err) {
+                reject(err);
+            }
+        });
     }
 }

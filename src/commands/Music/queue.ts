@@ -8,7 +8,7 @@ import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
     aliases: ["q"],
     description: "Show the current music queue.",
     usage: [""],
-    preconditions: ["OwnerOnly", "GuildOnly"],
+    preconditions: ["GuildOnly"],
     minorCategory: "Music"
 })
 export default class QueueCommand extends KaikiCommand {

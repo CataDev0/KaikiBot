@@ -8,7 +8,7 @@ import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
     name: "play",
     description: "Play music from YouTube or other sources using yt-dlp.",
     usage: ["<url or search query>", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
-    preconditions: ["OwnerOnly", "GuildOnly"],
+    preconditions: ["GuildOnly"],
     minorCategory: "Music"
 })
 export default class PlayCommand extends KaikiCommand {

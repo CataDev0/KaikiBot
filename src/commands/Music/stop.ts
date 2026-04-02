@@ -4,14 +4,13 @@ import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions"
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 
 @ApplyOptions<KaikiCommandOptions>({
-    name: "skip",
-    aliases: ["s"],
-    description: "Skip the current track.",
+    name: "stop",
+    description: "Stop the music and clear the queue.",
     usage: [""],
-    preconditions: ["OwnerOnly", "GuildOnly"],
+    preconditions: ["GuildOnly"],
     minorCategory: "Music"
 })
-export default class SkipCommand extends KaikiCommand {
+export default class StopCommand extends KaikiCommand {
     public async messageRun(message: Message): Promise<Message> {
         if (!this.client.musicService) return message.reply("Music service is not available.")
 
@@ -19,13 +18,13 @@ export default class SkipCommand extends KaikiCommand {
             return message.reply("I'm not playing any music!");
         }
 
-        const skipped = this.client.musicService.skip();
+        this.client.musicService.disconnect();
 
         return message.reply({
             embeds: [
                 new EmbedBuilder()
-                    .setTitle("⏭️ Skipped")
-                    .setDescription(skipped ? "Skipped to the next track." : "Stopped playing (no more tracks in queue).")
+                    .setTitle("⏹️ Music Stopped")
+                    .setDescription("Stopped playing music and left the voice channel.")
                     .withOkColor(message),
             ],
         });
