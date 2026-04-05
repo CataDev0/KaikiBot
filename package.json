@@ -32,7 +32,8 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"@prisma/client": "^5.22.0",
+		"@prisma/adapter-mariadb": "^7.6.0",
+		"@prisma/client": "^7.6.0",
 		"@sapphire/decorators": "^6.1.1",
 		"@sapphire/framework": "^5.3.6",
 		"@sapphire/plugin-logger": "^4.0.2",
@@ -43,8 +44,9 @@
 		"discord.js": "^14.25.1",
 		"dotenv": "^16.4.7",
 		"express": "^5.2.1",
+		"mariadb": "^3.5.2",
 		"mysql2": "^3.11.5",
-		"prisma": "^5.22.0",
+		"prisma": "^7.6.0",
 		"sharp": "^0.34.2",
 		"source-map-support": "^0.5.21",
 		"utf-8-validate": "^6.0.5"
