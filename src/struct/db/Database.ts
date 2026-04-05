@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { ActivityType } from "discord.js";
 import KaikiSapphireClient from "../../lib/Kaiki/KaikiSapphireClient";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import process from "process";
 import DatabaseProvider from "./DatabaseProvider";
 import { green } from "colorette";
@@ -16,7 +17,13 @@ export default class Database {
     }
 
     public async init(): Promise<Database> {
-        this.orm = new PrismaClient();
+        let uri = process.env.DATABASE_URL || "";
+        if (uri.startsWith("mysql://")) {
+            uri = uri.replace("mysql://", "mariadb://");
+        }
+        
+        const adapter = new PrismaMariaDb(uri);
+        this.orm = new PrismaClient({ adapter });
 
         const botSettings = await this.orm.botSettings.findFirst();
 
@@ -138,6 +145,7 @@ export default class Database {
 
         this._client.cache = new KaikiCache(this.orm, this._client.imageAPIs);
         this._client.money = await new MoneyService(this.orm).init();
+        this._client.logger.info(`${green("READY")} - MoneyService initiated`);
     }
 
     private dbRejected(e: unknown) {

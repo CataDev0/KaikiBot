@@ -186,6 +186,44 @@ export default class Constants {
                     BIGINT_ZERO: 0n,
                     TRANS_PR_PAGE: 15,
                 },
+                GACHA: {
+                    ROLL_COST: 1000n,
+                    ODDITY_TAGS: ["waifu", "maid", "uniform", "selfies"],
+                    ODDITY_ADJECTIVES: [
+                        "Phantom", "Cursed", "Abyssal", "Crimson", "Nameless", "Lost", "Radiant", "Ethereal", "Fading",
+                        "Weightless", "Wandering", "Fake", "Heavy", "Platinum", "Undying", "Severed", "Twisted", "Golden",
+                        "Hidden", "Delusional", "Rainy", "Vampiric", "Demonic", "Deceitful", "Dark", "Spooky", "Enigmatic",
+                        "Mathematical", "Foolish", "Cruel", "Beautiful", "Mastered", "Excessive", "Dead", "Tropical", "Infallible"
+                    ],
+                    ODDITY_NOUNS: [
+                        "Snail", "Monkey", "Crab", "Anomaly", "Apparition", "Remnant", "Weaver", "Maiden", "Entity", "Oddity",
+                        "Shadow", "Illusion", "Snake", "Cat", "Bat", "Bee", "Phoenix", "Tiger", "Corpse", "Vampire",
+                        "Aberration", "Curse", "Spirit", "Doll", "God", "Slime", "Fiend", "Fowl", "Equation", "Formula",
+                        "Fiasco", "Bonehead", "Gargoyle", "Ogre", "Mermaid", "Golem", "Mummy", "Hound", "Devil", "Labyrinth", 
+                        "Lie", "Justice", "Darkness", "Mirror"
+                    ],
+                    RARITY_THRESHOLDS: {
+                        MYTHIC: 99,
+                        EPIC: 93,
+                        RARE: 78,
+                        UNCOMMON: 53
+                    },
+                    AFFINITIES: [
+                        { id: "Apparition", color: "#d94896", emoji: "🦀", desc: "Emotional trauma made manifest." },
+                        { id: "Vampiric", color: "#e40e0c", emoji: "🦇", desc: "Hungry blood-drinkers." },
+                        { id: "Shikigami", color: "#50dfab", emoji: "🎎", desc: "Familiars with unlimited power." },
+                        { id: "Curse", color: "#ba32dc", emoji: "🐍", desc: "Hexes born from jealousy and spite." },
+                        { id: "Specialist", color: "#d9d048", emoji: "⚖️", desc: "Individuals maintaining balance." },
+                        { id: "Immortal", color: "#fc8220", emoji: "🦅", desc: "Undying entities that burn away deceit." }
+                    ],
+                    RARITY_COLORS: {
+                        1: "#ffffff", // Common
+                        2: "#1eff00", // Uncommon 
+                        3: "#0070dd", // Rare
+                        4: "#a335ee", // Epic
+                        5: "#ff8000"  // Mythic
+                    }
+                },
                 SLOTS: {
                     EDIT_AFTER_1_SEC: 1000,
                     // * Almost two seconds.

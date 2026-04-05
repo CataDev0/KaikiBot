@@ -17,5 +17,6 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "typeRoots": ["node_modules/@types", "src/extensions"]
-    }
+    },
+    "include": ["src/**/*", "src/**/*.json"]
 }

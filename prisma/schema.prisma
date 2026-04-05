@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
 model BlockedCategories {
@@ -61,11 +60,13 @@ model DiscordUsers {
   UserId               BigInt                 @id @unique(map: "UserId")
   Amount               BigInt                 @default(0)
   ClaimedDaily         Boolean                @default(false)
+  LastClaimed          DateTime?
   DailyReminder        DateTime?
   CreatedAt            DateTime               @default(now()) @db.Timestamp(0)
   GuildUsers           GuildUsers[]
   Todos                Todos[]
   CurrencyTransactions CurrencyTransactions[]
+  Oddities             Oddities[]
 }
 
 model EmojiReactions {
@@ -163,6 +164,23 @@ model Migrations {
   VersionString String @db.VarChar(255)
 
   @@map("_Migrations")
+}
+
+model Oddities {
+  Id          Int          @id @default(autoincrement())
+  UserId      BigInt
+  Name        String       @db.VarChar(255)
+  ImageUrl    String       @db.VarChar(255)
+  Rarity      Int
+  Power       Int
+  Defense     Int
+  Count       Int          @default(1)
+  Type        String       @default("unknown") @db.VarChar(255)
+  Affinity    String       @default("Apparition") @db.VarChar(255)
+  CreatedAt   DateTime     @default(now()) @db.Timestamp(0)
+  DiscordUser DiscordUsers @relation(fields: [UserId], references: [UserId], onDelete: Cascade)
+
+  @@index([UserId])
 }
 
 enum BotSettings_ActivityType {

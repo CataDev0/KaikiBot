@@ -33,6 +33,8 @@ import DiscordBotListService from "../../services/DiscordBotListService";
 import { Webserver } from "../../services/Webserver";
 import { BotStats } from "../Types/DiscordBotList";
 import { MusicService } from "../../services/MusicService";
+import { GachaService } from "../../services/GachaService";
+import { BattleService } from "../../services/BattleService";
 import KaikiClientConfig from "./KaikiClientConfig";
 
 export default class KaikiSapphireClient<Ready extends true>
@@ -52,6 +54,8 @@ export default class KaikiSapphireClient<Ready extends true>
     public hentaiService: HentaiService;
     public dblService: DiscordBotListService;
     public musicService?: MusicService;
+    public gachaService: GachaService;
+    public battleService: BattleService;
     private webListener: Webserver;
     private musicDepsAvailable?: boolean;
 
@@ -96,6 +100,7 @@ export default class KaikiSapphireClient<Ready extends true>
         // Run only once "ready"
         super.once(Events.ClientReady, () => {
             this.webListener = new Webserver();
+            this.logger.info("Webserver | Service initiated");
         });
     }
 
@@ -107,6 +112,7 @@ export default class KaikiSapphireClient<Ready extends true>
         if (process.env.DBL_API_TOKEN && process.env.NODE_ENV === "production") {
             this.dblService = new DiscordBotListService(this, process.env.DBL_API_TOKEN);
             this.dblService.startPosting();
+            this.logger.info("DiscordBotListService | Service initiated");
         }
 
         await this.application?.fetch();
@@ -182,26 +188,21 @@ export default class KaikiSapphireClient<Ready extends true>
         }, KaikiUtil.timeToMidnight());
     }
 
-    private async resetTimer(): Promise<void> {
-        setTimeout(async () => {
-            await Promise.all([
-                // Loop this
-                this.resetTimer(),
-                // Reset daily currency claims
-                this.resetDailyClaims(),
-                this.sendDailyReminders()
-            ])
-        }, KaikiUtil.timeToMidnightOrNoon());
+    private reminderLoop() {
+        setInterval(() => void this.sendDailyReminders(), 60 * 1000); // Check every minute
     }
 
     private async sendDailyReminders() {
         const users = await this.orm.discordUsers.findMany({
             where: {
                 DailyReminder: {
+                    lte: new Date(),
                     not: null
                 }
             }
         })
+
+        if (!users.length) return;
 
         await Promise.all(users.map(async (user) => this.users.cache.get(String(user.UserId))
             ?.send({
@@ -211,13 +212,11 @@ export default class KaikiSapphireClient<Ready extends true>
                         .setDescription("Your currency claim is ready!")
                         .withOkColor()
                 ]
-            })));
+            }).catch(() => null)));
 
         await this.orm.discordUsers.updateMany({
             where: {
-                DailyReminder: {
-                    not: null
-                }
+                UserId: { in: users.map(u => u.UserId) }
             },
             data: {
                 DailyReminder: null
@@ -227,11 +226,12 @@ export default class KaikiSapphireClient<Ready extends true>
 
     public async initializeServices() {
         this.anniversaryService = new AnniversaryRolesService(this);
+        this.logger.info("AnniversaryRolesService | Service initiated");
 
         // This will execute at midnight
         await Promise.all([
             this.dailyResetTimer(),
-            this.resetTimer(),
+            this.reminderLoop(),
             this.fetchMembersLoop(),
             this.presenceLoop()
         ]);
@@ -239,6 +239,10 @@ export default class KaikiSapphireClient<Ready extends true>
 
         this.hentaiService = new HentaiService();
         this.logger.info("HentaiService | Service initiated");
+
+        this.gachaService = new GachaService(this.orm);
+        this.battleService = new BattleService();
+        this.logger.info("GachaService | Service initiated");
 
         // Initialize MusicService only if dependencies are available
         if (this.checkMusicDependencies()) {
@@ -274,6 +278,18 @@ export default class KaikiSapphireClient<Ready extends true>
         }
     }
 
+    public async resetDailyClaims(): Promise<void> {
+        const updated = await this.orm.discordUsers.updateMany({
+            data: {
+                LastClaimed: null,
+                ClaimedDaily: false,
+            },
+        });
+        this.logger.info(
+            `ResetDailyClaims | Daily claims have been reset! Updated ${colorette.green(updated.count)} entries!`
+        );
+    }
+
     private async fetchMembersLoop() {
         const guilds = this.guilds.cache;
         const iterator = guilds.values();
@@ -290,19 +306,6 @@ export default class KaikiSapphireClient<Ready extends true>
         }, Constants.MAGIC_NUMBERS.LIB.KAIKI.GUILD_MEMBER_FETCH_INTERVAL_MS);
     }
 
-    public async resetDailyClaims(): Promise<void> {
-        const updated = await this.orm.discordUsers.updateMany({
-            where: {
-                ClaimedDaily: true,
-            },
-            data: {
-                ClaimedDaily: false,
-            },
-        });
-        this.logger.info(
-            `ResetDailyClaims | Daily claims have been reset! Updated ${colorette.green(updated.count)} entries!`
-        );
-    }
 
     private async filterOptionalCommands() {
         const commandStore = this.stores.get("commands");

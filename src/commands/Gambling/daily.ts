@@ -46,12 +46,20 @@ export default class ClaimDailyCommand extends KaikiCommand {
         const button = gambling.createDailyReminder();
         const actionRow = [new ActionRowBuilder<ButtonBuilder>().setComponents(button)];
 
-        if (
-            !(await this.client.cache.dailyProvider.hasClaimedDaily(
-                message.author.id
-            ))
-        ) {
-            await this.client.cache.dailyProvider.setClaimed(message.author.id);
+        const dbUser = await this.client.orm.discordUsers.findUnique({
+            where: { UserId: BigInt(message.author.id) }
+        });
+
+        const now = new Date();
+        const cooldownMs = 24 * 60 * 60 * 1000; // 24 hours
+        const lastClaimed = dbUser?.LastClaimed;
+
+        if (!lastClaimed || now.getTime() - lastClaimed.getTime() >= cooldownMs) {
+            await this.client.orm.discordUsers.update({
+                where: { UserId: BigInt(message.author.id) },
+                data: { LastClaimed: now }
+            });
+
             await this.client.money.add(
                 message.author.id,
                 BigInt(amount),
@@ -63,18 +71,19 @@ export default class ClaimDailyCommand extends KaikiCommand {
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(
-                            `**${message.author.username}**, You've just claimed your daily allowance!\n+**${amount}** ${this.client.money.currencyName} ${this.client.money.currencySymbol}\n\nClaim again ${time(new Date(new Date().getTime() + KaikiUtil.timeToMidnightOrNoon()), "R")}`
+                            `**${message.author.username}**, You've just claimed your daily allowance!\n+**${amount}** ${this.client.money.currencyName} ${this.client.money.currencySymbol}\n\nClaim again ${time(new Date(now.getTime() + cooldownMs), "R")}`
                         )
                         .withOkColor(message),
                 ],
             }).then(msg => gambling.handleReminder(msg));
         } else {
+            const nextClaimTime = new Date(lastClaimed.getTime() + cooldownMs);
             return message.reply({
                 components: actionRow,
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(
-                            `**${message.author.username}**, You've already claimed your daily allowance!!\n\nClaim again ${time(new Date(new Date().getTime() + KaikiUtil.timeToMidnightOrNoon()), "R")}`
+                            `**${message.author.username}**, You've already claimed your daily allowance!\n\nClaim again ${time(nextClaimTime, "R")}`
                         )
                         .withErrorColor(message),
                 ],

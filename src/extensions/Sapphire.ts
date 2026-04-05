@@ -6,6 +6,7 @@ import KaikiCommand from "../lib/Kaiki/KaikiCommand";
 import { KaikiColor } from "../lib/Types/KaikiColor";
 import { Categories } from "../lib/Types/Miscellaneous";
 import { Sides } from "../commands/Gambling/betflip";
+import { GachaType } from "../arguments/gachaType";
 
 declare module "@sapphire/framework" {
 	interface Preconditions {
@@ -16,6 +17,7 @@ declare module "@sapphire/framework" {
 		activityType: ValidActivities;
 		category: Categories;
 		command: KaikiCommand;
+		gachaType: GachaType;
 		guild: Guild;
 		kaikiCoin: Sides;
 		kaikiColor: KaikiColor;
