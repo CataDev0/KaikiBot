@@ -12,7 +12,7 @@ export default class Ready extends KaikiListener {
             .initializeServices()
             .then(() =>
                 this.container.logger.info(
-                    "DailyResetTimer | Service initiated"
+                    "Services | Initiated successfully"
                 )
             );
     }

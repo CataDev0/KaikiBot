@@ -14,6 +14,7 @@ import Config from "../../lib/ServerConfig/Config";
         "",
         "dadbot enable",
         "anniversary enable",
+        "sticky enable",
         "prefix !",
         "okcolor <hex>",
         "errorcolor <hex>",
@@ -63,6 +64,15 @@ import Config from "../../lib/ServerConfig/Config";
             name: "errorcolor",
             messageRun: "errorcolorRun",
         },
+        // Stickyroles
+        {
+            name: "sticky",
+            messageRun: "stickyrolesRun",
+        },
+        {
+            name: "stickyroles",
+            messageRun: "stickyrolesRun",
+        },
     ],
 })
 export default class ConfigCommand extends Subcommand {
@@ -91,5 +101,9 @@ export default class ConfigCommand extends Subcommand {
 
     public async errorcolorRun(message: Message<true>, args: Args) {
         return Config.errorcolorRun(message, args);
+    }
+
+    public async stickyrolesRun(message: Message<true>, args: Args) {
+        return Config.stickyrolesRun(message, args);
     }
 }

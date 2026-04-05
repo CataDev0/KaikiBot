@@ -39,13 +39,14 @@ export class MoneyService {
 
         const bIntId = BigInt(id);
 
-        this.recordTransaction(bIntId, amount, reason);
-
         const query = await this.orm.discordUsers.upsert({
             where: { UserId: bIntId },
             update: { Amount: { increment: amount } },
             create: { UserId: bIntId, Amount: amount },
         });
+
+        this.recordTransaction(bIntId, amount, reason);
+
         return query.Amount;
     }
 
@@ -65,7 +66,6 @@ export class MoneyService {
         });
 
         if (currentAmount && currentAmount.Amount >= amount) {
-            this.recordTransaction(bIntId, -amount, reason);
             await this.orm.discordUsers.update({
                 where: {
                     UserId: bIntId,
@@ -74,6 +74,7 @@ export class MoneyService {
                     Amount: { decrement: amount },
                 },
             });
+            this.recordTransaction(bIntId, -amount, reason);
             return true;
         } else if (!currentAmount) {
             // User row doesn't exist yet — create it, but don't record a
@@ -88,7 +89,12 @@ export class MoneyService {
     private recordTransaction(id: bigint, amount: bigint, reason: string): void {
         void this.orm.currencyTransactions.create({
             data: {
-                UserId: id,
+                DiscordUsers: {
+                    connectOrCreate: {
+                        where: { UserId: id },
+                        create: { UserId: id },
+                    }
+                },
                 Amount: amount,
                 Reason: reason,
             },

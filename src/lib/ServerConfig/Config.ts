@@ -227,6 +227,53 @@ export default class Config {
         });
     }
 
+    static async stickyrolesRun(message: Message<true>, args: Args) {
+        this.checkSubcommandUserPermission(
+            message,
+            PermissionsBitField.Flags.Administrator
+        );
+
+        const booleanArgument = await args.rest("boolean");
+
+        const embed = new EmbedBuilder().withOkColor(message);
+
+        const stickyRolesEnabled: boolean = message.client.guildsDb.get(
+            message.guildId,
+            "StickyRoles",
+            false
+        );
+
+        if (booleanArgument) {
+            if (!stickyRolesEnabled) {
+                await message.client.guildsDb.set(
+                    message.guildId,
+                    "StickyRoles",
+                    true
+                );
+                embed.setDescription(
+                    `Sticky roles have been enabled in ${message.guild?.name}!`
+                );
+            } else {
+                embed.setDescription("You have already enabled Sticky roles.");
+            }
+        } else if (stickyRolesEnabled) {
+            await message.client.guildsDb.set(
+                message.guildId,
+                "StickyRoles",
+                false
+            );
+            embed.setDescription(
+                `Sticky roles have been disabled in ${message.guild?.name}!`
+            );
+        } else {
+            embed.setDescription("You have already disabled Sticky roles.");
+        }
+
+        return message.reply({
+            embeds: [embed],
+        });
+    }
+
     static async messageRun(message: Message<true>) {
         if (!message.member) throw new Error();
 
