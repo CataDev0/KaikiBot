@@ -18,7 +18,7 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
         message: Message<true>,
         args: Args
     ): Promise<Message> {
-        const trigger = await args.rest("string");
+        const trigger = (await args.rest("string")).toLowerCase();
 
         const db = await this.client.orm.emojiReactions.findFirst({
             where: {
@@ -32,7 +32,7 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
             },
         });
 
-        const emoji = message.guild?.emojis.cache.get(String(db?.EmojiId));
+        const emoji = db?.EmojiId ? message.guild?.emojis.cache.get(db.EmojiId) : undefined;
 
         if (db) {
             await this.client.orm.emojiReactions.delete({
@@ -56,7 +56,7 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
             const embed = new EmbedBuilder()
                 .setTitle("Removed emoji trigger")
                 .setDescription(
-                    `Saying \`${trigger}\` will no longer force me to react with \`${emoji?.name ?? "missing emote"}\``
+                    `Saying \`${trigger}\` will no longer force me to react with \`${emoji?.name ?? db?.EmojiId ?? "missing emote"}\``
                 )
                 .withOkColor(message);
 

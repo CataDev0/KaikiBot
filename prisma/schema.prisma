@@ -70,7 +70,7 @@ model DiscordUsers {
 
 model EmojiReactions {
   Id            BigInt @id @default(autoincrement())
-  EmojiId       BigInt
+  EmojiId       String @db.VarChar(255)
   TriggerString String @db.VarChar(255)
   GuildId       BigInt
   Guilds        Guilds @relation(fields: [GuildId], references: [Id], onDelete: Cascade, map: "EmojiReactions_ibfk_1")

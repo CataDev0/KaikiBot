@@ -170,8 +170,10 @@ export default class KaikiCache {
 				wordObj.get(ERCacheType.HAS_SPACE)?.get(word);
 
             // Skip unresolved emotes
-            if (!triggerObject || !message.guild?.emojis.cache.has(triggerObject.id))
-                continue;
+            if (!triggerObject) continue;
+
+            const isCustomEmoji = /^\d+$/.test(triggerObject.id);
+            if (isCustomEmoji && !message.guild?.emojis.cache.has(triggerObject.id)) continue;
 
             const emoteId = triggerObject.id;
 
@@ -180,7 +182,7 @@ export default class KaikiCache {
                 continue;
             }
 
-            await message.react(emoteId);
+            await message.react(emoteId).catch(() => null);
         }
     }
 
