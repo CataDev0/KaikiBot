@@ -12,7 +12,7 @@ export default class ShardReady extends Listener {
         id: number,
         unavailableGuilds?: Set<Snowflake>
     ): Promise<void> {
-        const arr = [`shardReady | Shard: ${colorette.green(id)}`];
+        const arr = [`ShardReady | Shard: ${colorette.green(id)}`];
         if (unavailableGuilds?.size) {
             arr.push("Unavailable guilds:");
             unavailableGuilds.forEach((v1, v2) => {

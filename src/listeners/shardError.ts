@@ -9,7 +9,7 @@ export default class ShardError extends Listener {
     // Emitted whenever a shard's WebSocket encounters a connection error.
     public async run(error: Error, id: number): Promise<void> {
         this.container.logger.error(
-            `shardError | Shard: ${colorette.redBright(id)} \n${error.stack || error}`
+            `ShardError | Shard: ${colorette.redBright(id)} \n${error.stack || error}`
         );
     }
 }

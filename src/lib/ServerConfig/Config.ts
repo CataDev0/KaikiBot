@@ -22,60 +22,48 @@ export default class Config {
             PermissionsBitField.Flags.Administrator
         );
 
-        const booleanArgument = await args.rest("boolean");
-
         const embed = new EmbedBuilder().withOkColor(message);
 
-        const dadBotEnabled: boolean = message.client.guildsDb.get(
+        const dadBotEnabled = !!message.client.guildsDb.get(
             message.guildId,
             "DadBot",
             false
         );
 
-        if (booleanArgument) {
+        let booleanArgument: boolean;
+        if (args.finished) {
+            booleanArgument = !dadBotEnabled;
+        } else {
+            booleanArgument = await args.rest("boolean", { truths: ["enable", "on"], falses: ["disable", "off"] });
+        }
+
+        if (booleanArgument === true) {
             if (dadBotEnabled) {
                 embed
                     .setTitle("Already enabled")
-                    .setDescription(
-                        "You have already **enabled** dad-bot in this server."
-                    )
+                    .setDescription("You have already **enabled** dad-bot in this server.")
                     .withErrorColor(message);
             } else {
-                await message.client.guildsDb.set(
-                    message.guildId,
-                    "DadBot",
-                    true
-                );
+                await message.client.guildsDb.set(message.guildId, "DadBot", true);
 
                 embed
-                    .setTitle(
-                        `Dad-bot has been enabled in ${message.guild?.name}!`
-                    )
-                    .setDescription(
-                        `Individual users can still disable dad-bot on themselves with \`${await message.client.fetchPrefix(message)}exclude\`.`
-                    );
+                    .setTitle(`Dad-bot has been enabled in ${message.guild?.name}!`)
+                    .setDescription(`Individual users can still disable dad-bot on themselves with \`${await message.client.fetchPrefix(message)}exclude\`.`);
             }
-        } else if (dadBotEnabled) {
-            await message.client.guildsDb.set(message.guildId, "DadBot", false);
-
-            const cmd = message.guild?.commands.cache.find(
-                (c) => c.name === "exclude"
-            );
-
-            if (cmd) {
-                await message.guild?.commands.delete(cmd.id);
-            }
-
-            embed.setTitle(
-                `Dad-bot has been disabled in ${message.guild?.name}!`
-            );
         } else {
-            embed
-                .setTitle("Already disabled")
-                .setDescription(
-                    "You have already **disabled** dad-bot in this server."
-                )
-                .withErrorColor(message);
+            if (!dadBotEnabled) {
+                embed
+                    .setTitle("Already disabled")
+                    .setDescription("You have already **disabled** dad-bot in this server.")
+                    .withErrorColor(message);
+            } else {
+                await message.client.guildsDb.set(message.guildId, "DadBot", false);
+
+                const cmd = message.guild?.commands.cache.find((c) => c.name === "exclude");
+                if (cmd) await message.guild?.commands.delete(cmd.id);
+
+                embed.setTitle(`Dad-bot has been disabled in ${message.guild?.name}!`);
+            }
         }
         return message.reply({
             embeds: [embed],
@@ -100,47 +88,38 @@ export default class Config {
             PermissionsBitField.Flags.Administrator
         );
 
-        const booleanArgument = await args.rest("boolean");
-
         const embed = new EmbedBuilder().withOkColor(message);
 
-        const anniversaryEnabled: boolean = message.client.guildsDb.get(
+        const anniversaryEnabled = !!message.client.guildsDb.get(
             message.guildId,
             "Anniversary",
             false
         );
 
-        if (booleanArgument) {
+        let booleanArgument: boolean;
+        if (args.finished) {
+            booleanArgument = !anniversaryEnabled;
+        } else {
+            booleanArgument = await args.rest("boolean", { truths: ["enable", "on"], falses: ["disable", "off"] });
+        }
+
+        if (booleanArgument === true) {
             if (!anniversaryEnabled) {
                 await message.client.anniversaryService.checkBirthdayOnAdd(
-					message.guild as Guild
+message.guild as Guild
                 );
-                await message.client.guildsDb.set(
-                    message.guildId,
-                    "Anniversary",
-                    true
-                );
-                embed.setDescription(
-                    `Anniversary-roles functionality has been enabled in ${message.guild?.name}!`
-                );
+                await message.client.guildsDb.set(message.guildId, "Anniversary", true);
+                embed.setDescription(`Anniversary-roles functionality has been enabled in ${message.guild?.name}!`);
             } else {
-                embed.setDescription(
-                    "You have already enabled Anniversary-roles."
-                );
+                embed.setDescription("You have already enabled Anniversary-roles.").withErrorColor(message);
             }
-        } else if (anniversaryEnabled) {
-            await message.client.guildsDb.set(
-                message.guildId,
-                "Anniversary",
-                false
-            );
-            embed.setDescription(
-                `Anniversary-roles functionality has been disabled in ${message.guild?.name}!`
-            );
         } else {
-            embed.setDescription(
-                "You have already disabled Anniversary-roles."
-            );
+            if (anniversaryEnabled) {
+                await message.client.guildsDb.set(message.guildId, "Anniversary", false);
+                embed.setDescription(`Anniversary-roles functionality has been disabled in ${message.guild?.name}!`);
+            } else {
+                embed.setDescription("You have already disabled Anniversary-roles.").withErrorColor(message);
+            }
         }
 
         return message.reply({
@@ -233,40 +212,35 @@ export default class Config {
             PermissionsBitField.Flags.Administrator
         );
 
-        const booleanArgument = await args.rest("boolean");
-
         const embed = new EmbedBuilder().withOkColor(message);
 
-        const stickyRolesEnabled: boolean = message.client.guildsDb.get(
+        const stickyRolesEnabled = !!message.client.guildsDb.get(
             message.guildId,
             "StickyRoles",
             false
         );
 
-        if (booleanArgument) {
-            if (!stickyRolesEnabled) {
-                await message.client.guildsDb.set(
-                    message.guildId,
-                    "StickyRoles",
-                    true
-                );
-                embed.setDescription(
-                    `Sticky roles have been enabled in ${message.guild?.name}!`
-                );
-            } else {
-                embed.setDescription("You have already enabled Sticky roles.");
-            }
-        } else if (stickyRolesEnabled) {
-            await message.client.guildsDb.set(
-                message.guildId,
-                "StickyRoles",
-                false
-            );
-            embed.setDescription(
-                `Sticky roles have been disabled in ${message.guild?.name}!`
-            );
+        let booleanArgument: boolean;
+        if (args.finished) {
+            booleanArgument = !stickyRolesEnabled;
         } else {
-            embed.setDescription("You have already disabled Sticky roles.");
+            booleanArgument = await args.rest("boolean", { truths: ["enable", "on"], falses: ["disable", "off"] });
+        }
+
+        if (booleanArgument === true) {
+            if (!stickyRolesEnabled) {
+                await message.client.guildsDb.set(message.guildId, "StickyRoles", true);
+                embed.setDescription(`Sticky roles have been enabled in ${message.guild?.name}!`);
+            } else {
+                embed.setDescription("You have already enabled Sticky roles.").withErrorColor(message);
+            }
+        } else {
+            if (stickyRolesEnabled) {
+                await message.client.guildsDb.set(message.guildId, "StickyRoles", false);
+                embed.setDescription(`Sticky roles have been disabled in ${message.guild?.name}!`);
+            } else {
+                embed.setDescription("You have already disabled Sticky roles.").withErrorColor(message);
+            }
         }
 
         return message.reply({
