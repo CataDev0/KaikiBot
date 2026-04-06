@@ -93,29 +93,29 @@ function withErrorColor(
 ): EmbedBuilder {
     if (messageOrGuild) {
         if (messageOrGuild instanceof Message && messageOrGuild.inGuild()) {
-            const color = messageOrGuild.client.guildsDb.get(
+            const color = <string | RGBTuple> messageOrGuild.client.guildsDb.get(
                 messageOrGuild.guildId,
                 "ErrorColor",
                 Constants.errorColor
             );
 
-            return this.setColor(color as ColorResolvable);
+            return this.setColor(ConvertToColorResolvable(color));
         } else if (messageOrGuild instanceof ChatInputCommandInteraction && messageOrGuild.inGuild()) {
-            const color = messageOrGuild.client.guildsDb.get(
+            const color = <string | RGBTuple> messageOrGuild.client.guildsDb.get(
                 messageOrGuild.guildId!,
                 "ErrorColor",
                 Constants.errorColor
             );
 
-            return this.setColor(color as ColorResolvable);
+            return this.setColor(ConvertToColorResolvable(color));
         } else if (messageOrGuild instanceof Guild) {
-            const color = messageOrGuild.client.guildsDb.get(
+            const color = <string | RGBTuple> messageOrGuild.client.guildsDb.get(
                 messageOrGuild.id,
                 "ErrorColor",
                 Constants.errorColor
             );
 
-            return this.setColor(color as ColorResolvable);
+            return this.setColor(ConvertToColorResolvable(color));
         }
     }
 

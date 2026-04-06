@@ -139,7 +139,7 @@ export default class BotConfigCommand extends Subcommand {
     }
 
     public async dailyEnabledRun(message: Message, args: Args) {
-        const value = await args.rest("boolean");
+        const value = await args.rest("boolean", { truths: ["enable", "on"], falses: ["disable", "off"] });
 
         const oldValue = <boolean>(
 			await this.client.botSettings.get("1", "DailyEnabled", false)
