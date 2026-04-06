@@ -32,9 +32,12 @@ export default class EmoteReactCommand extends KaikiCommand {
                 throw EmoteReactCommand.emojiUserError;
             });
 
-        if (!emoji.id) throw EmoteReactCommand.emojiUserError;
+        const emojiIdOrName = emoji.id || emoji.name;
+        if (!emojiIdOrName) throw EmoteReactCommand.emojiUserError;
 
-        const emojiUrl = `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}`;
+        const emojiUrl = emoji.id
+            ? `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}`
+            : null;
         const possibleTrigger = await this.client.orm.emojiReactions.findFirst({
             where: {
                 GuildId: BigInt(message.guildId),
@@ -48,7 +51,7 @@ export default class EmoteReactCommand extends KaikiCommand {
                     Id: possibleTrigger.Id,
                 },
                 data: {
-                    EmojiId: BigInt(emoji.id),
+                    EmojiId: emojiIdOrName,
                     TriggerString: trigger,
                 },
             });
@@ -60,7 +63,7 @@ export default class EmoteReactCommand extends KaikiCommand {
                             Id: BigInt(message.guildId),
                         },
                     },
-                    EmojiId: BigInt(emoji.id),
+                    EmojiId: emojiIdOrName,
                     TriggerString: trigger,
                 },
             });
@@ -73,12 +76,12 @@ export default class EmoteReactCommand extends KaikiCommand {
             this.client.cache.emoteReactCache
                 .get(message.guildId)
                 ?.get(ERCacheType.HAS_SPACE)
-                ?.set(trigger, { id: emoji.id });
+                ?.set(trigger, { id: emojiIdOrName });
         } else {
             this.client.cache.emoteReactCache
                 .get(message.guildId)
                 ?.get(ERCacheType.NO_SPACE)
-                ?.set(trigger, { id: emoji.id });
+                ?.set(trigger, { id: emojiIdOrName });
         }
 
         return message.reply({
@@ -88,7 +91,7 @@ export default class EmoteReactCommand extends KaikiCommand {
                     .setDescription(
                         `Typing \`${trigger}\` will force me to react with :${emoji.name}:...`
                     )
-                    .setThumbnail(emojiUrl)
+                    .setThumbnail(emojiUrl ?? null)
                     .withOkColor(message),
             ],
         });

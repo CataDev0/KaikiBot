@@ -12,14 +12,15 @@ import Constants from "../../struct/Constants";
     usage: [""],
     preconditions: ["GuildOnly"],
 })
-export default class RemoveEmoteReactCommand extends KaikiCommand {
+export default class ListEmoteReactCommand extends KaikiCommand {
     public async messageRun(message: Message<true>) {
         const db = await this.client.orm.emojiReactions.findMany({
-                where: { GuildId: BigInt(message.guildId) },
-            }),
-            pages: EmbedBuilder[] = [];
+            where: { GuildId: BigInt(message.guildId) },
+        });
 
-        if (!db.length) {
+        const pages: EmbedBuilder[] = [];
+
+        if (db.length === 0) {
             return message.reply({
                 embeds: [
                     new EmbedBuilder()
@@ -52,7 +53,7 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
                         db
                             .slice(p, index)
                             .map((table) => {
-                                return `**${table.TriggerString}** => ${message.guild?.emojis.cache.get(String(table.EmojiId)) ?? table.EmojiId}`;
+                                return `**${table.TriggerString}** => ${message.guild?.emojis.cache.get(table.EmojiId) ?? table.EmojiId}`;
                             })
                             .join("\n")
                     )
@@ -60,6 +61,6 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
             );
         }
 
-        return sendPaginatedMessage(message, pages, {});
+        return sendPaginatedMessage(message, pages, { owner: message.author });
     }
 }
