@@ -63,7 +63,7 @@ GuildMember.prototype.hasExcludedRole = function () {
         undefined
     );
 
-    return !!this.roles.cache.get(roleId);
+    return !!(roleId && this.roles.cache.has(String(roleId)));
 };
 
 Guild.prototype.isDadBotEnabledInGuildOnly = function () {

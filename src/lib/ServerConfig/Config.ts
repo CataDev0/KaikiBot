@@ -284,9 +284,9 @@ message.guild as Guild
 
         const base = new EmbedBuilder().withOkColor(message).data;
 
-        const realOkColor = KaikiUtil.convertHexToRGB(OkColor.toString(16));
+        const realOkColor = KaikiUtil.convertHexToRGB(Number(OkColor).toString(16));
         const realErrorColor = KaikiUtil.convertHexToRGB(
-            ErrorColor.toString(16)
+            Number(ErrorColor).toString(16)
         );
 
         const okColorAttachment = new AttachmentBuilder(
