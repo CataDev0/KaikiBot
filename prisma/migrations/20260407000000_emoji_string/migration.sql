@@ -1,0 +1,1 @@
+ALTER TABLE `EmojiReactions` MODIFY `EmojiId` VARCHAR(255) NOT NULL;
