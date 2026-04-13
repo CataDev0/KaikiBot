@@ -63,7 +63,7 @@ export default class SnakesAndLaddersCommand extends KaikiCommand {
 
         const buildEmbed = (description?: string) => {
             const board = game.buildBoard();
-            const standings = game.players.map(p => `**${p.username}**: Square ${p.position}`).join("\n");
+            const standings = game.players.map((p, i) => `${game.PLAYER_SYMBOLS[i] ?? "⚪"} **${p.username}**: Square ${p.position}`).join("\n");
             return new EmbedBuilder()
                 .setTitle("🎲 Snakes and Ladders")
                 .setDescription(description ?? "")

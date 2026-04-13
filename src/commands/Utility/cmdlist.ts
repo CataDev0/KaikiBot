@@ -104,6 +104,30 @@ export default class CommandsList extends KaikiCommand {
             })
             .join("\n");
 
+    private addMinorCategories(emb: EmbedBuilder, cmds: Collection<string, KaikiCommand>) {
+        const filtered = cmds.filter((cmd) => cmd.minorCategory !== undefined);
+        const uniqueCategories = Array.from(new Set(filtered.map((cmd) => cmd.minorCategory)))
+            .filter((c): c is string => c !== undefined);
+
+        const sortedCategories = uniqueCategories.sort((a, b) => {
+            const aSize = filtered.filter((c) => c.minorCategory === a).size;
+            const bSize = filtered.filter((c) => c.minorCategory === b).size;
+            return bSize - aSize || a.localeCompare(b);
+        });
+
+        for (const minorCategory of sortedCategories) {
+            const minorCmds = filtered.filter((c) => c.minorCategory === minorCategory);
+            emb.addFields([
+                {
+                    name: minorCategory,
+                    value: this.mapCommands(minorCmds) || "Empty",
+                    inline: true,
+                },
+            ]);
+        }
+        return emb;
+    }
+
     private categoryReply(message: Message, category: string) {
         const cmds = this.store.filter(
             (c) => c.category === category
@@ -118,23 +142,7 @@ export default class CommandsList extends KaikiCommand {
             )
             .withOkColor(message);
 
-        const filtered = cmds.filter((cmd) => cmd.minorCategory !== undefined);
-
-        const uniqueCategories = new Set(filtered.map((cmd) => cmd.minorCategory));
-
-        for (const minorCategory of uniqueCategories) {
-            if (!minorCategory) continue;
-
-            const minorCmds = filtered.filter((c) => c.minorCategory === minorCategory);
-
-            emb.addFields([
-                {
-                    name: minorCategory,
-                    value: this.mapCommands(minorCmds) || "Empty",
-                    inline: true,
-                },
-            ]);
-        }
+        this.addMinorCategories(emb, cmds);
 
         return message.reply({
             embeds: [emb],
@@ -192,10 +200,6 @@ export default class CommandsList extends KaikiCommand {
                 (c) => c.category === category
             ) as unknown as Collection<string, KaikiCommand>;
 
-            const filtered = cmds.filter(
-                (cmd) => cmd.minorCategory !== undefined
-            );
-
             emb.setTitle(category).setDescription(
                 this.mapCommands(
                     cmds.filter((cmd) => cmd.minorCategory === undefined)
@@ -205,21 +209,7 @@ export default class CommandsList extends KaikiCommand {
             emb.setThumbnail(null);
             emb.setFields([]);
 
-            const uniqueCategories = new Set(filtered.map((cmd) => cmd.minorCategory));
-
-            for (const minorCategory of uniqueCategories) {
-                if (!minorCategory) continue;
-
-                const minorCmds = filtered.filter((c) => c.minorCategory === minorCategory);
-
-                emb.addFields([
-                    {
-                        name: minorCategory,
-                        value: this.mapCommands(minorCmds) || "Empty",
-                        inline: true,
-                    },
-                ]);
-            }
+            this.addMinorCategories(emb, cmds);
 
             await message.edit({
                 embeds: [emb],

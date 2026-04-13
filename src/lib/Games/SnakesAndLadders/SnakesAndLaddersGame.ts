@@ -33,6 +33,7 @@ export default class SnakesAndLaddersGame {
     public winner: Player | null;
     public lastRoll: number;
     public lastEvent: string | null;
+    public readonly PLAYER_SYMBOLS = ["🔴", "🔵", "🟡", "🟢", "🟣", "🟤"];
 
     constructor(players: { id: string; username: string }[]) {
         this.players = players.map(p => ({ ...p, position: 0 }));
@@ -84,9 +85,10 @@ export default class SnakesAndLaddersGame {
 
     buildBoard(): string {
         const positions = new Map<number, string[]>();
-        for (const player of this.players) {
+        for (let i = 0; i < this.players.length; i++) {
+            const player = this.players[i];
             if (!positions.has(player.position)) positions.set(player.position, []);
-            positions.get(player.position)!.push(player.username[0].toUpperCase());
+            positions.get(player.position)!.push(this.PLAYER_SYMBOLS[i] ?? "⚪");
         }
 
         const rows: string[] = [];
@@ -96,7 +98,16 @@ export default class SnakesAndLaddersGame {
             for (let col = 0; col < 10; col++) {
                 const square = row * 10 + (leftToRight ? col + 1 : 10 - col);
                 const occupants = positions.get(square);
-                cells.push(occupants ? `[${occupants.join("")}]` : `[${String(square).padStart(2, " ")} ]`);
+                
+                if (occupants) {
+                    cells.push(`[${occupants.join("")}]`);
+                } else if (SNAKES[square]) {
+                    cells.push("[🐍 ]");
+                } else if (LADDERS[square]) {
+                    cells.push("[🪜 ]");
+                } else {
+                    cells.push(`[${String(square).padStart(2, " ")} ]`);
+                }
             }
             rows.push(cells.join(""));
         }

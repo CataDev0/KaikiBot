@@ -113,7 +113,7 @@ export default class TicTacToe {
 
         const { player } = playerObject;
 
-        const filter = (m: Message<true>) =>
+        const filter = (m: Message) =>
             TicTacToe.numbers.includes(m.content) && m.member?.id === player.id;
 
         this.message.channel
