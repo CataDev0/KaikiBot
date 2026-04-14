@@ -3,6 +3,7 @@ import { Command } from "@sapphire/framework";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 import SnakesAndLaddersGame from "../../lib/Games/SnakesAndLadders/SnakesAndLaddersGame";
 
+const LOBBY_TIMEOUT_MS = 60_000;
 const GAME_TIMEOUT_MS = 60_000;
 
 export default class SnakesAndLaddersCommand extends KaikiCommand {
@@ -10,56 +11,96 @@ export default class SnakesAndLaddersCommand extends KaikiCommand {
         super(context, {
             name: "snakesandladders",
             aliases: ["sal", "snl"],
-            description: "Play a game of Snakes and Ladders with another user!",
-            usage: "snakesandladders @opponent",
+            description: "Play a game of Snakes and Ladders! Other users can join the lobby.",
+            usage: "snakesandladders",
             minorCategory: "Games",
         });
     }
 
     async messageRun(message: Message<true>) {
-        const opponent = message.mentions.users.first();
+        const players: { id: string; username: string }[] = [
+            { id: message.author.id, username: message.author.username }
+        ];
 
-        if (!opponent || opponent.bot || opponent.id === message.author.id) {
-            return message.channel.send(`❌ Please mention a valid user to play against. Usage: \`${message.client.fetchPrefix(message)}snakesandladders @opponent\``);
-        }
+        const buildLobbyEmbed = () => {
+            return new EmbedBuilder()
+                .setTitle("🎲 Snakes and Ladders Lobby")
+                .setDescription(`Host: ${message.author}\n\n**Players Joined (${players.length}/6):**\n${players.map((p, i) => `${["🔴", "🔵", "🟡", "🟢", "🟣", "🟤"][i]} ${p.username}`).join("\n")}`)
+                .setColor("Yellow")
+                .setFooter({ text: "Game starts automatically in 60 seconds if enough players join!" });
+        };
 
-        // Invite prompt
-        const inviteEmbed = new EmbedBuilder()
-            .setTitle("🎲 Snakes and Ladders")
-            .setDescription(`${opponent}, you have been challenged by ${message.author} to a game of **Snakes and Ladders**!\nDo you accept?`)
-            .setColor("Yellow");
-
-        const inviteRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder().setCustomId("sal_accept").setLabel("Accept").setStyle(ButtonStyle.Success),
-            new ButtonBuilder().setCustomId("sal_decline").setLabel("Decline").setStyle(ButtonStyle.Danger),
+        const lobbyRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder().setCustomId("sal_join").setLabel("Join Game").setStyle(ButtonStyle.Success),
+            new ButtonBuilder().setCustomId("sal_start").setLabel("Start Game").setStyle(ButtonStyle.Primary),
+            new ButtonBuilder().setCustomId("sal_play_bot").setLabel("Play vs Bot").setStyle(ButtonStyle.Secondary),
         );
 
-        const inviteMsg = await message.channel.send({ embeds: [inviteEmbed], components: [inviteRow] });
+        const lobbyMsg = await message.channel.send({ embeds: [buildLobbyEmbed()], components: [lobbyRow] });
 
-        let inviteInteraction: ButtonInteraction;
-        try {
-            inviteInteraction = await inviteMsg.awaitMessageComponent({
-                componentType: ComponentType.Button,
-                filter: i => i.user.id === opponent.id,
-                time: 30_000,
+        const lobbyCollector = lobbyMsg.createMessageComponentCollector({
+            componentType: ComponentType.Button,
+            time: LOBBY_TIMEOUT_MS,
+        });
+
+        await new Promise<void>((resolve) => {
+            lobbyCollector.on("collect", async (i: ButtonInteraction) => {
+                if (i.customId === "sal_join") {
+                    if (players.some(p => p.id === i.user.id)) {
+                        await i.reply({ content: "You have already joined the game!", ephemeral: true });
+                        return;
+                    }
+                    players.push({ id: i.user.id, username: i.user.username });
+                    await i.update({ embeds: [buildLobbyEmbed()] });
+
+                    if (players.length >= 6) {
+                        lobbyCollector.stop("max_players");
+                    }
+                } else if (i.customId === "sal_start") {
+                    if (i.user.id !== message.author.id) {
+                        await i.reply({ content: "Only the host can start the game early!", ephemeral: true });
+                        return;
+                    }
+                    if (players.length < 2) {
+                        await i.reply({ content: "Need at least 2 players to start the game!", ephemeral: true });
+                        return;
+                    }
+                    await i.update({ components: [] });
+                    lobbyCollector.stop("host_start");
+                } else if (i.customId === "sal_play_bot") {
+                    if (i.user.id !== message.author.id) {
+                        await i.reply({ content: "Only the host can start a bot game!", ephemeral: true });
+                        return;
+                    }
+                    if (players.length > 1) {
+                        await i.reply({ content: "Cannot play against bot when other players have joined!", ephemeral: true });
+                        return;
+                    }
+                    players.push({ id: message.client.user.id, username: message.client.user.username });
+                    await i.update({ components: [] });
+                    lobbyCollector.stop("play_bot");
+                }
             });
-        } catch {
-            await inviteMsg.edit({ embeds: [inviteEmbed.setDescription("❌ Challenge timed out.").setColor("Red")], components: [] });
-            return;
-        }
 
-        if (inviteInteraction.customId === "sal_decline") {
-            await inviteInteraction.update({ embeds: [inviteEmbed.setDescription(`❌ ${opponent.username} declined the challenge.`).setColor("Red")], components: [] });
-            return;
-        }
+            lobbyCollector.on("end", async (_, reason) => {
+                if (reason === "time") {
+                    if (players.length < 2) {
+                        await lobbyMsg.edit({
+                            embeds: [new EmbedBuilder().setTitle("🎲 Snakes and Ladders Lobby").setDescription("❌ Game cancelled (not enough players joined).").setColor("Red")],
+                            components: [],
+                        });
+                    } else {
+                        await lobbyMsg.edit({ components: [] });
+                    }
+                }
+                resolve();
+            });
+        });
 
-        await inviteInteraction.update({ components: [] });
+        if (players.length < 2) return;
 
         // Start game
-        const game = new SnakesAndLaddersGame([
-            { id: message.author.id, username: message.author.username },
-            { id: opponent.id, username: opponent.username },
-        ]);
+        const game = new SnakesAndLaddersGame(players);
 
         const buildEmbed = (description?: string) => {
             const board = game.buildBoard();
@@ -90,34 +131,51 @@ export default class SnakesAndLaddersCommand extends KaikiCommand {
             time: GAME_TIMEOUT_MS,
         });
 
-        collector.on("collect", async (i: ButtonInteraction) => {
-            if (i.user.id !== game.currentPlayer.id) {
-                await i.reply({ content: "⏳ It's not your turn!", ephemeral: true });
-                return;
-            }
-
+        const executeTurn = async (i?: ButtonInteraction) => {
+            const current = game.currentPlayer;
             const { roll, event, winner } = game.takeTurn();
-            const playerName = winner ? winner.username : game.players.find(p => p.id === i.user.id)!.username;
+            const playerName = winner ? winner.username : current.username;
 
             let description = `**${playerName}** rolled a **${roll}**!`;
             if (event) description += `\n${event}`;
 
             if (winner) {
                 collector.stop("winner");
-                await i.update({
+                const payload = {
                     embeds: [buildEmbed(`${description}\n\n🏆 **${winner.username} wins!**`).setColor("Gold")],
                     components: [],
-                });
+                };
+                if (i) await i.update(payload);
+                else await gameMsg.edit(payload);
                 return;
             }
 
             description += `\n\nIt's **${game.currentPlayer.username}**'s turn!`;
-            await i.update({
-                embeds: [buildEmbed(description)],
-                components: [rollRow()],
-            });
+            const isBotTurn = game.currentPlayer.id === message.client.user.id;
 
-            collector.resetTimer();
+            const payload = {
+                embeds: [buildEmbed(description)],
+                components: isBotTurn ? [] : [rollRow()],
+            };
+
+            if (i) await i.update(payload);
+            else await gameMsg.edit(payload);
+
+            if (isBotTurn) {
+                setTimeout(() => {
+                    if (!collector.ended) executeTurn();
+                }, 2000);
+            } else {
+                collector.resetTimer();
+            }
+        };
+
+        collector.on("collect", async (i: ButtonInteraction) => {
+            if (i.user.id !== game.currentPlayer.id) {
+                await i.reply({ content: "⏳ It's not your turn!", ephemeral: true });
+                return;
+            }
+            await executeTurn(i);
         });
 
         collector.on("end", async (_, reason) => {
