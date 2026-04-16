@@ -124,12 +124,12 @@ export class Webserver {
         const responseObject: POSTUserGuildsBody = {
             // Validate the types
             userData: {
-                Amount: userData.Amount,
+                Amount: userData.Amount.toString(),
                 ClaimedDaily: userData.ClaimedDaily,
-                DailyReminder: userData.DailyReminder,
-                UserId: userData.UserId
+                DailyReminder: userData.DailyReminder ? userData.DailyReminder.toISOString() : null,
+                UserId: userData.UserId.toString()
             },
-            guildDb: guildsData,
+            guildDb: guildsData.map(g => ({ Id: g.Id.toString() })),
         };
 
         return res.status(200).send(JSON.stringify(responseObject, (_, value) => typeof value === "bigint" ? value.toString() : value));
@@ -214,7 +214,7 @@ export class Webserver {
             bots: guild.members.cache.filter(memb => memb.user.bot).size,
         };
 
-        const guildBody: GETGuildBody = {
+        const guildBody = {
             guild: {
                 ...dbGuild,
                 ExcludeRole,
@@ -226,7 +226,7 @@ export class Webserver {
             user: {
                 userRole: userRoleData
             },
-        };
+        } as unknown as GETGuildBody;
 
         return res.send(JSON.stringify(guildBody, (_, value) => typeof value === "bigint" ? value.toString() : value));
     }

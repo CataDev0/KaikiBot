@@ -17,7 +17,7 @@ export type GETGuildBody = {
 export type PUTDashboardBody = Omit<APIGuild, "Id" | "CreatedAt"> & APIGuildUsers & {
     ExcludeRole: string;
     ExcludeRoleName: string | null;
-    UserRoleColor: bigint | null
+    UserRoleColor: string | null
     UserRoleIcon: string | null;
     UserRoleName: string | null;
     icon: string;
@@ -27,49 +27,49 @@ export type PUTDashboardBody = Omit<APIGuild, "Id" | "CreatedAt"> & APIGuildUser
 // Initial data sent to the dashboard
 export type POSTUserGuildsBody = {
     // Used to filter available guilds
-    guildDb: { Id: bigint }[];
+    guildDb: { Id: string }[];
     userData: {
-        Amount: bigint,
+        Amount: string,
         ClaimedDaily: boolean,
-        DailyReminder: Date | null,
-        UserId: bigint
+        DailyReminder: string | null,
+        UserId: string
     } | null
 }
 
 export type Todo = {
-    Id: bigint;
-    UserId: bigint;
+    Id: string;
+    UserId: string;
     String: string;
 }
 export type POSTUserTodoAddBody = Todo
 
 export type POSTUserTodoDeleteBody = {
-    todoIds: bigint[]
+    todoIds: string[]
 }
 
 export type APIGuild = {
     Anniversary: boolean,
-    ByeChannel: bigint | null,
+    ByeChannel: string | null,
     ByeMessage: string | null,
     ByeTimeout: number | null,
-    CreatedAt: Date,
+    CreatedAt: string,
     DadBot: boolean,
-    ErrorColor: bigint,
-    ExcludeRole: bigint,
-    Id: bigint,
-    OkColor: bigint,
+    ErrorColor: string,
+    ExcludeRole: string,
+    Id: string,
+    OkColor: string,
     Prefix: string,
     StickyRoles: boolean,
-    WelcomeChannel: bigint | null,
+    WelcomeChannel: string | null,
     WelcomeMessage: string | null,
     WelcomeTimeout: number | null
 }
 
 export type APIGuildUsers = {
-    CreatedAt: Date,
-    GuildId: bigint,
-    UserId: bigint,
-    UserRole: bigint | null,
+    CreatedAt: string,
+    GuildId: string,
+    UserId: string,
+    UserRole: string | null,
 }
 
 export type APIRole = { color: number; icon: string | null; id: string, name: string };
