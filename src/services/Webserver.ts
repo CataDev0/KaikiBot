@@ -5,8 +5,8 @@ import * as Colorette from "colorette";
 import { Guild, HexColorString, resolveColor } from "discord.js";
 import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoAddBody , APIRole } from "kaikiwa-types";
 import { JSONToMessageOptions } from "../lib/GreetHandler";
-import { VoteBody } from "src/lib/Types/DiscordBotList";
-import KaikiSapphireClient from "src/lib/Kaiki/KaikiSapphireClient";
+import { VoteBody } from "../lib/Types/DiscordBotList";
+import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
 
 // A class managing the Bot's webserver.
 // It is intended to interact with a kaikibot dashboard

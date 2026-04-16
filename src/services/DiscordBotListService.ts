@@ -1,12 +1,12 @@
 import { EmbedBuilder } from "discord.js";
 import Constants from "../struct/Constants";
 import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
-import { VoteBody } from "src/lib/Types/DiscordBotList";
+import { VoteBody } from "../lib/Types/DiscordBotList";
 
 export default class DiscordBotListService {
     private client: KaikiSapphireClient<true>;
     private BASE_URL = "https://discordbotlist.com/api/v1";
-    private _post: NodeJS.Timeout | null;
+    private _post?: NodeJS.Timeout | null;
     private DBL_API_TOKEN: string;
 
 

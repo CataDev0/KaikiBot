@@ -21,7 +21,7 @@ type ExtendedGuildEmoji = GuildEmoji & {
     usage: ["", "--small", "--clean"],
     preconditions: ["GuildOnly"],
     flags: ["small", "clean"],
-    cooldownDelay: 15000,
+    cooldownDelay: 2000,
 })
 export default class EmoteCount extends KaikiCommand {
     private hasName(

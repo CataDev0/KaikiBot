@@ -1,6 +1,5 @@
 // Here we define our query as a multi-line string
 
-import { container } from "@sapphire/pieces";
 import { Message } from "discord.js";
 import KaikiEmbeds from "../Kaiki/KaikiEmbeds";
 
@@ -159,10 +158,8 @@ query ($search: String) {
         return await (response.ok ? json : Promise.reject(json));
     }
 
-    static handleError = async (message: Message, error: never) => {
-        AnilistGraphQL.logError(error);
+    static handleError = async (message: Message, error: Error) => {
         await message.reply({ embeds: [KaikiEmbeds.embedFail(message, "No data received")] });
-        throw new Error(error);
+        throw error;
     };
-    static logError = (error: never) => container.logger.error(error);
 }

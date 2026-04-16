@@ -158,11 +158,11 @@ export default class HelpCommand extends KaikiCommand {
         const { container } = await import("@sapphire/framework");
         const cmds = container.stores.get("commands");
 
-        let command = <KaikiCommand>cmds.find((k) => k.name.toLowerCase() === commandParam.toLowerCase()) || 
-                      <KaikiCommand>cmds.aliases.get(commandParam.toLowerCase());
-                      
+        let command: KaikiCommand | undefined = (cmds.find((k) => k.name.toLowerCase() === commandParam.toLowerCase()) as KaikiCommand | undefined) ||
+                      (cmds.aliases.get(commandParam.toLowerCase()) as KaikiCommand | undefined);
+
         if (!command) {
-            command = <KaikiCommand>cmds.find((k) => k.name.toLowerCase().startsWith(commandParam.toLowerCase()));
+            command = cmds.find((k) => k.name.toLowerCase().startsWith(commandParam.toLowerCase())) as KaikiCommand | undefined;
         }
 
         if (command) {
