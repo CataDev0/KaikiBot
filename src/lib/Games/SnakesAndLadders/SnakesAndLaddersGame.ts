@@ -105,11 +105,17 @@ export default class SnakesAndLaddersGame {
                     cells.push("[🐍 ]");
                 } else if (LADDERS[square]) {
                     cells.push("[🪜 ]");
+                } else if (square === 100) {
+                    cells.push("[100]");
                 } else {
                     cells.push(`[${String(square).padStart(2, " ")} ]`);
                 }
             }
-            rows.push(cells.join(""));
+            if (leftToRight) {
+                rows.push(`⏩ ${cells.join("")}`);
+            } else {
+                rows.push(`⏪ ${cells.join("")}`);
+            }
         }
         return rows.join("\n");
     }
