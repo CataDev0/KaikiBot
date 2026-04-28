@@ -3,6 +3,7 @@ import { Args } from "@sapphire/framework";
 import { EmbedBuilder, Message } from "discord.js";
 import Common from "../../lib/Anime/Common";
 import AnilistGraphQL from "../../lib/APIs/AnilistGraphQL";
+import Jikan from "../../lib/APIs/Jikan";
 import MangaData from "../../lib/Interfaces/Common/MangaData";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
@@ -39,10 +40,22 @@ export default class MangaCommand extends KaikiCommand {
                 }),
             };
 
-        const res = await fetch(url, options)
-            .catch((e: never) => AnilistGraphQL.handleError(message, e));
-        const json: MangaData = await AnilistGraphQL.handleResponse(res)
-            .catch((e: never) => AnilistGraphQL.handleError(message, e));
+        const res = await fetch(url, options).catch(() => null);
+        let json: MangaData | null = null;
+        
+        if (res && res.ok) {
+            json = await AnilistGraphQL.handleResponse(res).catch(() => null);
+        }
+
+        if (!json || !json.data?.Page?.media?.length) {
+            try {
+                // Fallback to Jikan
+                const jikanData = await Jikan.fetchManga(manga);
+                return message.reply({ embeds: Jikan.buildMangaEmbed(jikanData, message) });
+            } catch (err) {
+                return AnilistGraphQL.handleError(message, err);
+            }
+        }
 
         const {
             coverImage,
