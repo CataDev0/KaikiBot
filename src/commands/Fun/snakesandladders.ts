@@ -106,11 +106,11 @@ export default class SnakesAndLaddersCommand extends KaikiCommand {
             const board = game.buildBoard();
             const standings = game.players.map((p, i) => `${game.PLAYER_SYMBOLS[i] ?? "⚪"} **${p.username}**: Square ${p.position}`).join("\n");
             return new EmbedBuilder()
-                .setTitle("🎲 Snakes and Ladders")
+                .setTitle("Snakes and Ladders")
                 .setDescription(description ?? "")
                 .addFields(
-                    { name: "📊 Positions", value: standings },
-                    { name: "🗺️ Board", value: `\`\`\`\n${board}\n\`\`\`` },
+                    { name: "Positions", value: standings },
+                    { name: "Board", value: `\`\`\`\n${board}\n\`\`\`` },
                 )
                 .setColor("Blue")
                 .setFooter({ text: "🐍 Snakes: 17→7, 54→34, 62→19, 64→60, 87→24, 93→73, 95→75, 99→78 | 🪜 Ladders: 1→38, 4→14, 9→31, 20→38, 28→84, 40→59, 51→67, 63→81, 71→91" });
