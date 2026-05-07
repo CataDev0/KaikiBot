@@ -20,8 +20,9 @@ describe("Image APIs", () => {
             const json = await response.json();
             
             // Check objectIndex
-            const index = Array.isArray(api.objectIndex) ? api.objectIndex : [api.objectIndex];
-            const value = index.reduce((acc, curr) => acc[curr], json as any);
+            const val = api.objectIndex as string | string[];
+            const index = (Array.isArray(val) ? val : [val]) as string[];
+            const value = index.reduce((acc: any, curr: string) => acc[curr], json as any);
             expect(typeof value).toBe("string");
             expect(value.startsWith("http")).toBe(true);
         });

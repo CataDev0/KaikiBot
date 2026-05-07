@@ -89,7 +89,15 @@ export default class WaifuPics extends ImageAPI<APIs> {
                 append: "👋",
             },
         },
-        objectIndex: "url",
-        url: (string: string) => `https://api.waifu.pics/sfw/${string}`,
+        objectIndex: ["results", "0", "url"],
+        url: (string: string) => {
+            const map: Record<string, string> = {
+                bonk: "punch",
+                bully: "baka",
+                megumin: "waifu",
+                shinobu: "waifu",
+            };
+            return `https://nekos.best/api/v2/${map[string] || string}`;
+        },
     };
 }

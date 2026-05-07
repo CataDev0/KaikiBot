@@ -9,6 +9,7 @@ import { APIs } from "../../lib/APIs/WaifuPics";
     description: "Spawn a shinobu picture",
     usage: [""],
     typing: true,
+    enabled: false, // Disabled until we can find a better source than waifu.pics
 })
 export default class megumin extends KaikiCommand {
     public async messageRun(message: Message): Promise<Message> {
