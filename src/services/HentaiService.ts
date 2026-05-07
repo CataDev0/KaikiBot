@@ -11,7 +11,7 @@ export enum DAPI {
     Safebooru,
 }
 
-export type HentaiTypes = "waifu" | "neko" | "femboy" | "trap" | "blowjob";
+export type HentaiTypes = "waifu" | "neko" | "femboy" | "trap" | "blowjob" | "hentai";
 
 // noinspection FunctionNamingConventionJS
 export default class HentaiService {
@@ -23,10 +23,11 @@ export default class HentaiService {
     };
 
     public static readonly hentaiArray: HentaiTypes[] = [
-        "waifu",
-        "neko",
-        "femboy",
-        "blowjob",
+        // "waifu",
+        // "neko",
+        // "femboy",
+        // "blowjob",
+        "hentai"
     ];
 
     public async grabHentai(
@@ -49,37 +50,23 @@ export default class HentaiService {
         if (format === "bomb") {
             const batchSize = 5;
             const batches = Math.ceil(amount / batchSize);
-            const results: string[] = [];
+            const results: { url: string }[] = [];
 
             for (let i = 0; i < batches; i++) {
-                const currentAmount = Math.min(
-                    batchSize,
-                    amount - results.length
-                );
-                const rawResponse = await fetch(
-                    `https://api.waifu.pics/many/nsfw/${type}`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Accept: "application/json",
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ type, amount: currentAmount }),
-                    }
-                );
+                const rawResponse = await fetch(`https://api.waifu.im/images?IncludedTags=${type}&IsNsfw=true&PageSize=10`);
                 KaikiUtil.checkResponse(rawResponse);
-                const batch = await KaikiUtil.json<string[]>(rawResponse, [
-                    "files",
+                const batch = await KaikiUtil.json(rawResponse, [
+                    "items",
                 ]);
                 results.push(...batch);
             }
 
-            return results;
+            return results.map(item => item.url);
         }
-        const response = await fetch(`https://waifu.pics/api/nsfw/${type}`);
+        const response = await fetch(`https://api.waifu.im/images?IncludedTags=${type}&IsNsfw=true`);
 
         KaikiUtil.checkResponse(response);
-        return KaikiUtil.json(response, ["url"]);
+        return KaikiUtil.json(response, ["items", "0", "url"]);
     }
 
     async makeRequest(
