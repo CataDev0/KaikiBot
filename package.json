@@ -1,6 +1,6 @@
 {
 	"name": "kaikibot",
-	"version": "6.3.13",
+	"version": "6.3.14",
 	"main": "./dist/index.js",
 	"type": "commonjs",
 	"scripts": {
