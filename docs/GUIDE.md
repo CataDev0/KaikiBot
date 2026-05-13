@@ -24,7 +24,7 @@ cp .env.example .env
 3. [Setup .env file](ENV.md)
 4. Install dependencies:
 ```
-npm i
+npm ci
 ```
 5. Run the compiler
 ```

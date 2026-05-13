@@ -1,9 +1,9 @@
 ### Paths
 
--   [Readme](../README.md)
--   Docs
-    -   [Guide](GUIDE.md)
-    -   [Placeholders](PLACEHOLDERS.md)
+- [Readme](../README.md)
+- Docs
+- [Guide](GUIDE.md)
+    [Placeholders](PLACEHOLDERS.md)
 
 # .env setup guide
 
@@ -11,15 +11,15 @@ The .env file is important for the bot to run at all. Read below how to populate
 
 ## CLIENT_TOKEN
 
-Create a bot application
+Create a bot application (*Possibly outdated steps*)
 
--   Go to your discord bot applications (https://discord.com/developers/applications/)
--   Click `New Application` in top right corner
--   Fill in a name, and assign it to personal team.
--   Click `Bot` under `SETTINGS` on the menu, on the left.
--   Click `Add Bot`
--   Click `Copy` under `TOKEN`
--   Paste the token in the .env file. Make sure it looks like the example below.
+- Go to your discord bot applications (<https://discord.com/developers/applications/>)
+- Click `New Application` in top right corner
+- Fill in a name, and assign it to personal team.
+- Click `Bot` under `SETTINGS` on the menu, on the left.
+- Click `Add Bot`
+- Click `Copy` under `TOKEN`
+- Paste the token in the .env file. Make sure it looks like the example below.
 
 Example
 
@@ -35,33 +35,31 @@ Example
 
 Prefix is `+`
 
-## MySQL
+## MariaDB / MySQL
 
-Replace `yourUsername` and `yourPassword` with your MySQL user and password credentials
+You will need a running MariaDB or MySQL server. Before running the bot, make sure to actually create an empty database for it (e.g. `kaikidb`).
 
--   Note: In some cases you need to change `localhost` with `127.0.0.1`
+Replace `yourUsername` and `yourPassword` with your MySQL user and password credentials.
+
+- Note: In rare cases changing `localhost` with `127.0.0.1` will fix connection issues.
 
 Example
 
     DATABASE_URL="mysql://yourUsername:yourPassword@localhost:3306/kaikidb"
-    DB_HOST=localhost
-    DB_USER=yourUsername
-    DB_PASSWORD=yourPassword
-    DB_ROOT_PASSWORD=yourRootPassword
-    DB_NAME=kaikidb
 
 ## KAWAIIKEY (Optional)
 
--   Login to https://kawaii.red/dashboard/ with your Discord account
--   Reveal and copy the token
--   Paste the token in the .env file. Make sure it looks like the example below.
+- Login to <https://kawaii.red/dashboard/> with your Discord account
+- Reveal and copy the token
+- Paste the token in the .env file. Make sure it looks like the example below.
 
 Example
 
     KAWAIIKEY=142788173885276162.DspDpD0isjuXAKD73vWs
 
-## Dashboard (Optiona)
-Requires a running clone of https://github.com/cataDev0/kaikibot.xyz/ 
+## Dashboard (Optional)
+
+Requires a running clone of <https://github.com/cataDev0/kaikibot.xyz/>
 
 The port the website is using
 
@@ -71,10 +69,11 @@ Specify a secret the dashboard uses to communicate
 
     SELF_API_TOKEN=
 
-The url including endpoint where the bot will upload the commandlist to 
+The url including endpoint where the bot will upload the commandlist to
 
-    CMDLIST_URL=
+Example: (Default kaikibot.xyz endpoint)
 
+    CMDLIST_URL=http://localhost:3636/commands
 
 ## The rest of the file
 
@@ -89,11 +88,6 @@ Please leave this as is, unless you know what you're doing
 
     # Database
     DATABASE_URL="mysql://yourUsername:yourPassword@localhost:3306/kaikidb"
-    DB_HOST=localhost
-    DB_USER=yourUsername
-    DB_PASSWORD=yourPassword
-    DB_ROOT_PASSWORD=yourRootPassword
-    DB_NAME=kaikidb
 
     # Docker
     NODE_DOCKER_PORT=8080
