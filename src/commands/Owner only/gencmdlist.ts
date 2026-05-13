@@ -22,11 +22,16 @@ import process from "process";
 })
 export default class GenCmdListCommand extends KaikiCommand {
     public async messageRun(message: Message) {
+        const list = this.generateCommmandlist();
+        const stringifiedList = JSON.stringify(list, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value,
+        4);
+        
         if (!process.env.CMDLIST_URL || !process.env.SELF_API_TOKEN) {
             return message.reply({
                 files: [
                     new AttachmentBuilder(
-                        Buffer.from(this.generateCommmandlist(), "utf-8"),
+                        Buffer.from(stringifiedList, "utf-8"),
                         { name: "cmdlist.json" }
                     ),
                 ],
@@ -40,8 +45,6 @@ export default class GenCmdListCommand extends KaikiCommand {
                     .setColor(Constants.kaikiOrange),
             ],
         });
-
-        const list = this.generateCommmandlist();
 
         const uri = new URL(process.env.CMDLIST_URL);
 
@@ -64,7 +67,7 @@ export default class GenCmdListCommand extends KaikiCommand {
                         .withOkColor(message),
                 ],
                 files: [
-                    new AttachmentBuilder(Buffer.from(list, "utf-8"), {
+                    new AttachmentBuilder(Buffer.from(stringifiedList, "utf-8"), {
                         name: "cmdlist.json",
                     }),
                 ],
@@ -74,26 +77,17 @@ export default class GenCmdListCommand extends KaikiCommand {
 
     private generateCommmandlist() {
         const commands = Array.from(this.store.values());
-
         const { categories } = this.store;
 
-        return JSON.stringify(
-            categories.map((category) => {
-                // Akairo: Category ID, Command[]
-                return [
-                    category,
-                    commands
-                        .filter((command) => command.category === category)
-                        .map(
-                            (command: KaikiCommand) =>
-                                new GeneratedCommand(command)
-                        ),
-                ];
-            }),
-            (key, value) =>
-                typeof value === "bigint" ? value.toString() : value,
-            4
-        );
+        return categories.map((category) => {
+            return [
+                category,
+                (commands as KaikiCommand[])
+                    .filter((command) => command.category === category)
+                    .map((command: KaikiCommand) =>
+                        new GeneratedCommand(command)),
+            ];
+        })
     }
 }
 
