@@ -33,26 +33,32 @@ export default class HelpCommand extends KaikiCommand {
     private createHelpEmbed(message: Message | ChatInputCommandInteraction, prefix: string, avatarURL: string, userAvatarURL: string) {
         const { name, repository, version } = this.client.package;
         return new EmbedBuilder()
-            .setTitle(`${this.client.user?.username} help page`)
-            .setDescription(`Current prefix: \`${prefix}\``)
+            .setTitle(`${this.client.user?.username} Help Page`)
+            .setDescription(`**Current prefix:** \`${prefix}\``)
+            .setThumbnail(this.client.user?.displayAvatarURL({ size: 1024 }) || null)
             .addFields([
                 {
-                    name: "📋 Category list",
+                    name: "📋 Categories",
                     value: `\`${prefix}cmds\` returns a complete list of command categories.`,
                     inline: false,
                 },
                 {
-                    name: "🗒️ Command list",
+                    name: "🗒️ Commands",
                     value: `\`${prefix}cmds <category>\` returns a complete list of commands in the given category.`,
                     inline: false,
                 },
                 {
                     name: "🔍 Command Info",
-                    value: `\`${prefix}help [command]\` to get more help. Example: \`${prefix}help ping\``,
+                    value: `\`${prefix}help [command]\` to get more help.\n*Example:* \`${prefix}help ping\``,
                     inline: false,
                 },
                 {
-                    name: "Policies",
+                    name: "❓ Frequently Asked Questions",
+                    value: `Use the \`${prefix}faq\` command to see answers to common questions`,
+                    inline: false,
+                },
+                {
+                    name: "📜 Policies",
                     value: `[Privacy policy](${Constants.LINKS.PRIVACY_POLICY}) | [Terms of Use](${Constants.LINKS.TERMS_OF_USE})`
                 }
             ])
@@ -100,34 +106,37 @@ export default class HelpCommand extends KaikiCommand {
                 {
                     name: "**Aliases**",
                     value: `\`${aliases}\``,
+                    inline: true,
                 },
             ]);
         }
 
         embed
-            .setTitle(`${prefix}${command.name}`)
+            .setTitle(`Command: \`${prefix}${command.name}\``)
             .setDescription(
-                command.description || "Command is missing description."
+                `> ${command.description || "Command is missing description."}`
             )
             .addFields([
                 {
                     name: "**Usage**",
-                    value: commandUsage,
+                    value: `\`\`\`\n${commandUsage}\n\`\`\``,
                     inline: false,
                 },
                 {
-                    name: "Cooldown",
-                    value: `${cooldown / 1000}s`,
+                    name: "⏱Cooldown",
+                    value: `\`${cooldown / 1000}s\``,
+                    inline: true,
                 },
             ])
-            .setFooter({ text: command.category || "N/A" });
+            .setFooter({ text: `Category: ${command.category || "N/A"}` });
 
         if (Array.isArray(command.options.flags)) {
             embed.addFields({
                 name: "Flags",
                 value: command.options.flags
-                    .map((flag: string) => `--${flag}`)
+                    .map((flag: string) => `\`--${flag}\``)
                     .join(", "),
+                inline: true,
             });
         }
 
@@ -135,8 +144,8 @@ export default class HelpCommand extends KaikiCommand {
             embed.addFields([
                 {
                     name: "Requires",
-                    value: command.options.requiredUserPermissions.toString(),
-                    inline: false,
+                    value: `\`${command.options.requiredUserPermissions.toString()}\``,
+                    inline: true,
                 },
             ]);
         }
