@@ -623,6 +623,8 @@ export default class Constants {
         });
 
     static readonly LINKS = Object.freeze({
+        SUPPORT_SERVER: "https://discord.gg/8G3AqjnFfX",
+        REPO_URL_ISSUES: "https://github.com/CataDev0/KaikiBot/issues",
         REPO_URL: "https://github.com/cataDev0/KaikiBot.git",
         GUIDE: "https://github.com/cataDev0/KaikiBot/blob/master/docs/GUIDE.md",
         PRIVACY_POLICY: "https://kaikibot.xyz/privacy",
