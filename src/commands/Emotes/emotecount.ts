@@ -21,7 +21,7 @@ type ExtendedGuildEmoji = GuildEmoji & {
     usage: ["", "--small", "--clean"],
     preconditions: ["GuildOnly"],
     flags: ["small", "clean"],
-    cooldownDelay: 15000,
+    cooldownDelay: 2000,
 })
 export default class EmoteCount extends KaikiCommand {
     private hasName(
@@ -100,10 +100,10 @@ export default class EmoteCount extends KaikiCommand {
 
         // Format emoji strings
         const displayData = filteredEmotes.map((emoji) => {
-            const unavailable = !emoji.available;
+            const available = emoji.available ?? true;
             return isSmall
-                ? this.createSmolString(emoji, unavailable)
-                : this.createNormalString(emoji, unavailable);
+                ? this.createSmolString(emoji, available)
+                : this.createNormalString(emoji, available);
         });
 
         // Paginate results

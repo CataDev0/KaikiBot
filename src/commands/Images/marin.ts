@@ -9,6 +9,7 @@ import { EndPointSignatures } from "../../lib/APIs/waifu.im";
     description: "Returns an image of Marin Kitagawa",
     usage: [""],
     typing: true,
+    enabled: false, // Disabled until we can find a better source than waifu.pics
 })
 export default class Marin extends KaikiCommand {
     public async messageRun(message: Message): Promise<Message> {

@@ -55,7 +55,7 @@ export default async (
     const messageOptions: MessageCreateOptions = {
         embeds: [
             new EmbedBuilder(emb)
-                .setDescription(error.message)
+                .setDescription(error.message || null)
                 .withErrorColor(payload.message),
         ],
     };

@@ -1,11 +1,9 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args, UserError } from "@sapphire/framework";
 import {
-    Attachment,
     AttachmentBuilder,
     EmbedBuilder,
     Message,
-    User,
 } from "discord.js";
 
 import sharp from "sharp";

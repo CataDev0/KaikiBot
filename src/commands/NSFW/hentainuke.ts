@@ -16,6 +16,7 @@ const BATCH_SIZE = 10;
     typing: true,
     nsfw: true,
     cooldownDelay: 60000,
+    enabled: false, // Disabled until we can find a better source than waifu.pics for bulk fetching
 })
 export default class HentaiNukeCommand extends KaikiCommand {
     public async messageRun(message: Message, args: Args): Promise<void> {

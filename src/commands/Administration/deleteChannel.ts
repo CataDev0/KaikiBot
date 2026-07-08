@@ -1,8 +1,9 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args } from "@sapphire/framework";
-import { EmbedBuilder, Message } from "discord.js";
+import { ChannelType, EmbedBuilder, Message } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
+import Constants from "../../struct/Constants";
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "deletechannel",
@@ -22,10 +23,9 @@ export default class DeleteChannelCommand extends KaikiCommand {
 
         await Promise.all(
             channels
-                .reduce((acc, val) => [...acc, val], [])
                 .map(async (chan) => {
                     const c = await chan.delete();
-                    deletedChannels.push(`#${c.name} [${c.id}]`);
+                    deletedChannels.push(`#${c.name} [${c.id}] ${Constants.channelTypes[ChannelType[c.type] as keyof typeof ChannelType]}`);
                 })
         );
 
@@ -35,7 +35,7 @@ export default class DeleteChannelCommand extends KaikiCommand {
         return m.reply({
             embeds: [
                 new EmbedBuilder()
-                    .setTitle("Channel(s) deleted")
+                    .setTitle(`Channel${deletedChannels.length > 1 ? "s" : ""} deleted`)
                     .addFields([
                         {
                             name: "Deleted:",

@@ -27,4 +27,9 @@ declare module "@sapphire/framework" {
 	interface SapphireClient {
 		initializeServices(): Promise<void>;
 	}
+
+	interface CommandStore {
+		get<K extends string>(key: K): KaikiCommand | undefined;
+		get(key: string): KaikiCommand | undefined;
+	}
 }

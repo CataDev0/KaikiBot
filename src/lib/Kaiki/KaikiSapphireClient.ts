@@ -279,7 +279,7 @@ export default class KaikiSapphireClient<Ready extends true>
         const iterator = guilds.values();
         const interval = setInterval(async () => {
             // Get next guild from iterator
-            const guild = iterator.next().value as Guild | undefined
+            const guild = iterator.next().value;
             // Stop looping interval when there are no more guilds in iterator
             if (!guild) {
                 clearInterval(interval);

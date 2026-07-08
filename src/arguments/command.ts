@@ -16,7 +16,7 @@ export class CommandArgument extends Argument<KaikiCommand> {
         });
 
         const aliasResult = <KaikiCommand>(
-			container.stores.get("commands").aliases.get(parameter)
+			container.stores.get("commands").aliases.get(parameter.toLowerCase())
 		);
 
         const partialResult = cmds
@@ -28,9 +28,7 @@ export class CommandArgument extends Argument<KaikiCommand> {
                 const name = k.name.toLowerCase();
                 const param = parameter.toLowerCase();
 
-                return param.startsWith(
-                    name.slice(0, Math.max(param.length - 1, 1))
-                );
+                return name.startsWith(param);
             });
 
         if (!aliasResult && !fullNameResult && !partialResult) {
