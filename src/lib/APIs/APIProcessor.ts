@@ -42,7 +42,13 @@ export default class APIProcessor {
         site: RequestInfo,
         jsonProperty: string | string[]
     ): Promise<string> {
-        const response = await fetch(site);
+        const response = await fetch(site, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "User-Agent": "KaikiBot (Catadev, https://kaikibot.xyz)",
+            },
+        });
         KaikiUtil.checkResponse(response);
         return KaikiUtil.json(response, jsonProperty);
     }

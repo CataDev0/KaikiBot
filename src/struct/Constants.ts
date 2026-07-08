@@ -39,6 +39,7 @@ export default class Constants {
             "Put your feelings on display with kiss, or just hug, or something else?",
         Images: "Spawn cute anime waifus!",
         Moderation: "Moderate the chat with clear, kick and savechat",
+        Music: "Play music in your voice channels",
         NSFW: "🔞",
         "Owner only":
             "**Bot owner only.** Manage the bot and execute dangerous commands",
@@ -187,7 +188,8 @@ export default class Constants {
                     TRANS_PR_PAGE: 15,
                 },
                 GACHA: {
-                    ROLL_COST: 1000n,
+                    // TODO Update cost after user tests on economy
+                    ROLL_COST: 1n,
                     ODDITY_TAGS: ["waifu", "maid", "uniform", "selfies"],
                     ODDITY_ADJECTIVES: [
                         "Phantom", "Cursed", "Abyssal", "Crimson", "Nameless", "Lost", "Radiant", "Ethereal", "Fading",
