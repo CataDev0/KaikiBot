@@ -1,19 +1,19 @@
 # KaikiBot
 
-[![](https://tokei.rs/b1/github/cataclym/KaikiBot?category=code&style=for-the-badge&color=ea580c)](https://github.com/cataclym/KaikiBot)
-[![](https://tokei.rs/b1/github/cataclym/KaikiBot?category=files&style=for-the-badge&color=ea580c)](https://github.com/cataclym/KaikiBot)
-[![](https://tokei.rs/b1/github/cataclym/KaikiBot?showLanguage=true&languageRank=1&label=Most%20Used%20Language&style=for-the-badge&color=3178c6)](https://github.com/XAMPPRocky/tokei)
-[![](https://tokei.rs/b1/github/cataclym/KaikiBot?showLanguage=true&languageRank=2&label=2nd%20Most%20Used%20Language&style=for-the-badge&color=ea580c)](https://github.com/XAMPPRocky/tokei)
-[![](https://tokei.rs/b1/github/cataclym/KaikiBot?showLanguage=true&languageRank=3&label=3rd%20Most%20Used%20Language&style=for-the-badge&color=ea580c)](https://github.com/XAMPPRocky/tokei)
+![Version Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fcatadev0%2FKaikiBot%2Fraw%2Fmaster%2Fpackage.json&query=%24.version&label=Version)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C3IJV8A)
 
+*Be the first <3*
+
 ### Kaiki is a feature-rich Discord bot, written with ❤️ in **TypeScript**.
 
-| [Website](https://kaikibot.xyz) | [Invite Kaiki to your server](https://discord.com/oauth2/authorize?client_id=714695773534814238&scope=bot) |
+| [Website 🔗](https://kaikibot.xyz) | [Invite Kaiki to your server 🔗](https://discord.com/oauth2/authorize?client_id=714695773534814238&scope=bot) |
 |:----------------------------------|:-------------------------------------------------------------------------------------------------------------:|
 
+![Banner](https://kaikibot.xyz/kaikibot.png)
 ##  Features
+KaikiBot has too many features to list but here are some featued. Read full commandlist __**[here](https://kaikibot.xyz/commands)**__ !
 
 ### Economy
 - Gambling commands (slots, coinflip, and more)  
