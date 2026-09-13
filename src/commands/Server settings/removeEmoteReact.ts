@@ -3,7 +3,7 @@ import { Args } from "@sapphire/framework";
 import { EmbedBuilder, Message } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
-import { ERCacheType } from "../../lib/Cache/KaikiCache";
+import KaikiCache, { ERCacheType } from "../../lib/Cache/KaikiCache";
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "removereact",
@@ -41,16 +41,24 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
                 },
             });
 
+            const guildCache = this.client.cache.emoteReactCache.get(message.guildId);
+
             if (trigger.includes(" ")) {
-                this.client.cache.emoteReactCache
-                    .get(message.guildId)
-                    ?.get(ERCacheType.HAS_SPACE)
-                    ?.delete(trigger);
+                guildCache?.get(ERCacheType.HAS_SPACE)?.delete(trigger);
             } else {
-                this.client.cache.emoteReactCache
-                    .get(message.guildId)
-                    ?.get(ERCacheType.NO_SPACE)
-                    ?.delete(trigger);
+                guildCache?.get(ERCacheType.NO_SPACE)?.delete(trigger);
+            }
+
+            // Fall back to the shared empty structure once no triggers remain
+            if (
+                guildCache &&
+                !guildCache.get(ERCacheType.HAS_SPACE)?.size &&
+                !guildCache.get(ERCacheType.NO_SPACE)?.size
+            ) {
+                this.client.cache.emoteReactCache.set(
+                    message.guildId,
+                    KaikiCache.EMPTY_GUILD_CACHE
+                );
             }
 
             const embed = new EmbedBuilder()

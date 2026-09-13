@@ -18,22 +18,25 @@ export default class DiscordBotListService {
     public async registerVote(vote: VoteBody): Promise<void> {
         const amount = this.client.botSettings.get("1", "DailyAmount", 250);
         await Promise.all([
-            this.client.users.cache
-                .get(vote.id)
-                ?.send({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle("Thank you for your support! 🎉")
-                            .setDescription(
-                                `You received ${amount} ${this.client.money.currencyName} ${this.client.money.currencySymbol}`
-                            )
-                            .setFooter({
-                                text: "For voting at DiscordBotList 🧡",
-                            })
-                            .setColor(Constants.kaikiOrange),
-                    ],
-                })
-                // Ignore failed DMs
+            // Fetch on demand - the user cache is LRU-capped
+            this.client.users
+                .fetch(vote.id)
+                .then((user) =>
+                    user.send({
+                        embeds: [
+                            new EmbedBuilder()
+                                .setTitle("Thank you for your support! 🎉")
+                                .setDescription(
+                                    `You received ${amount} ${this.client.money.currencyName} ${this.client.money.currencySymbol}`
+                                )
+                                .setFooter({
+                                    text: "For voting at DiscordBotList 🧡",
+                                })
+                                .setColor(Constants.kaikiOrange),
+                        ],
+                    })
+                )
+                // Ignore failed DMs and unknown users
                 .catch(() => undefined),
             this.client.money.add(
                 vote.id,

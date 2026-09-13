@@ -69,19 +69,19 @@ export default class EmoteReactCommand extends KaikiCommand {
             });
         }
 
-        if (!this.client.cache.emoteReactCache.get(message.guildId))
+        // Re-populate when the guild has no cache entry or only the shared empty sentinel
+        // The insert above is included by the populate query.
+        const cached = this.client.cache.emoteReactCache.get(message.guildId);
+        if (!cached || cached === KaikiCache.EMPTY_GUILD_CACHE) {
             await KaikiCache.populateERCache(message);
+        }
+
+        const guildCache = KaikiCache.ensureGuildCache(message);
 
         if (trigger.includes(" ")) {
-            this.client.cache.emoteReactCache
-                .get(message.guildId)
-                ?.get(ERCacheType.HAS_SPACE)
-                ?.set(trigger, { id: emojiIdOrName });
+            guildCache.get(ERCacheType.HAS_SPACE)?.set(trigger, { id: emojiIdOrName });
         } else {
-            this.client.cache.emoteReactCache
-                .get(message.guildId)
-                ?.get(ERCacheType.NO_SPACE)
-                ?.set(trigger, { id: emojiIdOrName });
+            guildCache.get(ERCacheType.NO_SPACE)?.set(trigger, { id: emojiIdOrName });
         }
 
         return message.reply({

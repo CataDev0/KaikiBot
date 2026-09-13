@@ -211,6 +211,7 @@ export class Webserver {
             text: channels.length,
             voice: guild.channels.cache.filter(chan => chan.isVoiceBased()).size,
             members: guild.approximateMemberCount || guild.memberCount,
+            // Members are swept when idle, so this under-reports by design
             bots: guild.members.cache.filter(memb => memb.user.bot).size,
         };
 

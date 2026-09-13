@@ -14,6 +14,7 @@ import { VoiceBasedChannel } from "discord.js";
 import { spawn } from "child_process";
 import { Readable } from "stream";
 import { container } from "@sapphire/framework";
+import Constants from "../struct/Constants";
 
 // @ts-ignore
 type VoiceLib = typeof import("@discordjs/voice");
@@ -106,6 +107,10 @@ export class MusicService {
         if (!this.voiceLib) throw new Error("Voice support unavailable");
 
         if (this.isPlaying || this.player?.state.status === this.voiceLib.AudioPlayerStatus?.Playing) {
+            if (this.queue.length >= Constants.MAGIC_NUMBERS.LIB.MUSIC.MAX_QUEUE_LENGTH) {
+                return "Queue is full. Skip or wait for the queue to finish before adding more tracks.";
+            }
+
             const track: Track = { url, title: "Loading...", requestedBy };
             this.queue.push(track);
             const fetchPromise = this.fetchTitleForTrack(track).catch((err) => container.logger.warn(`Failed to fetch queued track title: ${err?.message ?? err}`));

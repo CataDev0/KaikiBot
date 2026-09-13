@@ -200,18 +200,33 @@ export default class KaikiSapphireClient<Ready extends true>
                 DailyReminder: {
                     not: null
                 }
+            },
+            select: {
+                UserId: true
             }
         })
 
-        await Promise.all(users.map(async (user) => this.users.cache.get(String(user.UserId))
-            ?.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setTitle("Reminder")
-                        .setDescription("Your currency claim is ready!")
-                        .withOkColor()
-                ]
-            })));
+        // Fetch users on demand, the user cache is LRU-capped and may not
+        // contain every reminder user. Limit concurrency to keep API bursts low.
+        await KaikiUtil.mapWithConcurrency(users, 10, async (user) => {
+            const discordUser = await this.users
+                .fetch(String(user.UserId))
+                .catch(() => null);
+
+            if (!discordUser) return;
+
+            await discordUser
+                .send({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle("Reminder")
+                            .setDescription("Your currency claim is ready!")
+                            .withOkColor()
+                    ]
+                })
+                // Ignore failed DMs
+                .catch(() => null);
+        });
 
         await this.orm.discordUsers.updateMany({
             where: {
@@ -232,7 +247,6 @@ export default class KaikiSapphireClient<Ready extends true>
         await Promise.all([
             this.dailyResetTimer(),
             this.resetTimer(),
-            this.fetchMembersLoop(),
             this.presenceLoop()
         ]);
         this.logger.info("Timers and loops started");
@@ -272,22 +286,6 @@ export default class KaikiSapphireClient<Ready extends true>
                 ],
             });
         }
-    }
-
-    private async fetchMembersLoop() {
-        const guilds = this.guilds.cache;
-        const iterator = guilds.values();
-        const interval = setInterval(async () => {
-            // Get next guild from iterator
-            const guild = iterator.next().value;
-            // Stop looping interval when there are no more guilds in iterator
-            if (!guild) {
-                clearInterval(interval);
-                return;
-            }
-            // Fetch guild members
-            await guild.members.fetch();
-        }, Constants.MAGIC_NUMBERS.LIB.KAIKI.GUILD_MEMBER_FETCH_INTERVAL_MS);
     }
 
     public async resetDailyClaims(): Promise<void> {

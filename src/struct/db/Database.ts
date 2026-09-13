@@ -46,6 +46,9 @@ export default class Database {
             this._client.guildsDb.items.set(String(newGuild.Id), newGuild);
             return newGuild;
         }
+
+        // Re-sync the in-memory row in case it was evicted on guildDelete
+        this._client.guildsDb.items.set(String(guild.Id), guild);
         return guild;
     }
 
@@ -136,7 +139,7 @@ export default class Database {
             )
             .catch((e) => this.dbRejected(e));
 
-        this._client.cache = new KaikiCache(this.orm, this._client.imageAPIs);
+        this._client.cache = new KaikiCache(this.orm);
         this._client.money = await new MoneyService(this.orm).init();
     }
 

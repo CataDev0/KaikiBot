@@ -7,6 +7,35 @@ export default class KaikiUtil {
         return value ? "Enabled" : "Disabled";
     }
 
+    /**
+     * Runs `fn` over `items` with at most `limit` calls in flight,
+     * preserving result order. Errors propagate like Promise.all.
+     */
+    static async mapWithConcurrency<T, R>(
+        items: readonly T[],
+        limit: number,
+        fn: (item: T) => Promise<R>
+    ): Promise<R[]> {
+        const results: R[] = new Array(items.length);
+        let nextIndex = 0;
+
+        const worker = async () => {
+            for (
+                let index = nextIndex++;
+                index < items.length;
+                index = nextIndex++
+            ) {
+                results[index] = await fn(items[index]);
+            }
+        };
+
+        await Promise.all(
+            Array.from({ length: Math.min(limit, items.length) }, () => worker())
+        );
+
+        return results;
+    }
+
     static timeToMidnight(): number {
         const d = new Date();
         return (
