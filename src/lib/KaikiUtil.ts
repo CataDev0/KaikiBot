@@ -229,7 +229,7 @@ export default class KaikiUtil {
 
             return json as T;
         } catch (e: unknown) {
-            throw new Error(e);
+            throw e;
         }
     }
 

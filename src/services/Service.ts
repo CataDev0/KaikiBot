@@ -4,7 +4,7 @@ import { container } from "@sapphire/framework";
 
 export class Service {
     protected constructor(_container = container) {
-        container.logger.info(`${this.constructor.name} | Service initiated`)
+        container.logger?.info(`${this.constructor.name} | Service initiated`)
     }
 }
 
