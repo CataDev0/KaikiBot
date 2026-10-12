@@ -1,18 +1,19 @@
-import pkg from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { Message } from "discord.js";
-import Constants from "../../struct/Constants";
+import Constants from "../struct/Constants";
 import {
     EmoteTrigger,
     GuildString,
     TriggerObject,
-} from "../Interfaces/Kaiki/KaikiCache";
+} from "../lib/Interfaces/Kaiki/KaikiCache";
+import { ORMService } from "./Service";
 
 export enum ERCacheType {
 	HAS_SPACE,
 	NO_SPACE,
 }
 
-export default class KaikiCache {
+export default class KaikiCache extends ORMService {
     public cmdStatsCache = new Map<string, number>();
     public emoteReactCache = new Map<GuildString, Map<ERCacheType, Map<EmoteTrigger, TriggerObject>>>();
     public dailyProvider: DailyProvider;
@@ -23,16 +24,15 @@ export default class KaikiCache {
      */
     public static readonly EMPTY_GUILD_CACHE = KaikiCache.createEmptyGuildCache();
 
-    constructor(
-        orm: pkg.PrismaClient
-    ) {
+    constructor(orm: PrismaClient) {
+        super(orm)
         this.dailyProvider = new DailyProvider(orm);
 
         void this.init(orm);
     }
 
     // Creates a loop of 15 minutes to synchronize the command stats cache to the DB.
-    public async init(orm: pkg.PrismaClient) {
+    public async init(orm: PrismaClient) {
         return setInterval(async () => {
             void this.syncCommandStats(orm);
         }, Constants.MAGIC_NUMBERS.CACHE.FIFTEEN_MINUTES_MS);
@@ -48,7 +48,7 @@ export default class KaikiCache {
         }
     }
 
-    private async syncCommandStats(orm: pkg.PrismaClient) {
+    private async syncCommandStats(orm: PrismaClient) {
         if (!this.cmdStatsCache.size) return;
 
         const requests = Array(...this.cmdStatsCache.entries()).map(
@@ -209,9 +209,9 @@ export default class KaikiCache {
 }
 
 class DailyProvider {
-    private orm: pkg.PrismaClient;
+    private orm: PrismaClient;
 
-    constructor(orm: pkg.PrismaClient) {
+    constructor(orm: PrismaClient) {
         this.orm = orm;
     }
 

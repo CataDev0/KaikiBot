@@ -16,6 +16,7 @@
         "skipLibCheck": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "typeRoots": ["node_modules/@types", "src/extensions"]
+        "typeRoots": ["node_modules/@types", "src/extensions"],
+        "isolatedModules": true
     }
 }

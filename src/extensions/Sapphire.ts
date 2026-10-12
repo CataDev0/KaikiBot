@@ -25,7 +25,7 @@ declare module "@sapphire/framework" {
 	}
 
 	interface SapphireClient {
-		initializeServices(): Promise<void>;
+		startLoops(): Promise<void>;
 	}
 
 	interface CommandStore {

@@ -1,7 +1,7 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Events, Listener, ListenerOptions } from "@sapphire/framework";
 import { Message } from "discord.js";
-import KaikiCache from "../lib/Cache/KaikiCache";
+import KaikiCache from "../services/KaikiCache";
 import { DadBot } from "../lib/DadBot";
 import Emotes from "../lib/Emotes/Emotes";
 

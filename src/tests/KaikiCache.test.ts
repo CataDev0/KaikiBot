@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { Message } from "discord.js";
-import KaikiCache, { ERCacheType } from "../lib/Cache/KaikiCache";
+import KaikiCache, { ERCacheType } from "../services/KaikiCache";
 
 function mockMessage(rows: { TriggerString: string; EmojiId: string }[]) {
     return {

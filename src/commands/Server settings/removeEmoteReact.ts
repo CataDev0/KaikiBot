@@ -3,7 +3,7 @@ import { Args } from "@sapphire/framework";
 import { EmbedBuilder, Message } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
-import KaikiCache, { ERCacheType } from "../../lib/Cache/KaikiCache";
+import KaikiCache, { ERCacheType } from "../../services/KaikiCache";
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "removereact",

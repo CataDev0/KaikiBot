@@ -46,7 +46,7 @@
 		"express": "^5.2.1",
 		"mysql2": "^3.11.5",
 		"prisma": "^5.22.0",
-		"sharp": "^0.34.2",
+		"sharp": "^0.35.4",
 		"source-map-support": "^0.5.21",
 		"utf-8-validate": "^6.0.5"
 	},
@@ -95,6 +95,7 @@
 		"prisma@5.22.0": true,
 		"sharp@0.34.5": true,
 		"unrs-resolver@1.12.2": true,
-		"utf-8-validate@6.0.6": true
+		"utf-8-validate@6.0.6": true,
+		"@parcel/watcher@2.6.0": true
 	}
 }

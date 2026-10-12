@@ -15,6 +15,7 @@ import { spawn } from "child_process";
 import { Readable } from "stream";
 import { container } from "@sapphire/framework";
 import Constants from "../struct/Constants";
+import { Service } from "./Service";
 
 // @ts-ignore
 type VoiceLib = typeof import("@discordjs/voice");
@@ -26,7 +27,7 @@ interface Track {
     getDisplayTitle?: () => string;
 }
 
-export class MusicService {
+export class MusicService extends Service {
     private connection: VoiceConnection | null = null;
     // @ts-ignore
     private connection: import("@discordjs/voice").VoiceConnection | null = null;
@@ -37,6 +38,11 @@ export class MusicService {
     private isPlaying: boolean = false;
     private voiceLib: VoiceLib | null = null;
     public onTrackTitleUpdate?: (track: Track) => void;
+
+    // Log service
+    constructor() {
+        super()
+    }
 
     public async init(): Promise<void> {
         const voice = await this.loadVoice();

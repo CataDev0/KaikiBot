@@ -1,5 +1,5 @@
 import { Snowflake } from "discord.js";
-import { ERCacheType } from "../../Cache/KaikiCache";
+import { ERCacheType } from "../../../services/KaikiCache";
 
 export type EmoteTrigger = string;
 export type GuildString = Snowflake;

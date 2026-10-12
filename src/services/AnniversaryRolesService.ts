@@ -3,17 +3,20 @@ import { Guild, GuildMember, PermissionsBitField, Role } from "discord.js";
 import Constants from "../struct/Constants";
 import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
 import KaikiUtil from "../lib/KaikiUtil";
+import { QualifiedService } from "./Service";
 
-export default class AnniversaryRolesService {
-    readonly client: KaikiSapphireClient<true>;
-    readonly orm: PrismaClient;
+/** 
+ * This service is responsible for managing anniversary roles in servers.
+ * It checks for users' account creation dates and server join dates -
+ * and assigns/removes roles accordingly.
+ * */
+export default class AnniversaryRolesService extends QualifiedService {
     private static readonly MEMBER_CHECK_CONCURRENCY = 25;
     private creationdayUsers = new Set<string>();
     private anniversaryUsers = new Set<string>();
 
-    constructor(client: KaikiSapphireClient<true>) {
-        this.client = client;
-        this.orm = client.orm;
+    constructor(client: KaikiSapphireClient<true>, orm: PrismaClient) {
+        super(client, orm);
 
         void this.birthdayService();
     }

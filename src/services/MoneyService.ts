@@ -1,14 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-import { container } from "@sapphire/framework";
+import { QualifiedService } from "./Service";
 
-export class MoneyService {
+export class MoneyService extends QualifiedService {
     public currencyName!: string;
     public currencySymbol!: string;
-    private orm: PrismaClient;
-
-    constructor(connection: PrismaClient) {
-        this.orm = connection;
-    }
 
     public async init() {
         const botSettings = await this.orm.botSettings.findFirst();
@@ -33,7 +27,7 @@ export class MoneyService {
     }
 
     public async add(id: string, amount: bigint, reason: string): Promise<bigint> {
-        if (amount <= 0) {
+        if (amount <= 0) { 
             throw new Error("Amount must be greater than 0");
         }
 
@@ -98,6 +92,8 @@ export class MoneyService {
                 Amount: amount,
                 Reason: reason,
             },
-        }).catch(e => container.client.logger.error(`Currency transaction failed: ${e}`));
+        }).catch((e: unknown) =>
+            `Currency transaction failed: ${e instanceof Error ? (e.stack ?? e.message) : String(e)}`
+        );
     }
 }

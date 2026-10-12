@@ -1,7 +1,7 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args, UserError } from "@sapphire/framework";
 import { EmbedBuilder, Message } from "discord.js";
-import KaikiCache, { ERCacheType } from "../../lib/Cache/KaikiCache";
+import KaikiCache, { ERCacheType } from "../../services/KaikiCache";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 

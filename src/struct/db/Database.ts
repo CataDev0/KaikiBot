@@ -1,23 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { ActivityType } from "discord.js";
-import KaikiSapphireClient from "../../lib/Kaiki/KaikiSapphireClient";
 import process from "process";
-import DatabaseProvider from "./DatabaseProvider";
-import { green } from "colorette";
-import KaikiCache from "../../lib/Cache/KaikiCache";
-import { MoneyService } from "../../services/MoneyService";
+import { QualifiedService } from "../../services/Service";
 
-export default class Database {
-    private _client: KaikiSapphireClient<true>;
-    public orm: PrismaClient;
-
-    public constructor(client: KaikiSapphireClient<true>) {
-        this._client = client;
-    }
+export default class Database extends QualifiedService {
 
     public async init(): Promise<Database> {
-        this.orm = new PrismaClient();
-
         const botSettings = await this.orm.botSettings.findFirst();
 
         if (!botSettings) {
@@ -25,7 +11,6 @@ export default class Database {
                 data: { Id: 1 },
             });
         }
-
         return this;
     }
 
@@ -43,12 +28,12 @@ export default class Database {
                     Id: BigInt(id),
                 },
             });
-            this._client.guildsDb.items.set(String(newGuild.Id), newGuild);
+            this.client.guildsDb.items.set(String(newGuild.Id), newGuild);
             return newGuild;
         }
 
         // Re-sync the in-memory row in case it was evicted on guildDelete
-        this._client.guildsDb.items.set(String(guild.Id), guild);
+        this.client.guildsDb.items.set(String(guild.Id), guild);
         return guild;
     }
 
@@ -89,80 +74,29 @@ export default class Database {
 
     public async initializeDatabase() {
         try {
-            const database = await this.init();
-
-            this._client.orm = database.orm;
-            
+            await this.init();
         }
 
         catch (e) {
-            this._client.logger.fatal("Database initialization failed - Make sure the database is running and reachable", e);
+            this.client.logger.fatal("Database initialization failed - Make sure the database is running and reachable", e);
             process.exit(1);
         }
 
-        this._client.botSettings = new DatabaseProvider(
-            this._client.orm,
-            "BotSettings",
-            { idColumn: "Id" },
-            false
-        );
-        this._client.botSettings
+        this.client.botSettings
             .init()
-            .then(() =>
-                this._client.logger.info(
-                    `${green("READY")} - Bot settings provider`
-                )
-            )
             .catch((e) => this.dbRejected(e));
 
-        this._client.guildsDb = new DatabaseProvider(this._client.orm, "Guilds", {
-            idColumn: "Id",
-        });
-        this._client.guildsDb
+        this.client.guildsDb
             .init()
-            .then(() =>
-                this._client.logger.info(`${green("READY")} - Guild provider`)
-            )
             .catch((e) => this.dbRejected(e));
 
-        this._client.dadBotChannels = new DatabaseProvider(
-            this._client.orm,
-            "DadBotChannels",
-            { idColumn: "ChannelId" }
-        );
-        this._client.dadBotChannels
+        this.client.dadBotChannels
             .init()
-            .then(() =>
-                this._client.logger.info(
-                    `${green("READY")} - DadBot channel provider`
-                )
-            )
             .catch((e) => this.dbRejected(e));
-
-        this._client.cache = new KaikiCache(this.orm);
-        this._client.money = await new MoneyService(this.orm).init();
     }
 
     private dbRejected(e: unknown) {
-        this._client.logger.fatal("Failed to connect to database using Prisma.", e);
+        this.client.logger.fatal("Failed to connect to database using Prisma.", e);
         process.exit(1);
-    }
-}
-
-export class BotConfig {
-    private activity: string;
-    private activityType: ActivityType;
-    private currencyName: string;
-    private currencySymbol: string;
-    private dailyEnabled: boolean;
-    private dailyAmount: number;
-
-    constructor(data: any) {
-        this.activity = data.Activity;
-        this.activityType = data.ActivityType;
-        this.currencyName = data.CurrencyName;
-        this.currencySymbol = data.CurrencySymbol;
-        this.dailyEnabled = Boolean(data.DailyEnabled);
-        this.dailyAmount = parseInt(data.DailyAmount);
     }
 }

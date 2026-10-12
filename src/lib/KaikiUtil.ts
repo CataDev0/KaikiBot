@@ -1,6 +1,8 @@
-import { ActivityType, GuildMember, HexColorString } from "discord.js";
+import { ActivityType, EmbedBuilder, GuildMember, HexColorString } from "discord.js";
 import Constants from "../struct/Constants";
 import { KaikiColor } from "./Types/KaikiColor";
+import KaikiSapphireClient from "./Kaiki/KaikiSapphireClient";
+import { BotStats } from "./Types/DiscordBotList";
 
 export default class KaikiUtil {
     static toggledTernary(value: boolean) {
@@ -226,8 +228,35 @@ export default class KaikiUtil {
             }
 
             return json as T;
-        } catch (e) {
+        } catch (e: unknown) {
             throw new Error(e);
         }
+    }
+
+    public static async sendOnlineMsg(client: KaikiSapphireClient<true>) {
+        // Let bot owner know when bot goes online.
+        if (client.user && client.owner.id === process.env.OWNER) {
+            const emojis = ["✨", "♥️", "✅", "🇹🇼"];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)]
+
+            await client.owner.send({
+                embeds: [
+                    new EmbedBuilder()
+                        .setTitle(emoji)
+                        .setDescription("Bot is online!")
+                        .setFooter({
+                            text: `${client.package.name} - v${client.package.version}`,
+                        })
+                        .withOkColor(),
+                ],
+            });
+        }
+    }
+
+    public static getBotStats(client: KaikiSapphireClient<true>): BotStats {
+        return {
+            guilds: client.guilds.cache.size,
+            users: client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0),
+        };
     }
 }
