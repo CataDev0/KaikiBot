@@ -27,7 +27,7 @@ import type PackageJSON from "../Interfaces/Common/PackageJSON";
 import KaikiUtil from "../KaikiUtil";
 import { MoneyService } from "../../services/MoneyService";
 import IKaikiClient from "./IKaikiClient";
-import { container } from "@sapphire/pieces";
+import { container, Container } from "@sapphire/pieces";
 import NeofetchCommand from "../../commands/Fun/neofetch";
 import DiscordBotListService from "../../services/DiscordBotListService";
 import { Webserver } from "../../services/Webserver";
@@ -90,7 +90,7 @@ export default class KaikiSapphireClient<Ready extends true>
         // Database
         this.orm = new PrismaClient();
         this.db = new Database(this, this.orm);
-        this.db.initializeDatabase();
+        const initPromise = this.db.initializeDatabase();
 
         this.botSettings = new DatabaseProvider(
             this.orm,
@@ -112,18 +112,14 @@ export default class KaikiSapphireClient<Ready extends true>
 
         if (process.env.DBL_API_TOKEN && process.env.NODE_ENV === "production") {
             this.dblService = new DiscordBotListService(this, process.env.DBL_API_TOKEN);
-            this.dblService.startPosting();
         }
 
         this.anniversaryService = new AnniversaryRolesService(this, this.orm);
         this.hentaiService = new HentaiService();
         this.cache = new KaikiCache(this.orm);
         this.money = new MoneyService(this, this.orm);
-
-        void Promise.all([
-            this.money.init(),
-            KaikiUtil.sendOnlineMsg(this),
-        ]);
+        // Load Currency from BotConfig
+        initPromise.then(() => this.money.init());
 
         // Initialize MusicService only if dependencies are available
         if (this.checkMusicDependencies()) {
@@ -150,8 +146,12 @@ export default class KaikiSapphireClient<Ready extends true>
                 this.logger.info(
                     `Bot owner: ${colorette.greenBright(this.owner.username)}`
                 );
+
+                KaikiUtil.sendOnlineMsg(this);
             });
-            this.webListener = new Webserver(this);
+            this.webListener = new Webserver();
+            this.dblService?.startPosting();
+            this.anniversaryService.birthdayService();
         });
 
         this.once("applicationCommandRegistriesRegistered", async () => {

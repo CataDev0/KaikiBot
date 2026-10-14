@@ -71,8 +71,9 @@ export class MoneyService extends QualifiedService {
             this.recordTransaction(bIntId, -amount, reason);
             return true;
         } else if (!currentAmount) {
-            // User row doesn't exist yet — create it, but don't record a
-            // debit transaction since the take did not succeed.
+            // User row doesn't exist yet.
+            // Create it, but don't record a currency
+            // transaction, since the take did not succeed.
             await this.orm.discordUsers.create({
                 data: { UserId: bIntId },
             });
@@ -93,7 +94,9 @@ export class MoneyService extends QualifiedService {
                 Reason: reason,
             },
         }).catch((e: unknown) =>
-            `Currency transaction failed: ${e instanceof Error ? (e.stack ?? e.message) : String(e)}`
+            this.client.logger.error(
+                `Currency transaction failed: ${e instanceof Error ? (e.stack ?? e.message) : String(e)}`
+            )
         );
     }
 }

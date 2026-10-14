@@ -7,13 +7,13 @@ import { GETGuildBody, PUTDashboardBody, POSTUserGuildsBody, POSTUserTodoAddBody
 import { JSONToMessageOptions } from "../lib/GreetHandler";
 import { VoteBody } from "../lib/Types/DiscordBotList";
 import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
-import { QualifiedService } from "./Service";
+import { Service } from "./Service";
 
 // A class managing the Bot's webserver.
 // It is intended to interact with a kaikibot dashboard
 
 // Requires to send a POST req, with a specified token in the header under authorization
-export class Webserver extends QualifiedService {
+export class Webserver extends Service {
     private dashboard: Express;
     // DiscordBotList
     private dbl: Express;
@@ -24,8 +24,8 @@ export class Webserver extends QualifiedService {
     // Creates express webservers
     // Serves user-data on the specified URL paths
     // Listens for DBL webhook
-    public constructor(client: KaikiSapphireClient<true>) {
-        super(client, client.orm);
+    public constructor() {
+        super();
         this.SELF_API_PORT = process.env.SELF_API_PORT ? Number(process.env.SELF_API_PORT) : 3636;
         this.DBL_API_PORT = process.env.DBL_API_PORT ? Number(process.env.DBL_API_PORT) : 3635;
         this.DBL_API_WEBHOOK_SECRET = process.env.DBL_API_WEBHOOK_SECRET;
@@ -72,7 +72,10 @@ export class Webserver extends QualifiedService {
         if (req.headers.authorization !== process.env.DBL_API_WEBHOOK_SECRET) return res.sendStatus(401);
 
         if (!Webserver.checkVoteBody(req.body)) return res.sendStatus(400);
-        await this.client.dblService?.registerVote(req.body)
+        const dblService = (container.client as KaikiSapphireClient<true>).dblService;
+        // 503: Service Unavailable
+        if (!dblService) return res.sendStatus(503);
+        await dblService.registerVote(req.body)
         return res.sendStatus(200);
     }
 
@@ -339,7 +342,7 @@ export class Webserver extends QualifiedService {
 
         const todoIdsBigIntArray = (req.query.ids! as string).split(",").map(id => BigInt(id))
 
-        const { count } = await this.orm.todos.deleteMany({
+        const { count } = await container.client.orm.todos.deleteMany({
             where: {
                 Id: {
                     // Sent as string
@@ -363,7 +366,7 @@ export class Webserver extends QualifiedService {
         const { body }: { body: POSTUserTodoAddBody } = req;
         const todoString = String(body.String);
 
-        const todo = await this.orm.todos.create({
+        const todo = await container.client.orm.todos.create({
             data: {
                 String: todoString,
                 DiscordUsers: {
@@ -380,7 +383,7 @@ export class Webserver extends QualifiedService {
     private async GETTodos(req: express.Request<{ id: string}>, res: express.Response) {
         const userId = req.params.id;
 
-        const todos = await this.orm.todos.findMany({
+        const todos = await container.client.orm.todos.findMany({
             where: {
                 UserId: BigInt(userId)
             }

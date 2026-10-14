@@ -82,17 +82,19 @@ export default class Database extends QualifiedService {
             process.exit(1);
         }
 
-        this.client.botSettings
-            .init()
-            .catch((e) => this.dbRejected(e));
+        await Promise.all([
+            this.client.botSettings
+                .init()
+                .catch((e) => this.dbRejected(e)),
+            this.client.guildsDb
+                .init()
+                .catch((e) => this.dbRejected(e)),
+            this.client.dadBotChannels
+                .init()
+                .catch((e) => this.dbRejected(e)),
+        ]);
 
-        this.client.guildsDb
-            .init()
-            .catch((e) => this.dbRejected(e));
-
-        this.client.dadBotChannels
-            .init()
-            .catch((e) => this.dbRejected(e));
+        return;
     }
 
     private dbRejected(e: unknown) {

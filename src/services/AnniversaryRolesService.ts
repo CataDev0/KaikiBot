@@ -17,8 +17,6 @@ export default class AnniversaryRolesService extends QualifiedService {
 
     constructor(client: KaikiSapphireClient<true>, orm: PrismaClient) {
         super(client, orm);
-
-        void this.birthdayService();
     }
 
     async birthdayService(): Promise<void> {
