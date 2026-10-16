@@ -105,7 +105,7 @@ export default class KaikiCache extends ORMService {
             if (key.includes(" ")) {
                 // Escape regex special characters to avoid accidental patterns
                 const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-                const regex = new RegExp(`\\b${escaped}\\b`, "gi");
+                const regex = new RegExp(`\\b${escaped}\\b`, "i");
                 guildCache.get(ERCacheType.HAS_SPACE)?.set(key, { id: value, regex });
             } else {
                 guildCache.get(ERCacheType.NO_SPACE)?.set(key, { id: value });

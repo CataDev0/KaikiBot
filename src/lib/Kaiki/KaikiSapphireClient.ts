@@ -146,7 +146,7 @@ export default class KaikiSapphireClient<Ready extends true>
                 this.logger.info(
                     `Bot owner: ${colorette.greenBright(this.owner.username)}`
                 );
-
+                // Send after clinet login and owner has been fetched
                 KaikiUtil.sendOnlineMsg(this);
             });
             this.webListener = new Webserver();

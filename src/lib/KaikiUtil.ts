@@ -256,7 +256,9 @@ export default class KaikiUtil {
                         })
                         .withOkColor(),
                 ],
-            });
+            }).catch(() => {
+                client.logger.warn("Online message notification to bot owner did not send");
+            })
         }
     }
 
