@@ -81,13 +81,13 @@ export default class KaikiCache extends ORMService {
             select: { TriggerString: true, EmojiId: true },
         });
       
-        const { emojiReactCache: emoteReactCache } = client.cache;
+        const { emojiReactCache } = client.cache;
 
         // Store the shared empty structure for guilds without triggers
         // instead of one empty map per guild (has() must stay true to
         // avoid a DB query on every message).
         if (!emoteReacts.length) {
-            emoteReactCache.set(guildId, KaikiCache.EMPTY_GUILD_CACHE);
+            emojiReactCache.set(guildId, KaikiCache.EMPTY_GUILD_CACHE);
             return;
         }
 
@@ -113,7 +113,7 @@ export default class KaikiCache extends ORMService {
         }
 
         // Store the prepared cache for this guild
-        emoteReactCache.set(guildId, guildCache);
+        emojiReactCache.set(guildId, guildCache);
     }
 
     private static createEmptyGuildCache(): Map<ERCacheType, Map<EmoteTrigger, TriggerObject>> {

@@ -12,7 +12,7 @@ function mockMessage(rows: { TriggerString: string; EmojiId: string }[]) {
                 },
             },
             cache: {
-                emoteReactCache: new Map(),
+                emojiReactCache: new Map(),
             },
         },
     } as unknown as Message<true>;

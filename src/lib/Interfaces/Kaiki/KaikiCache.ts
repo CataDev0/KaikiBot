@@ -4,7 +4,7 @@ import { ERCacheType } from "../../../services/KaikiCache";
 export type EmoteTrigger = string;
 export type GuildString = Snowflake;
 export type TriggerObject = { id: string; regex?: RegExp };
-export type EmoteReactCache = Map<
+export type EmojiReactCache = Map<
 	GuildString,
 	Map<ERCacheType, Map<EmoteTrigger, TriggerObject>>
 >;
