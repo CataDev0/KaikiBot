@@ -15,7 +15,7 @@ export default class NonPrefixedMessage extends Listener {
          
         let promise;
 
-        if (!message.client.cache.emoteReactCache.has(message.guildId)) {
+        if (!message.client.cache.emojiReactCache.has(message.guildId)) {
             promise = KaikiCache.populateERCache(message);
         }
 

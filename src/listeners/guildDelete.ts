@@ -18,7 +18,7 @@ export default class GuildDelete extends Listener {
         // DB rows are kept so settings survive a re-join;
         // getOrCreateGuild re-syncs guildsDb and guildCreate reloads dadBotChannels.
         client.guildsDb.items.delete(guild.id);
-        client.cache.emoteReactCache.delete(guild.id);
+        client.cache.emojiReactCache.delete(guild.id);
 
         for (const [channelId, data] of client.dadBotChannels.items) {
             if (String((data as { GuildId?: unknown }).GuildId) === guild.id) {

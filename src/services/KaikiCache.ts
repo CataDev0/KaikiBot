@@ -15,7 +15,7 @@ export enum ERCacheType {
 
 export default class KaikiCache extends ORMService {
     public cmdStatsCache = new Map<string, number>();
-    public emoteReactCache = new Map<GuildString, Map<ERCacheType, Map<EmoteTrigger, TriggerObject>>>();
+    public emojiReactCache = new Map<GuildString, Map<ERCacheType, Map<EmoteTrigger, TriggerObject>>>();
     public dailyProvider: DailyProvider;
 
     /**
@@ -81,7 +81,7 @@ export default class KaikiCache extends ORMService {
             select: { TriggerString: true, EmojiId: true },
         });
       
-        const { emoteReactCache } = client.cache;
+        const { emojiReactCache: emoteReactCache } = client.cache;
 
         // Store the shared empty structure for guilds without triggers
         // instead of one empty map per guild (has() must stay true to
@@ -126,12 +126,12 @@ export default class KaikiCache extends ORMService {
     // Returns a mutable per-guild cache, replacing the shared empty sentinel if needed.
     public static ensureGuildCache(message: Message<true>): Map<ERCacheType, Map<EmoteTrigger, TriggerObject>> {
         const { client, guildId } = message;
-        const existing = client.cache.emoteReactCache.get(guildId);
+        const existing = client.cache.emojiReactCache.get(guildId);
 
         if (existing && existing !== KaikiCache.EMPTY_GUILD_CACHE) return existing;
 
         const fresh = KaikiCache.createEmptyGuildCache();
-        client.cache.emoteReactCache.set(guildId, fresh);
+        client.cache.emojiReactCache.set(guildId, fresh);
         return fresh;
     }
 
@@ -141,10 +141,10 @@ export default class KaikiCache extends ORMService {
         const messageContent = message.content.toLowerCase();
 
         // Retrieve or lazily initialize cache for this guild
-        let guildCache = client.cache.emoteReactCache.get(guildId);
+        let guildCache = client.cache.emojiReactCache.get(guildId);
         if (!guildCache) {
             await KaikiCache.populateERCache(message);
-            guildCache = client.cache.emoteReactCache.get(guildId);
+            guildCache = client.cache.emojiReactCache.get(guildId);
         }
 
         if (!guildCache) return;

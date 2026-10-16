@@ -71,7 +71,7 @@ export default class EmoteReactCommand extends KaikiCommand {
 
         // Re-populate when the guild has no cache entry or only the shared empty sentinel
         // The insert above is included by the populate query.
-        const cached = this.client.cache.emoteReactCache.get(message.guildId);
+        const cached = this.client.cache.emojiReactCache.get(message.guildId);
         if (!cached || cached === KaikiCache.EMPTY_GUILD_CACHE) {
             await KaikiCache.populateERCache(message);
         }
