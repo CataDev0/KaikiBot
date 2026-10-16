@@ -10,14 +10,21 @@ export default class KaikiUtil {
     }
 
     /**
-     * Runs `fn` over `items` with at most `limit` calls in flight,
+     * Runs `fn()` over `items` with at most `limit` calls in flight,
      * preserving result order. Errors propagate like Promise.all.
-     */
+     * `limit` can not be 0, Negative, NaN. 
+    */
     static async mapWithConcurrency<T, R>(
         items: readonly T[],
         limit: number,
         fn: (item: T) => Promise<R>
     ): Promise<R[]> {
+        if (items.length === 0) return [];
+
+        if (!Number.isInteger(limit) || limit < 1) {
+            throw new RangeError("Concurrency limit MUST be a positive int");
+        }
+
         const results: R[] = new Array(items.length);
         let nextIndex = 0;
 

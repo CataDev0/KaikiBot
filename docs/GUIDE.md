@@ -7,8 +7,7 @@
 
 ## Requirements
 
--   Linux (Can work on other OS, but not supported)
--   Node.js v18 (or newer) https://nodejs.org/en/
+-   Node.js >v20 https://nodejs.org/en/
 -   MySQL/MariaDB
 
 ## Instructions
