@@ -2,7 +2,7 @@
 import "@sapphire/plugin-logger/register";
 // Load extensions
 import "./extensions/Discord";
-import "./extensions/Sapphire";
+import "./extensions/@Sapphire/framework";
 import "./struct/ErrorHandler";
 import KaikiSapphireClient from "./lib/Kaiki/KaikiSapphireClient";
 import "source-map-support/register";
