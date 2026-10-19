@@ -3,7 +3,7 @@ import KawaiiAPI from "../KawaiiAPI";
 import NekosLife from "../nekos.life";
 import PurrBot from "../PurrBot";
 import WaifuIm from "../waifu.im";
-import WaifuPics from "../WaifuPics";
+import NekosBest from "../NekosBest";
 
 export type ImageAPIEndPointTypes<T extends string> = {
 	[index in T]: InteractionsImageData;
@@ -21,7 +21,7 @@ export type ClientImageAPIs = {
 	NekosLife: NekosLife;
 	PurrBot: PurrBot;
 	WaifuIm: WaifuIm;
-	WaifuPics: WaifuPics;
+	NekosBest: NekosBest;
 };
 
 export type APIs = keyof ClientImageAPIs;
