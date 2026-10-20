@@ -20,7 +20,7 @@ import type { ClientImageAPIs } from "../APIs/Common/Types";
 import KawaiiAPI, { EndPointSignatures } from "../APIs/KawaiiAPI";
 import NekosLife from "../APIs/nekos.life";
 import PurrBot from "../APIs/PurrBot";
-import WaifuIm from "../APIs/waifu.im";
+import CataWaifuMoe from "../APIs/CataWaifu";
 import WaifuPics from "../APIs/WaifuPics";
 import HentaiService from "../../services/HentaiService";
 import type PackageJSON from "../Interfaces/Common/PackageJSON";
@@ -59,7 +59,7 @@ export default class KaikiSapphireClient<Ready extends true>
         KawaiiAPI: new KawaiiAPI(),
         NekosLife: new NekosLife(),
         PurrBot: new PurrBot(),
-        WaifuIm: new WaifuIm(),
+        CataWaifu: new CataWaifuMoe(),
         WaifuPics: new WaifuPics(),
     };
 
@@ -125,7 +125,7 @@ export default class KaikiSapphireClient<Ready extends true>
         if (this.checkMusicDependencies()) {
             this.musicService = new MusicService();
         } else {
-            this.logger.warn("MusicService | Skipped initialization due to missing. Check yt-dlp and @discordjs/voice");
+            this.logger.warn("MusicService | Skipped initialization due to missing dependencies.\nCheck that you have yt-dlp and @discordjs/voice installed, and that environment variable DISABLE_MUSIC is false.");
         }
 
         // Run only once "ready"

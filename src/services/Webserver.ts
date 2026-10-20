@@ -37,7 +37,7 @@ export class Webserver extends Service {
                 this.dashboard.listen(this.SELF_API_PORT)
                 this.dbl.listen(this.DBL_API_PORT)
             });
-        container.logger.info(`WebListener server is listening on ports: [${Colorette.greenBright(this.DBL_API_PORT)}, ${Colorette.greenBright(this.SELF_API_PORT)}]`);
+        container.logger.info(`Webserver | listening on ports: [${Colorette.greenBright(this.DBL_API_PORT)}, ${Colorette.greenBright(this.SELF_API_PORT)}]`);
     }
 
     private verifyTokenMiddleware(req: express.Request<{ id: string}>, res: express.Response, next: express.NextFunction) {
