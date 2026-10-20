@@ -47,6 +47,50 @@ describe("KaikiUtil", () => {
         });
     });
 
+    describe("mapWithConcurrency", () => {
+        it("preserves result order", async () => {
+            const items = [1, 2, 3, 4, 5];
+            const results = await KaikiUtil.mapWithConcurrency(items, 2, async (n) => {
+                await new Promise((resolve) => setTimeout(resolve, n % 2 ? 20 : 0));
+                return n * 2;
+            });
+
+            expect(results).toEqual([2, 4, 6, 8, 10]);
+        });
+
+        it("never exceeds the concurrency limit", async () => {
+            const items = Array.from({ length: 10 }, (_, i) => i);
+            let inFlight = 0;
+            let maxInFlight = 0;
+
+            await KaikiUtil.mapWithConcurrency(items, 3, async () => {
+                inFlight++;
+                maxInFlight = Math.max(maxInFlight, inFlight);
+                await new Promise((resolve) => setTimeout(resolve, 10));
+                inFlight--;
+            });
+
+            expect(maxInFlight).toBeLessThanOrEqual(3);
+            expect(maxInFlight).toBeGreaterThan(0);
+        });
+
+        it("propagates errors like Promise.all", async () => {
+            const items = [1, 2, 3];
+
+            await expect(
+                KaikiUtil.mapWithConcurrency(items, 2, async (n) => {
+                    if (n === 2) throw new Error("boom");
+                    return n;
+                })
+            ).rejects.toThrow("boom");
+        });
+
+        it("returns an empty array for empty input", async () => {
+            const results = await KaikiUtil.mapWithConcurrency([], 5, async (n) => n);
+            expect(results).toEqual([]);
+        });
+    });
+
     describe("Color Converters", () => {
         it("converts hex to rgb", () => {
             expect(KaikiUtil.convertHexToRGB("#FF0000")).toEqual({ r: 255, g: 0, b: 0 });

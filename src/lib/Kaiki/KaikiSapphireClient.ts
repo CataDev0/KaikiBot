@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
-import fs from "fs/promises";
+import fs from "fs";
 import process from "process";
-import { type PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { SapphireClient } from "@sapphire/framework";
 import * as colorette from "colorette";
 import {
@@ -11,7 +11,7 @@ import {
     Team,
     User,
 } from "discord.js";
-import KaikiCache from "../Cache/KaikiCache";
+import KaikiCache from "../../services/KaikiCache";
 import Constants from "../../struct/Constants";
 import Database from "../../struct/db/Database";
 import DatabaseProvider from "../../struct/db/DatabaseProvider";
@@ -20,25 +20,23 @@ import type { ClientImageAPIs } from "../APIs/Common/Types";
 import KawaiiAPI, { EndPointSignatures } from "../APIs/KawaiiAPI";
 import NekosLife from "../APIs/nekos.life";
 import PurrBot from "../APIs/PurrBot";
-import WaifuIm from "../APIs/waifu.im";
+import CataWaifuMoe from "../APIs/CataWaifu";
 import WaifuPics from "../APIs/WaifuPics";
 import HentaiService from "../../services/HentaiService";
 import type PackageJSON from "../Interfaces/Common/PackageJSON";
 import KaikiUtil from "../KaikiUtil";
 import { MoneyService } from "../../services/MoneyService";
 import IKaikiClient from "./IKaikiClient";
-import { container } from "@sapphire/pieces";
+import { container, Container } from "@sapphire/pieces";
 import NeofetchCommand from "../../commands/Fun/neofetch";
 import DiscordBotListService from "../../services/DiscordBotListService";
 import { Webserver } from "../../services/Webserver";
-import { BotStats } from "../Types/DiscordBotList";
 import { MusicService } from "../../services/MusicService";
 import KaikiClientConfig from "./KaikiClientConfig";
 
 export default class KaikiSapphireClient<Ready extends true>
     extends SapphireClient<Ready>
-    implements IKaikiClient
-{
+    implements IKaikiClient {
     public anniversaryService: AnniversaryRolesService;
     public botSettings: DatabaseProvider;
     public cache: KaikiCache;
@@ -47,19 +45,21 @@ export default class KaikiSapphireClient<Ready extends true>
     public money: MoneyService;
     public orm: PrismaClient;
     public db: Database;
-    public owner: User;
+    // Process exits if owner is not available
+    public owner!: User;
     public package: PackageJSON;
     public hentaiService: HentaiService;
-    public dblService: DiscordBotListService;
+    public dblService?: DiscordBotListService;
     public musicService?: MusicService;
-    private webListener: Webserver;
+    // Gets assigned in constructer only when client is ready
+    private webListener!: Webserver;
     private musicDepsAvailable?: boolean;
 
     public imageAPIs: ClientImageAPIs = {
         KawaiiAPI: new KawaiiAPI(),
         NekosLife: new NekosLife(),
         PurrBot: new PurrBot(),
-        WaifuIm: new WaifuIm(),
+        CataWaifu: new CataWaifuMoe(),
         WaifuPics: new WaifuPics(),
     };
 
@@ -75,9 +75,6 @@ export default class KaikiSapphireClient<Ready extends true>
     constructor() {
         super(KaikiClientConfig);
 
-        this.db = new Database(this);
-        this.db.initializeDatabase();
-
         if (!process.env.PREFIX || process.env.PREFIX === "[YOUR_PREFIX]") {
             throw new Error("Missing prefix! Set a prefix in .env");
         }
@@ -86,76 +83,80 @@ export default class KaikiSapphireClient<Ready extends true>
             throw new Error("Missing DATABASE_URL! Set a valid DATABASE_URL environment variable in .env");
         }
 
-        void this.loadPackageJSON();
-
         // Not using logger here. Because it resets multiline color
         console.log(colorette.green(Constants.KaikiBotASCII));
+        this.package = this.readPackageJSON();
 
-        super.login(process.env.CLIENT_TOKEN).then(async () => this.init());
+        // Database
+        this.orm = new PrismaClient();
+        this.db = new Database(this, this.orm);
+        const initPromise = this.db.initializeDatabase();
 
-        // Run only once "ready"
-        super.once(Events.ClientReady, () => {
-            this.webListener = new Webserver();
+        this.botSettings = new DatabaseProvider(
+            this.orm,
+            "BotSettings",
+            { idColumn: "Id" },
+            false
+        );
+        this.dadBotChannels = new DatabaseProvider(
+            this.orm,
+            "DadBotChannels",
+            { idColumn: "ChannelId" }
+        );
+        this.guildsDb = new DatabaseProvider(this.orm, "Guilds", {
+            idColumn: "Id",
         });
-    }
 
-    private async init() {
-        if (!this.user) {
-            throw new Error("Missing bot client user!");
-        }
+        // Login with Client
+        super.login(process.env.CLIENT_TOKEN);
 
         if (process.env.DBL_API_TOKEN && process.env.NODE_ENV === "production") {
             this.dblService = new DiscordBotListService(this, process.env.DBL_API_TOKEN);
-            this.dblService.startPosting();
         }
 
-        await this.application?.fetch();
+        this.anniversaryService = new AnniversaryRolesService(this, this.orm);
+        this.hentaiService = new HentaiService();
+        this.cache = new KaikiCache(this.orm);
+        this.money = new MoneyService(this, this.orm);
+        // Load Currency from BotConfig
+        initPromise.then(() => this.money.init());
 
-        if (!this.application?.owner) {
-            return KaikiSapphireClient.noBotOwner();
+        // Initialize MusicService only if dependencies are available
+        if (this.checkMusicDependencies()) {
+            this.musicService = new MusicService();
+        } else {
+            this.logger.warn("MusicService | Skipped initialization due to missing dependencies.\nCheck that you have yt-dlp and @discordjs/voice installed, and that environment variable DISABLE_MUSIC is false.");
         }
 
-        const owner =
-            this.application.owner instanceof Team
-                ? this.application.owner.owner?.user
-                : this.application.owner;
+        // Run only once "ready"
+        super.once(Events.ClientReady, () => {
+            this.application.fetch().then((app) => {
+                if (!app.owner) KaikiSapphireClient.noBotOwner();
 
-        if (!owner) return KaikiSapphireClient.noBotOwner();
+                const owner = this.application.owner instanceof Team
+                    ? this.application.owner.owner?.user
+                    : this.application.owner;
+                if (!owner) KaikiSapphireClient.noBotOwner();
+                this.owner = owner;
 
-        this.owner = owner;
+                this.logger.info(
+                    `Bot account: ${colorette.greenBright(this.user.username)}`
+                );
 
-        this.logger.info(
-            `Bot account: ${colorette.greenBright(this.user.username)}`
-        );
-
-        this.logger.info(
-            `Bot owner: ${colorette.greenBright(this.owner.username)}`
-        );
-
-        await Promise.all([
-            this.filterOptionalCommands(),
-            this.sendOnlineMsg(),
-        ]);
-    }
-
-    private async sendOnlineMsg() {
-        // Let bot owner know when bot goes online.
-        if (this.user && this.owner.id === process.env.OWNER) {
-            const emojis = ["✨", "♥️", "✅", "🇹🇼"];
-            const emoji = emojis[Math.floor(Math.random() * emojis.length)]
-
-            await this.owner.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setTitle(emoji)
-                        .setDescription("Bot is online!")
-                        .setFooter({
-                            text: `${this.package.name} - v${this.package.version}`,
-                        })
-                        .withOkColor(),
-                ],
+                this.logger.info(
+                    `Bot owner: ${colorette.greenBright(this.owner.username)}`
+                );
+                // Send after clinet login and owner has been fetched
+                KaikiUtil.sendOnlineMsg(this);
             });
-        }
+            this.webListener = new Webserver();
+            this.dblService?.startPosting();
+            this.anniversaryService.birthdayService();
+        });
+
+        this.once("applicationCommandRegistriesRegistered", async () => {
+            this.filterOptionalCommands()
+        });
     }
 
     private static noBotOwner(): never {
@@ -165,11 +166,10 @@ export default class KaikiSapphireClient<Ready extends true>
         process.exit(1);
     }
 
-    private async loadPackageJSON() {
+    private readPackageJSON() {
         const path = process.env.npm_package_json ?? "package.json";
-        this.package = await fs
-            .readFile(path)
-            .then((file) => JSON.parse(file.toString()) as PackageJSON);
+        const file = fs.readFileSync(path);
+        return JSON.parse(file.toString()) as PackageJSON;
     }
 
     private async dailyResetTimer(): Promise<void> {
@@ -200,18 +200,33 @@ export default class KaikiSapphireClient<Ready extends true>
                 DailyReminder: {
                     not: null
                 }
+            },
+            select: {
+                UserId: true
             }
         })
 
-        await Promise.all(users.map(async (user) => this.users.cache.get(String(user.UserId))
-            ?.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setTitle("Reminder")
-                        .setDescription("Your currency claim is ready!")
-                        .withOkColor()
-                ]
-            })));
+        // Fetch users on demand, the user cache is LRU-capped and may not
+        // contain every reminder user. Limit concurrency to keep API bursts low.
+        await KaikiUtil.mapWithConcurrency(users, 10, async (user) => {
+            const discordUser = await this.users
+                .fetch(String(user.UserId))
+                .catch(() => null);
+
+            if (!discordUser) return;
+
+            await discordUser
+                .send({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle("Reminder")
+                            .setDescription("Your currency claim is ready!")
+                            .withOkColor()
+                    ]
+                })
+                // Ignore failed DMs
+                .catch(() => null);
+        });
 
         await this.orm.discordUsers.updateMany({
             where: {
@@ -225,28 +240,17 @@ export default class KaikiSapphireClient<Ready extends true>
         })
     }
 
-    public async initializeServices() {
-        this.anniversaryService = new AnniversaryRolesService(this);
-
-        // This will execute at midnight
+    /**
+     * startLoops():
+     * Will run and execute daily resets and timers at midnight
+     */
+    public async startLoops() {
         await Promise.all([
             this.dailyResetTimer(),
             this.resetTimer(),
-            this.fetchMembersLoop(),
             this.presenceLoop()
         ]);
         this.logger.info("Timers and loops started");
-
-        this.hentaiService = new HentaiService();
-        this.logger.info("HentaiService | Service initiated");
-
-        // Initialize MusicService only if dependencies are available
-        if (this.checkMusicDependencies()) {
-            this.musicService = new MusicService();
-            this.logger.info("MusicService | Service initiated");
-        } else {
-            this.logger.warn("MusicService | Skipped initialization due to missing dependencies");
-        }
     }
 
     private async presenceLoop(): Promise<NodeJS.Timeout> {
@@ -259,10 +263,8 @@ export default class KaikiSapphireClient<Ready extends true>
 
     public async setPresence() {
         const db = await this.orm.botSettings.findFirst();
-
         if (db && db.Activity && db.ActivityType) {
             const acType = Constants.activityTypes[db.ActivityType];
-
             this.user?.setPresence({
                 activities: [
                     {
@@ -274,30 +276,10 @@ export default class KaikiSapphireClient<Ready extends true>
         }
     }
 
-    private async fetchMembersLoop() {
-        const guilds = this.guilds.cache;
-        const iterator = guilds.values();
-        const interval = setInterval(async () => {
-            // Get next guild from iterator
-            const guild = iterator.next().value;
-            // Stop looping interval when there are no more guilds in iterator
-            if (!guild) {
-                clearInterval(interval);
-                return;
-            }
-            // Fetch guild members
-            await guild.members.fetch();
-        }, Constants.MAGIC_NUMBERS.LIB.KAIKI.GUILD_MEMBER_FETCH_INTERVAL_MS);
-    }
-
     public async resetDailyClaims(): Promise<void> {
         const updated = await this.orm.discordUsers.updateMany({
-            where: {
-                ClaimedDaily: true,
-            },
-            data: {
-                ClaimedDaily: false,
-            },
+            where: { ClaimedDaily: true },
+            data: { ClaimedDaily: false },
         });
         this.logger.info(
             `ResetDailyClaims | Daily claims have been reset! Updated ${colorette.green(updated.count)} entries!`
@@ -362,12 +344,5 @@ export default class KaikiSapphireClient<Ready extends true>
         }
 
         return (this.musicDepsAvailable = !process.env.DISABLE_MUSIC);
-    }
-
-    public getBotStats(): BotStats {
-        return {
-            guilds: this.guilds.cache.size,
-            users: this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0),
-        };
     }
 }
