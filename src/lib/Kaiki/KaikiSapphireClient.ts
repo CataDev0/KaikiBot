@@ -21,7 +21,7 @@ import KawaiiAPI, { EndPointSignatures } from "../APIs/KawaiiAPI";
 import NekosLife from "../APIs/nekos.life";
 import PurrBot from "../APIs/PurrBot";
 import CataWaifuMoe from "../APIs/CataWaifu";
-import WaifuPics from "../APIs/WaifuPics";
+import NekosBest from "../APIs/NekosBest";
 import HentaiService from "../../services/HentaiService";
 import type PackageJSON from "../Interfaces/Common/PackageJSON";
 import KaikiUtil from "../KaikiUtil";
@@ -60,7 +60,7 @@ export default class KaikiSapphireClient<Ready extends true>
         NekosLife: new NekosLife(),
         PurrBot: new PurrBot(),
         CataWaifu: new CataWaifuMoe(),
-        WaifuPics: new WaifuPics(),
+        NekosBest: new NekosBest(),
     };
 
     public fetchPrefix = async ({ guild }: { guild: Guild | null }) => {

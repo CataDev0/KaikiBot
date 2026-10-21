@@ -2,7 +2,7 @@ import { ApplyOptions } from "@sapphire/decorators";
 import { Message } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
-import { APIs } from "../../lib/APIs/WaifuPics";
+import { APIs } from "../../lib/APIs/NekosBest";
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "megumin",
@@ -13,7 +13,7 @@ import { APIs } from "../../lib/APIs/WaifuPics";
 })
 export default class megumin extends KaikiCommand {
     public async messageRun(message: Message): Promise<Message> {
-        return this.client.imageAPIs.WaifuPics.sendImageAPIRequest(
+        return this.client.imageAPIs.NekosBest.sendImageAPIRequest(
             message,
             APIs.megumin
         );
