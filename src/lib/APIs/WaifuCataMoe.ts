@@ -8,11 +8,12 @@ export enum EndPointSignatures {
     Selfies = "selfies",
     MarinKitagawa = "marin-kitagawa",
     Ero = "ero",
+    Rem = "rem",
 }
 
-export default class CataWaifuMoe extends ImageAPI<EndPointSignatures> {
+export default class WaifuCataMoe extends ImageAPI<EndPointSignatures> {
     constructor(
-        imageAPIData: ImageAPIOptions<EndPointSignatures> = CataWaifuMoe.data
+        imageAPIData: ImageAPIOptions<EndPointSignatures> = WaifuCataMoe.data
     ) {
         super(imageAPIData);
     }
@@ -39,8 +40,12 @@ export default class CataWaifuMoe extends ImageAPI<EndPointSignatures> {
                 action: "",
                 color: Constants.hexColorTable["hotpink"],
             },
+            rem: {
+                action: "",
+                color: Constants.hexColorTable["lightpink"],
+            },
         },
-        objectIndex: ["items", "0", "url"],
+        objectIndex: ["items", "1", "url"],
         url: (string: string, nsfw = false) =>
             `https://api.cata.moe/images/?IncludedTags=${string}&IsNsfw=${nsfw}&PageSize=1`,
     };

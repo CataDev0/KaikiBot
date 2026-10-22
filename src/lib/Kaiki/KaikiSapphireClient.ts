@@ -20,14 +20,14 @@ import type { ClientImageAPIs } from "../APIs/Common/Types";
 import KawaiiAPI, { EndPointSignatures } from "../APIs/KawaiiAPI";
 import NekosLife from "../APIs/nekos.life";
 import PurrBot from "../APIs/PurrBot";
-import CataWaifuMoe from "../APIs/CataWaifu";
+import WaifuCataMoe from "../APIs/WaifuCataMoe";
 import NekosBest from "../APIs/NekosBest";
 import HentaiService from "../../services/HentaiService";
 import type PackageJSON from "../Interfaces/Common/PackageJSON";
 import KaikiUtil from "../KaikiUtil";
 import { MoneyService } from "../../services/MoneyService";
 import IKaikiClient from "./IKaikiClient";
-import { container, Container } from "@sapphire/pieces";
+import { container } from "@sapphire/pieces";
 import NeofetchCommand from "../../commands/Fun/neofetch";
 import DiscordBotListService from "../../services/DiscordBotListService";
 import { Webserver } from "../../services/Webserver";
@@ -59,7 +59,7 @@ export default class KaikiSapphireClient<Ready extends true>
         KawaiiAPI: new KawaiiAPI(),
         NekosLife: new NekosLife(),
         PurrBot: new PurrBot(),
-        CataWaifu: new CataWaifuMoe(),
+        WaifuCataMoe: new WaifuCataMoe(),
         NekosBest: new NekosBest(),
     };
 

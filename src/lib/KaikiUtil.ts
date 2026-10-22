@@ -3,6 +3,7 @@ import Constants from "../struct/Constants";
 import { KaikiColor } from "./Types/KaikiColor";
 import KaikiSapphireClient from "./Kaiki/KaikiSapphireClient";
 import { BotStats } from "./Types/DiscordBotList";
+import { container } from "@sapphire/framework";
 
 export default class KaikiUtil {
     static toggledTernary(value: boolean) {
@@ -236,6 +237,7 @@ export default class KaikiUtil {
 
             return json as T;
         } catch (e: unknown) {
+            container.logger.error(e);
             throw e;
         }
     }

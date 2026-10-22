@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import NekosBest, { APIs as NekosBestAPIs } from "../lib/APIs/NekosBest";
 import NekosLife, { APIs as NekosLifeAPIs } from "../lib/APIs/nekos.life";
-import CataWaifuMoe, { EndPointSignatures as WaifuImAPIs } from "../lib/APIs/CataWaifu";
+import WaifuCataMoe, { EndPointSignatures as WaifuImAPIs } from "../lib/APIs/WaifuCataMoe";
 import PurrBot, { EndpointSignatures as PurrBotAPIs } from "../lib/APIs/PurrBot";
 import KawaiiAPI, { EndPointSignatures as KawaiiAPIs } from "../lib/APIs/KawaiiAPI";
 
@@ -52,11 +52,11 @@ describe("Image APIs", () => {
         });
     });
 
-    describe("WaifuIm", () => {
-        let api: CataWaifuMoe;
+    describe("waifu.cata.moe", () => {
+        let api: WaifuCataMoe;
 
         beforeEach(() => {
-            api = new CataWaifuMoe();
+            api = new WaifuCataMoe();
         });
 
         it("should return a valid url for uniform endpoint", async () => {

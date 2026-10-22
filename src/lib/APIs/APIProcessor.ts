@@ -1,6 +1,7 @@
 import { EmbedBuilder, GuildMember, Message } from "discord.js";
 import InteractionsImageData from "../Interfaces/Common/InteractionsImageData";
 import KaikiUtil from "../KaikiUtil";
+import { UserError } from "@sapphire/framework";
 
 export default class APIProcessor {
     static async processImageAPIRequest(
@@ -50,6 +51,11 @@ export default class APIProcessor {
             },
         });
         KaikiUtil.checkResponse(response);
-        return KaikiUtil.json(response, jsonProperty);
+        return KaikiUtil.json(response, jsonProperty)
+            .catch((e) => {
+                throw new UserError({
+                    identifier: "APIProcessorError",
+                });
+            });
     }
 }
