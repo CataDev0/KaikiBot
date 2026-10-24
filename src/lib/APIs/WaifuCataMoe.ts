@@ -45,7 +45,8 @@ export default class WaifuCataMoe extends ImageAPI<EndPointSignatures> {
                 color: Constants.hexColorTable["lightpink"],
             },
         },
-        objectIndex: ["items", "1", "url"],
+        // { "items": [ { "url": "https://cdn.URL.com/123.jpg" } ] }
+        objectIndex: ["items", "0", "url"],
         url: (string: string, nsfw = false) =>
             `https://api.cata.moe/images/?IncludedTags=${string}&IsNsfw=${nsfw}&PageSize=1`,
     };
