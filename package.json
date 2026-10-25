@@ -93,7 +93,7 @@
 		"@prisma/engines@5.22.0": true,
 		"bufferutil@4.1.0": true,
 		"prisma@5.22.0": true,
-		"sharp@0.34.5": true,
+		"sharp@0.35.4": true,
 		"unrs-resolver@1.12.2": true,
 		"utf-8-validate@6.0.6": true,
 		"@parcel/watcher@2.6.0": true

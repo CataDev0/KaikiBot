@@ -45,13 +45,12 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
                 ? guildCache?.get(ERCacheType.HAS_SPACE)
                 : guildCache?.get(ERCacheType.NO_SPACE);
 
-            // Return notFound if the database trigger does not exist in cache.
-            if (!cacheFromTrigger) return this.notFound(message);
-
-            const exists = !!cacheFromTrigger.get(trigger);
+            const exists = !!(cacheFromTrigger?.get(trigger));
 
             // Delete trigger only if the entry exists
-            if (exists) cacheFromTrigger.delete(trigger);
+            // If it exists, so does the cache.
+            // If it doesn't exist, it does not matter as it was already removed from DB.
+            if (exists) cacheFromTrigger!.delete(trigger);
 
             // Fall back to the shared empty structure once no triggers remain
             if (

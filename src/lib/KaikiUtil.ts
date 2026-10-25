@@ -1,7 +1,7 @@
 import { ActivityType, EmbedBuilder, GuildMember, HexColorString } from "discord.js";
 import Constants from "../struct/Constants";
 import { KaikiColor } from "./Types/KaikiColor";
-import KaikiSapphireClient from "./Kaiki/KaikiSapphireClient";
+import type KaikiSapphireClient from "./Kaiki/KaikiSapphireClient";
 import { BotStats } from "./Types/DiscordBotList";
 import { container } from "@sapphire/framework";
 

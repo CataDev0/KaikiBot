@@ -1,6 +1,5 @@
 import {
     DiscordAPIError,
-    DiscordjsErrorCodes,
     EmbedBuilder,
     EmbedData,
     Message,
@@ -19,14 +18,6 @@ type ErrorContext = {
     command: KaikiCommand;
     commandContext: Record<string, unknown>;
 };
-
-function isArgsMissingError(identifier: string): identifier is Identifiers.ArgsMissing {
-    return identifier === Identifiers.ArgsMissing;
-}
-
-function hasIdentifier<T extends string>(error: UserError, identifier: T): error is UserError & { identifier: T, context: ErrorContext } {
-    return error.identifier === identifier;
-}
 
 const IdentifierEntries = Object.freeze({
     "argsMissing": argsMissingErrorRun,
@@ -66,7 +57,7 @@ function apiProcessorErrorRun(error: UserError & { identifier: "APIProcessorErro
 }
 
 export default async (
-    error: UserError,
+    error: Error,
     payload: MessageCommandDeniedPayload
 ) => {
     let emb: EmbedData = {
@@ -113,6 +104,8 @@ export default async (
                 return;
             }
         }
+        // We cannot send messages, nor reply to the user
+        return;
     }
 
     const messageOptions: MessageCreateOptions = {

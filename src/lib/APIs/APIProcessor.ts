@@ -54,6 +54,7 @@ export default class APIProcessor {
         return KaikiUtil.json(response, jsonProperty)
             .catch((e) => {
                 throw new UserError({
+                    ...e,
                     identifier: "APIProcessorError",
                 });
             });

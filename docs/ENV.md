@@ -57,7 +57,7 @@ Only read when you start the MariaDB container from `docker-compose.yml`: the im
 
 ## NODE_ENV
 
-Set this to `production` on a production deployment. It decides the log level and whether the bot registers its DiscordBotList webhook, and without it `npm run build` will not apply database migrations, see [step 4 of the guide](GUIDE.md#4-apply-the-migrations).
+Set this to `production` on a production deployment. It decides the log level and whether the bot registers its DiscordBotList webhook, and without it `npm run build` will not apply database migrations, see [step 3 of the guide](GUIDE.md#3-apply-the-migrations).
 
     NODE_ENV=production
 

@@ -19,11 +19,15 @@ export default class AnniversaryRolesService extends QualifiedService {
         super(client, orm);
     }
 
-    async birthdayService(): Promise<void> {
-        const enabledGuilds = await this.getEnabledGuilds();
-        await this.handleAnniversaryGuilds(enabledGuilds);
-        this.anniversaryUsers.clear();
-        this.creationdayUsers.clear();
+    birthdayService(): void {
+        this.getEnabledGuilds()
+            .then((enabledGuilds) => this.handleAnniversaryGuilds(enabledGuilds)
+                .then(() => {
+                    this.anniversaryUsers.clear();
+                    this.creationdayUsers.clear();
+                })
+            )
+            .catch((err) => this.client.logger.error(err));
     }
 
     private static getCurrentDate() {

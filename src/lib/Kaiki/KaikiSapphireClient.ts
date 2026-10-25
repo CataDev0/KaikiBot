@@ -108,7 +108,11 @@ export default class KaikiSapphireClient<Ready extends true>
         });
 
         // Login with Client
-        super.login(process.env.CLIENT_TOKEN);
+        super.login(process.env.CLIENT_TOKEN)
+            .catch((err) => {
+                this.logger.error(err);
+                process.exit(1);
+            });
 
         if (process.env.DBL_API_TOKEN && process.env.NODE_ENV === "production") {
             this.dblService = new DiscordBotListService(this, process.env.DBL_API_TOKEN);

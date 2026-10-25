@@ -81,7 +81,7 @@ export default class EmoteReactCommand extends KaikiCommand {
         if (trigger.includes(" ")) {
             guildCache.get(ERCacheType.HAS_SPACE)?.set(trigger, { id: emojiIdOrName });
             // Rebuild regex when adding new trigger with space
-            KaikiCache.populateERCache(message);
+            await KaikiCache.populateERCache(message);
         } else {
             guildCache.get(ERCacheType.NO_SPACE)?.set(trigger, { id: emojiIdOrName });
         }
