@@ -39,6 +39,8 @@ jobs:
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.event.pull_request.head.sha }}
           api-key: ${{ secrets.DEEPSEEK_API_KEY }}
+          language: en
+
 
       # Read review-result.md, update the old comment or create a new one
       - name: Post / update review comment
