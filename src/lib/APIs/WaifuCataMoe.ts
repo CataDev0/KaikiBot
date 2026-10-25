@@ -3,16 +3,17 @@ import ImageAPI from "./Common/ImageAPI";
 import type { ImageAPIOptions } from "./Common/Types";
 
 export enum EndPointSignatures {
-    uniform = "uniform",
-    maid = "maid",
-    selfies = "selfies",
-    marinKitagawa = "marin-kitagawa",
-    ero = "ero",
+    Uniform = "uniform",
+    Maid = "maid",
+    Selfies = "selfies",
+    MarinKitagawa = "marin-kitagawa",
+    Ero = "ero",
+    Rem = "rem",
 }
 
-export default class WaifuIm extends ImageAPI<EndPointSignatures> {
+export default class WaifuCataMoe extends ImageAPI<EndPointSignatures> {
     constructor(
-        imageAPIData: ImageAPIOptions<EndPointSignatures> = WaifuIm.data
+        imageAPIData: ImageAPIOptions<EndPointSignatures> = WaifuCataMoe.data
     ) {
         super(imageAPIData);
     }
@@ -39,9 +40,14 @@ export default class WaifuIm extends ImageAPI<EndPointSignatures> {
                 action: "",
                 color: Constants.hexColorTable["hotpink"],
             },
+            rem: {
+                action: "",
+                color: Constants.hexColorTable["lightpink"],
+            },
         },
+        // { "items": [ { "url": "https://cdn.URL.com/123.jpg" } ] }
         objectIndex: ["items", "0", "url"],
         url: (string: string, nsfw = false) =>
-            `https://api.waifu.im/images/?IncludedTags=${string}&IsNsfw=${nsfw}&PageSize=1`,
+            `https://api.cata.moe/images/?IncludedTags=${string}&IsNsfw=${nsfw}&PageSize=1`,
     };
 }

@@ -2,25 +2,32 @@ import { PrismaClient } from "@prisma/client";
 import { Guild, GuildMember, PermissionsBitField, Role } from "discord.js";
 import Constants from "../struct/Constants";
 import KaikiSapphireClient from "../lib/Kaiki/KaikiSapphireClient";
+import KaikiUtil from "../lib/KaikiUtil";
+import { QualifiedService } from "./Service";
 
-export default class AnniversaryRolesService {
-    readonly client: KaikiSapphireClient<true>;
-    readonly orm: PrismaClient;
-    private creationdayUsers: string[] = [];
-    private anniversaryUsers: string[] = [];
+/** 
+ * This service is responsible for managing anniversary roles in servers.
+ * It checks for users' account creation dates and server join dates -
+ * and assigns/removes roles accordingly.
+ * */
+export default class AnniversaryRolesService extends QualifiedService {
+    private static readonly MEMBER_CHECK_CONCURRENCY = 25;
+    private creationdayUsers = new Set<string>();
+    private anniversaryUsers = new Set<string>();
 
-    constructor(client: KaikiSapphireClient<true>) {
-        this.client = client;
-        this.orm = client.orm;
-
-        void this.birthdayService();
+    constructor(client: KaikiSapphireClient<true>, orm: PrismaClient) {
+        super(client, orm);
     }
 
-    async birthdayService(): Promise<void> {
-        const enabledGuilds = await this.getEnabledGuilds();
-        await this.handleAnniversaryGuilds(enabledGuilds);
-        this.anniversaryUsers = [];
-        this.creationdayUsers = [];
+    birthdayService(): void {
+        this.getEnabledGuilds()
+            .then((enabledGuilds) => this.handleAnniversaryGuilds(enabledGuilds)
+                .then(() => {
+                    this.anniversaryUsers.clear();
+                    this.creationdayUsers.clear();
+                })
+            )
+            .catch((err) => this.client.logger.error(err));
     }
 
     private static getCurrentDate() {
@@ -45,19 +52,23 @@ export default class AnniversaryRolesService {
                     )
                 ) {
                     const [anniversaryRoleCreated, anniversaryRoleJoin] = <Role[]>await this.handleGuildRoles(guild);
-                    // Get roles from the result of checking if guild has the roles at all / after creating them.
-                    await Promise.all(
-                        guild.members.cache.map(async (member) => {
-                            if (!member.user.bot) {
-                                // Don't assign special roles to bots.
-                                await this.memberCheckAnniversary(
-                                    member,
-                                    anniversaryRoleCreated,
-                                    anniversaryRoleJoin
-                                );
-                            }
-                        })
+
+                    // Fetch members because cache could have been swept
+                    const members = await guild.members.fetch();
+
+                    // Don't assign special roles to bots.
+                    await KaikiUtil.mapWithConcurrency(
+                        [...members.values()].filter((member) => !member.user.bot),
+                        AnniversaryRolesService.MEMBER_CHECK_CONCURRENCY,
+                        (member) =>
+                            this.memberCheckAnniversary(
+                                member,
+                                anniversaryRoleCreated,
+                                anniversaryRoleJoin
+                            )
                     );
+                    this.creationdayUsers.clear();
+                    this.anniversaryUsers.clear();
                 } else {
                     return this.client.logger.warn(
                         `AnniversaryRolesService | ${guild.name} [${guild.id}] - can't add anniversary roles due to missing permissions: 'MANAGE_ROLES'`
@@ -137,20 +148,20 @@ export default class AnniversaryRolesService {
         const date = AnniversaryRolesService.getCurrentDate();
 
         if (this.checkCakeDay(member, date)) {
-            this.creationdayUsers.push(member.user.id);
+            this.creationdayUsers.add(member.user.id);
             if (!member.roles.cache.has(anniversaryRoleCreated.id)) {
                 await member.roles.add(anniversaryRoleCreated);
             }
         }
 
         if (this.checkJoinedAt(member, date)) {
-            this.anniversaryUsers.push(member.user.id);
+            this.anniversaryUsers.add(member.user.id);
             if (!member.roles.cache.has(anniversaryRoleJoin.id)) {
                 return member.roles.add(anniversaryRoleJoin);
             }
         }
 
-        if (!this.creationdayUsers.includes(member.user.id)) {
+        if (!this.creationdayUsers.has(member.user.id)) {
 
             if (member.roles.cache.has(anniversaryRoleCreated.id)) {
                 await member.roles.remove(
@@ -185,25 +196,28 @@ export default class AnniversaryRolesService {
     }
 
     private async handleAnniversaryGuilds(enabledGuilds: Guild[]) {
-        await Promise.all(enabledGuilds.map(async (guild) => {
+        // Process guilds sequentially to keep API pressure bounded
+        for (const guild of enabledGuilds) {
 
             // Check if perms.
-            if (!guild.members.me?.permissions.has(PermissionsBitField.Flags.ManageRoles)) return;
+            if (!guild.members.me?.permissions.has(PermissionsBitField.Flags.ManageRoles)) continue;
 
             const [anniversaryRoleCreated, anniversaryRoleJoin] = await this.handleGuildRoles(guild);
 
-            await Promise.all(
-                guild.members.cache.map(async (member) => {
-                    // Don't assign special roles to bots.
-                    if (member.user.bot) return;
+            // Fetch members because cache could have been swept
+            const members = await guild.members.fetch();
 
-                    await this.memberCheckAnniversary(
+            await KaikiUtil.mapWithConcurrency(
+                // Don't assign special roles to bots.
+                [...members.values()].filter((member) => !member.user.bot),
+                AnniversaryRolesService.MEMBER_CHECK_CONCURRENCY,
+                (member) =>
+                    this.memberCheckAnniversary(
                         member,
                         anniversaryRoleCreated,
                         anniversaryRoleJoin
-                    );
-                })
+                    )
             );
-        }));
+        }
     }
 }

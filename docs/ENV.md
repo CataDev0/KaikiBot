@@ -23,7 +23,7 @@ Create a bot application
 
 Example
 
-    CLIENT_TOKEN=MND5MTA2MzY2MzgwNzU5Fjgw.O08nDN.Bl6rIwtlAg9Hxuz8CLPD0l23sun
+    CLIENT_TOKEN=MCD5MTB2MzY2MzgwNzU5Fjgw.O08nDN.Rl6rIwtlAg9Hauq8CLFL0l23sun
 
 ## PREFIX
 
@@ -35,20 +35,31 @@ Example
 
 Prefix is `+`
 
-## MySQL
+## MySQL/MariaDB
 
-Replace `yourUsername` and `yourPassword` with your MySQL user and password credentials
+`DATABASE_URL` is the connection string Prisma uses. Replace `yourUsername`, `yourPassword` and `kaikidb` with the user, password and database you created in [step 1 of the guide](GUIDE.md#1-create-the-database).
 
 -   Note: In some cases you need to change `localhost` with `127.0.0.1`
+-   Docker Compose: use the service name `db` as the host and the container port `3306`, see [Docker Compose](GUIDE.md#docker-compose)
 
 Example
 
     DATABASE_URL="mysql://yourUsername:yourPassword@localhost:3306/kaikidb"
-    DB_HOST=localhost
-    DB_USER=yourUsername
-    DB_PASSWORD=yourPassword
-    DB_ROOT_PASSWORD=yourRootPassword
-    DB_NAME=kaikidb
+
+### Docker database initialization
+
+Only read when you start the MariaDB container from `docker-compose.yml`: the image creates this database and user the first time its volume is initialized. Ignored if you point the bot at your own database server.
+
+    MYSQL_ROOT_PASSWORD=yourRootPassword
+    MYSQL_DATABASE=kaikidb
+    MYSQL_USER=yourUsername
+    MYSQL_PASSWORD=yourPassword
+
+## NODE_ENV
+
+Set this to `production` on a production deployment. It decides the log level and whether the bot registers its DiscordBotList webhook, and without it `npm run build` will not apply database migrations, see [step 3 of the guide](GUIDE.md#3-apply-the-migrations).
+
+    NODE_ENV=production
 
 ## KAWAIIKEY (Optional)
 
@@ -89,13 +100,12 @@ Please leave this as is, unless you know what you're doing
 
     # Database
     DATABASE_URL="mysql://yourUsername:yourPassword@localhost:3306/kaikidb"
-    DB_HOST=localhost
-    DB_USER=yourUsername
-    DB_PASSWORD=yourPassword
-    DB_ROOT_PASSWORD=yourRootPassword
-    DB_NAME=kaikidb
 
     # Docker
+    MYSQL_ROOT_PASSWORD=yourRootPassword
+    MYSQL_DATABASE=kaikidb
+    MYSQL_USER=yourUsername
+    MYSQL_PASSWORD=yourPassword
     NODE_DOCKER_PORT=8080
     NODE_ENV=production
 

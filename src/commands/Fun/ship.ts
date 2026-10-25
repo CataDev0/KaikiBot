@@ -16,7 +16,10 @@ export default class ShipCommand extends KaikiCommand {
         let user2 = await args.pick("user").catch(() => null);
 
         if (!user2) {
-            user2 = message.guild.members.cache.random()?.user || null;
+            // Member cache may have been swept - fall back to the bot itself
+            user2 = message.guild.members.cache.random()?.user
+                ?? message.guild.members.me?.user
+                ?? message.author;
         } else {
             // Check for a second user
             const possibleUser3 = await args.pick("user").catch(() => null);
@@ -35,14 +38,10 @@ export default class ShipCommand extends KaikiCommand {
         const score = Number(combined % 101n); 
         // Note: % 101 gives 0-100 inclusive. 
 
-        let description = "";
-        if (score === 0) description = "🔻 Abysmal...";
-        else if (score < 20) description = "⬛ Awful.";
-        else if (score < 40) description = "🟥 Bad.";
-        else if (score < 60) description = "🟨 Average.";
-        else if (score < 80) description = "🟦 Good.";
-        else if (score < 100) description = "🟩 Great!";
-        else description = "💖 Perfect!";
+        const description = score === 0
+            ? ShipCommand.SCORES[0][1]
+            : ShipCommand.SCORES.find(([max]) => score < max)
+                ?.[1] ?? "💖 Perfect!";
 
         const embed = new EmbedBuilder()
             .setTitle("❤️ Shipping ❤️")
@@ -51,4 +50,14 @@ export default class ShipCommand extends KaikiCommand {
 
         return message.reply({ embeds: [embed] });
     }
+
+    private static readonly SCORES: [number, string][] = [
+        [0, "🔻 Abysmal..."],
+        [20, "⬛ Awful."],
+        [40, "🟥 Bad."],
+        [60, "🟨 Average."],
+        [80, "🟦 Good."],
+        [100, "🟩 Great!"],
+        [Infinity, "💖 Perfect!"],
+    ];
 }

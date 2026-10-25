@@ -6,7 +6,7 @@ import { EmbedBuilder, Message } from "discord.js";
 import { KaikiSubCommandOptions } from "../../lib/Interfaces/Kaiki/KaikiSubCommandOptions";
 import KaikiUtil from "../../lib/KaikiUtil";
 import Constants from "../../struct/Constants";
-import { BotConfig } from "../../struct/db/Database";
+import { BotConfig } from "../../struct/db/BotConfig";
 
 @ApplyOptions<KaikiSubCommandOptions>({
     name: "botconfig",
