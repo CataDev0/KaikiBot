@@ -13,11 +13,12 @@ If the bot reaches the 10k users threshold, then applying for priviliged intents
 KaikiBot requires the **Message Content** privileged intent to function.
 The **Presence** intent is **not required**, and should not be applied for.
 
-## Message Content — why it is needed
+## Disclaimer
+This document word for word is not guaranteed in any way to get your application approved for any intents
 
-**DONT MENTION PREFIX BASED COMMANDS**
-1.  ~~**Prefix-based command system (core functionality).** KaikiBot's primary interaction model is per-guild configurable prefix commands. Each server can set its own custom prefix, and users invoke commands like `+daily`, `+info`, or `+config` by typing them in chat. Detecting the prefix and parsing arguments (including multi-word arguments such as search phrases for `+urban` or message templates for welcome messages) requires reading message content.~~
+## Message Content — Why it is needed
 
+**Do not mention prefix based commands**
 
 2.  **DadBot.** An opt-in per-guild joke feature: when a user writes a message starting with phrases like "I'm ...", the bot replies with a dad joke and can set the user's nickname accordingly. This depends entirely on parsing the content of ordinary, non-command chat messages.
 
@@ -46,3 +47,54 @@ For the Message Content intent application:
 -   **Will the message content data be used to train machine learning or AI models?** — `No`.
 -   **Why do you need the Message Content intent?** — see the condensed version above;
 
+## Application Details
+
+### What does your application do? Please be as detailed as possible, and feel free to include links to image or video examples.
+
+ > KaikiBot is a multifunctional general purpose Discord Bot. It is being developed as an open source project on Github (CataDev0/KaikiBot). 
+
+ > Kaiki's main purpose is to be a social enhancement tool, by having features that create social interactions and fun moments in the chat. At the same time it is a general purpose bot and is outfitted with many useful commands for users and admins alike.
+
+ ### Do you have a public Privacy Policy telling your users about their data usage?
+
+ >Yes
+ #### Where is your Privacy Policy available?
+ > The privacy policy is available on the bot's official website, and in the bot's help command.
+
+ #### Please share a link to your Privacy Policy.
+ > https://kaikibot.xyz/privacy
+
+ ## Privileged Gateway Intents
+### Which intents are you applying for, if any? (Leave blank if you do not need any of these)
+
+Presence Intent
+
+✅ Message Content Intent
+
+You have the following limited intents and may apply for their full intents: Message Content Intent.
+
+## Message Content Intent
+### Can users opt-out of having their message content data tracked?
+>Yes
+### Are you storing message content data off-platform (outside of Discord)?
+>No
+### Will the message content data be used to train machine learning or AI Models?
+If yes, please explain how in the text box below, including how such models would be used.
+>No
+### Why do you need the Message Content intent?
+> KaikiBot requires Message Content intent for multiple purposes that CAN NOT be performed with Slash Commands, Context Menu Commands, or AutoMod.
+
+These are:
+
+Emote/Emoji statistics - A mostly admin feature which shows the count that each emote/emoji has been used in messages (since the start of counting). It is useful to see what emotes/emojis users dont like, and can safely replace them. 
+The only way for this feature to work is to count emotes/emojis is to parse every message and scan it for emotes/emojis - requiring the priviliged message content intent.
+
+Emote/Emoji server specific auto reactions - Another admin feature that allows servers to set themselves apart by defining any number of words that the bot can add emote/emoji reactions to when it is detected in a user message.
+
+Dad response Feature - A fan favorite feature, and the main reason KaikiBot grew past the point of requiring me to request priviliged message content intent. 
+The feature itself requires works by scanning each message for a pattern that matches a regular expression (regex), it will then respond to whoever invoked the unique pattern. The feature is not invoked deliberately by users and thus cannot be invoked by any Slash Commands or other non message content alternative.
+
+Message content is processed in memory and transiently, it is never stored or logged. The bot only acts on messages in servers where the respective feature is explicitly enabled by an administrator.
+
+### Please provide links to screenshots and/or videos that demonstrate your use case
+>
