@@ -8,7 +8,7 @@
 
 # Discord privileged intents
 
-If the bot reaches the 10k users threshold, then applying for priviliged intents is necessary for the bot to conitnue to function.
+If the bot reaches the 10k users threshold, then applying for privileged intents is necessary for the bot to continue to function.
 
 KaikiBot requires the **Message Content** privileged intent to function.
 The **Presence** intent is **not required**, and should not be applied for.
@@ -18,7 +18,9 @@ This document word for word is not guaranteed in any way to get your application
 
 ## Message Content — Why it is needed
 
-**Do not mention prefix based commands**
+**Do not mention prefix based commands** 
+
+It is not essential in Discord's eyes to require message intents for this purpose.
 
 2.  **DadBot.** An opt-in per-guild joke feature: when a user writes a message starting with phrases like "I'm ...", the bot replies with a dad joke and can set the user's nickname accordingly. This depends entirely on parsing the content of ordinary, non-command chat messages.
 

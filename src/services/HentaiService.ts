@@ -4,6 +4,7 @@ import KaikiUtil from "../lib/KaikiUtil";
 import { DanbooruData, DanbooruPost } from "../lib/Interfaces/Common/DanbooruData";
 import { SafebooruData, SafebooruPost } from "../lib/Interfaces/Common/SafebooruData";
 import { UserError } from "@sapphire/framework";
+import { Service } from "./Service";
 
 export enum DAPI {
     E621,
@@ -13,12 +14,16 @@ export enum DAPI {
 
 export type HentaiTypes = "waifu" | "neko" | "femboy" | "trap" | "blowjob" | "hentai";
 
-// noinspection FunctionNamingConventionJS
-export default class HentaiService {
+export default class HentaiService extends Service {
+    // To log class service loading
+    constructor() {
+        super()
+    }
+
     protected options = {
         method: "GET",
         headers: {
-            "User-Agent": `KaikiDeishuBot is a Discord bot (${Constants.LINKS.REPO_URL})`,
+            "User-Agent": `KaikiBot is a Discord bot (${Constants.LINKS.REPO_URL})`,
         },
     };
 

@@ -44,7 +44,7 @@ export default class SlashCommandsLib {
                 reason: "Initiate default dad-bot exclusion role.",
             });
 
-            await guild.client.db.orm.guilds.update({
+            await guild.client.orm.guilds.update({
                 where: {
                     Id: BigInt(guild.id),
                 },

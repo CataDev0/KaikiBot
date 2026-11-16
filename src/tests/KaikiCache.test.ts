@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { Message } from "discord.js";
-import KaikiCache, { ERCacheType } from "../lib/Cache/KaikiCache";
+import KaikiCache, { ERCacheType } from "../services/KaikiCache";
 
 function mockMessage(rows: { TriggerString: string; EmojiId: string }[]) {
     return {
@@ -12,7 +12,7 @@ function mockMessage(rows: { TriggerString: string; EmojiId: string }[]) {
                 },
             },
             cache: {
-                emoteReactCache: new Map(),
+                emojiReactCache: new Map(),
             },
         },
     } as unknown as Message<true>;
@@ -26,7 +26,7 @@ describe("KaikiCache", () => {
             await KaikiCache.populateERCache(message);
 
             expect(
-                message.client.cache.emoteReactCache.get("123")
+                message.client.cache.emojiReactCache.get("123")
             ).toBe(KaikiCache.EMPTY_GUILD_CACHE);
         });
 
@@ -38,7 +38,7 @@ describe("KaikiCache", () => {
 
             await KaikiCache.populateERCache(message);
 
-            const guildCache = message.client.cache.emoteReactCache.get("123");
+            const guildCache = message.client.cache.emojiReactCache.get("123");
 
             expect(guildCache).not.toBe(KaikiCache.EMPTY_GUILD_CACHE);
             expect(guildCache?.get(ERCacheType.NO_SPACE)?.get("anime")).toEqual({
@@ -53,7 +53,7 @@ describe("KaikiCache", () => {
     describe("ensureGuildCache", () => {
         it("replaces the shared sentinel with a fresh mutable cache", () => {
             const message = mockMessage([]);
-            message.client.cache.emoteReactCache.set(
+            message.client.cache.emojiReactCache.set(
                 "123",
                 KaikiCache.EMPTY_GUILD_CACHE
             );
@@ -62,7 +62,7 @@ describe("KaikiCache", () => {
 
             expect(guildCache).not.toBe(KaikiCache.EMPTY_GUILD_CACHE);
             expect(
-                message.client.cache.emoteReactCache.get("123")
+                message.client.cache.emojiReactCache.get("123")
             ).toBe(guildCache);
 
             // The shared sentinel must remain untouched

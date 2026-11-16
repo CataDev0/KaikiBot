@@ -1,6 +1,6 @@
 {
 	"name": "kaikibot",
-	"version": "6.3.17",
+	"version": "6.4.0",
 	"main": "./dist/index.js",
 	"type": "commonjs",
 	"scripts": {
@@ -23,6 +23,7 @@
 		"Multipurpose",
 		"Music",
 		"MySQL",
+		"MariaDB",
 		"Prisma",
 		"Typescript"
 	],
@@ -45,7 +46,7 @@
 		"express": "^5.2.1",
 		"mysql2": "^3.11.5",
 		"prisma": "^5.22.0",
-		"sharp": "^0.34.2",
+		"sharp": "^0.35.4",
 		"source-map-support": "^0.5.21",
 		"utf-8-validate": "^6.0.5"
 	},
@@ -80,11 +81,21 @@
 		"url": "https://github.com/CataDev0/KaikiBot/issues"
 	},
 	"engines": {
-		"node": ">=18.17.0",
+		"node": ">=20.9.0",
 		"npm": ">=9.0.0"
 	},
 	"overrides": {
 		"undici": "^6.23.0",
 		"@types/node": "^20.0.0"
+	},
+	"allowScripts": {
+		"@prisma/client@5.22.0": true,
+		"@prisma/engines@5.22.0": true,
+		"bufferutil@4.1.0": true,
+		"prisma@5.22.0": true,
+		"sharp@0.35.4": true,
+		"unrs-resolver@1.12.2": true,
+		"utf-8-validate@6.0.6": true,
+		"@parcel/watcher@2.6.0": true
 	}
 }

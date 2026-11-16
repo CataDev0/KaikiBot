@@ -19,8 +19,8 @@ export enum APIs {
     slap = "slap",
 }
 
-export default class WaifuPics extends ImageAPI<APIs> {
-    constructor(imageApiData: ImageAPIOptions<APIs> = WaifuPics.data) {
+export default class NekosBest extends ImageAPI<APIs> {
+    constructor(imageApiData: ImageAPIOptions<APIs> = NekosBest.data) {
         super(imageApiData);
     }
 

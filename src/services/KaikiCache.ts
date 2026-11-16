@@ -1,20 +1,21 @@
-import pkg from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { Message } from "discord.js";
-import Constants from "../../struct/Constants";
+import Constants from "../struct/Constants";
 import {
     EmoteTrigger,
     GuildString,
     TriggerObject,
-} from "../Interfaces/Kaiki/KaikiCache";
+} from "../lib/Interfaces/Kaiki/KaikiCache";
+import { ORMService } from "./Service";
 
 export enum ERCacheType {
 	HAS_SPACE,
 	NO_SPACE,
 }
 
-export default class KaikiCache {
+export default class KaikiCache extends ORMService {
     public cmdStatsCache = new Map<string, number>();
-    public emoteReactCache = new Map<GuildString, Map<ERCacheType, Map<EmoteTrigger, TriggerObject>>>();
+    public emojiReactCache = new Map<GuildString, Map<ERCacheType, Map<EmoteTrigger, TriggerObject>>>();
     public dailyProvider: DailyProvider;
 
     /**
@@ -23,16 +24,15 @@ export default class KaikiCache {
      */
     public static readonly EMPTY_GUILD_CACHE = KaikiCache.createEmptyGuildCache();
 
-    constructor(
-        orm: pkg.PrismaClient
-    ) {
+    constructor(orm: PrismaClient) {
+        super(orm)
         this.dailyProvider = new DailyProvider(orm);
 
         void this.init(orm);
     }
 
     // Creates a loop of 15 minutes to synchronize the command stats cache to the DB.
-    public async init(orm: pkg.PrismaClient) {
+    public async init(orm: PrismaClient) {
         return setInterval(async () => {
             void this.syncCommandStats(orm);
         }, Constants.MAGIC_NUMBERS.CACHE.FIFTEEN_MINUTES_MS);
@@ -48,7 +48,7 @@ export default class KaikiCache {
         }
     }
 
-    private async syncCommandStats(orm: pkg.PrismaClient) {
+    private async syncCommandStats(orm: PrismaClient) {
         if (!this.cmdStatsCache.size) return;
 
         const requests = Array(...this.cmdStatsCache.entries()).map(
@@ -81,13 +81,13 @@ export default class KaikiCache {
             select: { TriggerString: true, EmojiId: true },
         });
       
-        const { emoteReactCache } = client.cache;
+        const { emojiReactCache } = client.cache;
 
         // Store the shared empty structure for guilds without triggers
         // instead of one empty map per guild (has() must stay true to
         // avoid a DB query on every message).
         if (!emoteReacts.length) {
-            emoteReactCache.set(guildId, KaikiCache.EMPTY_GUILD_CACHE);
+            emojiReactCache.set(guildId, KaikiCache.EMPTY_GUILD_CACHE);
             return;
         }
 
@@ -105,7 +105,7 @@ export default class KaikiCache {
             if (key.includes(" ")) {
                 // Escape regex special characters to avoid accidental patterns
                 const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-                const regex = new RegExp(`\\b${escaped}\\b`, "gi");
+                const regex = new RegExp(`\\b${escaped}\\b`, "i");
                 guildCache.get(ERCacheType.HAS_SPACE)?.set(key, { id: value, regex });
             } else {
                 guildCache.get(ERCacheType.NO_SPACE)?.set(key, { id: value });
@@ -113,7 +113,7 @@ export default class KaikiCache {
         }
 
         // Store the prepared cache for this guild
-        emoteReactCache.set(guildId, guildCache);
+        emojiReactCache.set(guildId, guildCache);
     }
 
     private static createEmptyGuildCache(): Map<ERCacheType, Map<EmoteTrigger, TriggerObject>> {
@@ -126,12 +126,12 @@ export default class KaikiCache {
     // Returns a mutable per-guild cache, replacing the shared empty sentinel if needed.
     public static ensureGuildCache(message: Message<true>): Map<ERCacheType, Map<EmoteTrigger, TriggerObject>> {
         const { client, guildId } = message;
-        const existing = client.cache.emoteReactCache.get(guildId);
+        const existing = client.cache.emojiReactCache.get(guildId);
 
         if (existing && existing !== KaikiCache.EMPTY_GUILD_CACHE) return existing;
 
         const fresh = KaikiCache.createEmptyGuildCache();
-        client.cache.emoteReactCache.set(guildId, fresh);
+        client.cache.emojiReactCache.set(guildId, fresh);
         return fresh;
     }
 
@@ -141,10 +141,10 @@ export default class KaikiCache {
         const messageContent = message.content.toLowerCase();
 
         // Retrieve or lazily initialize cache for this guild
-        let guildCache = client.cache.emoteReactCache.get(guildId);
+        let guildCache = client.cache.emojiReactCache.get(guildId);
         if (!guildCache) {
             await KaikiCache.populateERCache(message);
-            guildCache = client.cache.emoteReactCache.get(guildId);
+            guildCache = client.cache.emojiReactCache.get(guildId);
         }
 
         if (!guildCache) return;
@@ -209,9 +209,9 @@ export default class KaikiCache {
 }
 
 class DailyProvider {
-    private orm: pkg.PrismaClient;
+    private orm: PrismaClient;
 
-    constructor(orm: pkg.PrismaClient) {
+    constructor(orm: PrismaClient) {
         this.orm = orm;
     }
 

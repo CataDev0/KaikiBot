@@ -1,6 +1,8 @@
+import { green } from "colorette";
 import { Collection } from "discord.js";
 import { PrismaClient } from "@prisma/client";
 import { Provider, ProviderOptions } from "./Provider";
+import { container } from "@sapphire/framework";
 
 export default class DatabaseProvider extends Provider {
     private db: PrismaClient;
@@ -25,7 +27,7 @@ export default class DatabaseProvider extends Provider {
         this.bigInt = bigint ?? true;
     }
 
-    async init() {
+    async init(logger = container.logger) {
         const rows = await this.db.$queryRawUnsafe<any[]>(
             `SELECT * FROM ${this.tableName}`
         );
@@ -36,6 +38,8 @@ export default class DatabaseProvider extends Provider {
                 this.dataColumn ? JSON.parse(row[this.dataColumn]) : row
             );
         }
+
+        logger.info(`${green("READY")} - DBProvider ${this.tableName}`)
     }
 
     get(id: string, key: string, defaultValue: any) {

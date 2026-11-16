@@ -1,7 +1,7 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Events, Listener, ListenerOptions } from "@sapphire/framework";
 import { Message } from "discord.js";
-import KaikiCache from "../lib/Cache/KaikiCache";
+import KaikiCache from "../services/KaikiCache";
 import { DadBot } from "../lib/DadBot";
 import Emotes from "../lib/Emotes/Emotes";
 
@@ -15,7 +15,7 @@ export default class NonPrefixedMessage extends Listener {
          
         let promise;
 
-        if (!message.client.cache.emoteReactCache.has(message.guildId)) {
+        if (!message.client.cache.emojiReactCache.has(message.guildId)) {
             promise = KaikiCache.populateERCache(message);
         }
 

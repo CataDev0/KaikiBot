@@ -1,7 +1,7 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Args, UserError } from "@sapphire/framework";
 import { EmbedBuilder, Message } from "discord.js";
-import KaikiCache, { ERCacheType } from "../../lib/Cache/KaikiCache";
+import KaikiCache, { ERCacheType } from "../../services/KaikiCache";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
 
@@ -71,7 +71,7 @@ export default class EmoteReactCommand extends KaikiCommand {
 
         // Re-populate when the guild has no cache entry or only the shared empty sentinel
         // The insert above is included by the populate query.
-        const cached = this.client.cache.emoteReactCache.get(message.guildId);
+        const cached = this.client.cache.emojiReactCache.get(message.guildId);
         if (!cached || cached === KaikiCache.EMPTY_GUILD_CACHE) {
             await KaikiCache.populateERCache(message);
         }
@@ -80,6 +80,8 @@ export default class EmoteReactCommand extends KaikiCommand {
 
         if (trigger.includes(" ")) {
             guildCache.get(ERCacheType.HAS_SPACE)?.set(trigger, { id: emojiIdOrName });
+            // Rebuild regex when adding new trigger with space
+            await KaikiCache.populateERCache(message);
         } else {
             guildCache.get(ERCacheType.NO_SPACE)?.set(trigger, { id: emojiIdOrName });
         }

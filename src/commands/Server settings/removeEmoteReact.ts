@@ -3,7 +3,7 @@ import { Args } from "@sapphire/framework";
 import { EmbedBuilder, Message } from "discord.js";
 import KaikiCommandOptions from "../../lib/Interfaces/Kaiki/KaikiCommandOptions";
 import KaikiCommand from "../../lib/Kaiki/KaikiCommand";
-import KaikiCache, { ERCacheType } from "../../lib/Cache/KaikiCache";
+import KaikiCache, { ERCacheType } from "../../services/KaikiCache";
 
 @ApplyOptions<KaikiCommandOptions>({
     name: "removereact",
@@ -23,7 +23,6 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
         const db = await this.client.orm.emojiReactions.findFirst({
             where: {
                 GuildId: BigInt(message.guildId),
-                // TODO: Check if this needs lowercase/string formatting
                 TriggerString: trigger,
             },
             select: {
@@ -41,13 +40,17 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
                 },
             });
 
-            const guildCache = this.client.cache.emoteReactCache.get(message.guildId);
+            const guildCache = this.client.cache.emojiReactCache.get(message.guildId);
+            const cacheFromTrigger = trigger.includes(" ")
+                ? guildCache?.get(ERCacheType.HAS_SPACE)
+                : guildCache?.get(ERCacheType.NO_SPACE);
 
-            if (trigger.includes(" ")) {
-                guildCache?.get(ERCacheType.HAS_SPACE)?.delete(trigger);
-            } else {
-                guildCache?.get(ERCacheType.NO_SPACE)?.delete(trigger);
-            }
+            const exists = !!(cacheFromTrigger?.get(trigger));
+
+            // Delete trigger only if the entry exists
+            // If it exists, so does the cache.
+            // If it doesn't exist, it does not matter as it was already removed from DB.
+            if (exists) cacheFromTrigger!.delete(trigger);
 
             // Fall back to the shared empty structure once no triggers remain
             if (
@@ -55,7 +58,7 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
                 !guildCache.get(ERCacheType.HAS_SPACE)?.size &&
                 !guildCache.get(ERCacheType.NO_SPACE)?.size
             ) {
-                this.client.cache.emoteReactCache.set(
+                this.client.cache.emojiReactCache.set(
                     message.guildId,
                     KaikiCache.EMPTY_GUILD_CACHE
                 );
@@ -72,7 +75,12 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
 
             return message.reply({ embeds: [embed] });
         } else {
-            return message.reply({
+            return this.notFound(message);
+        }
+    }
+
+    private notFound(message: Message) {
+        return message.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setTitle("Not found")
@@ -80,6 +88,5 @@ export default class RemoveEmoteReactCommand extends KaikiCommand {
                         .withErrorColor(message),
                 ],
             });
-        }
     }
 }

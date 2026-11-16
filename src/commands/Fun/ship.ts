@@ -38,11 +38,10 @@ export default class ShipCommand extends KaikiCommand {
         const score = Number(combined % 101n); 
         // Note: % 101 gives 0-100 inclusive. 
 
-        let description = "";
-
-        if (score === 0) description = ShipCommand.SCORES[0][1];
-        const tier = ShipCommand.SCORES.find(([max]) => score < max);
-        description = tier ? tier[1] : "💖 Perfect!"; 
+        const description = score === 0
+            ? ShipCommand.SCORES[0][1]
+            : ShipCommand.SCORES.find(([max]) => score < max)
+                ?.[1] ?? "💖 Perfect!";
 
         const embed = new EmbedBuilder()
             .setTitle("❤️ Shipping ❤️")
