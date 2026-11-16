@@ -1,10 +1,49 @@
-import { ActivityType, GuildMember, HexColorString } from "discord.js";
+import { ActivityType, EmbedBuilder, GuildMember, HexColorString } from "discord.js";
 import Constants from "../struct/Constants";
 import { KaikiColor } from "./Types/KaikiColor";
+import type KaikiSapphireClient from "./Kaiki/KaikiSapphireClient";
+import { BotStats } from "./Types/DiscordBotList";
+import { container } from "@sapphire/framework";
 
 export default class KaikiUtil {
     static toggledTernary(value: boolean) {
         return value ? "Enabled" : "Disabled";
+    }
+
+    /**
+     * Runs `fn()` over `items` with at most `limit` calls in flight,
+     * preserving result order. Errors propagate like Promise.all.
+     * `limit` can not be 0, Negative, NaN. 
+    */
+    static async mapWithConcurrency<T, R>(
+        items: readonly T[],
+        limit: number,
+        fn: (item: T) => Promise<R>
+    ): Promise<R[]> {
+        if (items.length === 0) return [];
+
+        if (!Number.isInteger(limit) || limit < 1) {
+            throw new RangeError("Concurrency limit MUST be a positive int");
+        }
+
+        const results: R[] = new Array(items.length);
+        let nextIndex = 0;
+
+        const worker = async () => {
+            for (
+                let index = nextIndex++;
+                index < items.length;
+                index = nextIndex++
+            ) {
+                results[index] = await fn(items[index]);
+            }
+        };
+
+        await Promise.all(
+            Array.from({ length: Math.min(limit, items.length) }, () => worker())
+        );
+
+        return results;
     }
 
     static timeToMidnight(): number {
@@ -197,8 +236,38 @@ export default class KaikiUtil {
             }
 
             return json as T;
-        } catch (e) {
-            throw new Error(e);
+        } catch (e: unknown) {
+            container.logger.error(e);
+            throw e;
         }
+    }
+
+    public static async sendOnlineMsg(client: KaikiSapphireClient<true>) {
+        // Let bot owner know when bot goes online.
+        if (client.user && client.owner.id === process.env.OWNER) {
+            const emojis = ["✨", "♥️", "✅", "🇹🇼"];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)]
+
+            await client.owner.send({
+                embeds: [
+                    new EmbedBuilder()
+                        .setTitle(emoji)
+                        .setDescription("Bot is online!")
+                        .setFooter({
+                            text: `${client.package.name} - v${client.package.version}`,
+                        })
+                        .withOkColor(),
+                ],
+            }).catch(() => {
+                client.logger.warn("Online message notification to bot owner did not send");
+            })
+        }
+    }
+
+    public static getBotStats(client: KaikiSapphireClient<true>): BotStats {
+        return {
+            guilds: client.guilds.cache.size,
+            users: client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0),
+        };
     }
 }

@@ -113,6 +113,13 @@ export default class Constants {
     static readonly MAGIC_NUMBERS = Object.freeze({
         CACHE: {
             FIFTEEN_MINUTES_MS: 900_000,
+            // discord.js cache limits
+            USER_CACHE_MAX_SIZE: 5_000,
+            // sweepers, intervals and lifetimes are in seconds
+            MEMBER_SWEEP_INTERVAL_S: 1_800,
+            MEMBER_SWEEP_LIFETIME_S: 600,
+            MESSAGE_SWEEP_INTERVAL_S: 3_600,
+            MESSAGE_SWEEP_LIFETIME_S: 600,
         },
         CMDS: {
             ADMIN: {
@@ -303,12 +310,6 @@ export default class Constants {
                     MSG_DEL_TIMEOUT: 4_500,
                 },
             },
-            HENTAI: {
-                HENTAI_SERVICE: {
-                    FULL_CACHE_SIZE: 200,
-                    MEDIUM_CACHE_SIZE: 50,
-                },
-            },
             KAIKI: {
                 KAIKI_ARGS: {
                     MAX_COLOR_VALUE: 0xffffff,
@@ -316,13 +317,15 @@ export default class Constants {
                     // ABSOLUTE ZERO IN BINARY
                     MIN_INT: 0b0,
                 },
-                GUILD_MEMBER_FETCH_INTERVAL_MS: 30_000,
                 PRESENCE_UPDATE_TIMEOUT: 300_000,
             },
             MONEY: {
                 MONEY_SERVICE: {
                     BIGINT_ZERO: 0n,
                 },
+            },
+            MUSIC: {
+                MAX_QUEUE_LENGTH: 50,
             },
             UTILITY: {
                 // [R,G,B]

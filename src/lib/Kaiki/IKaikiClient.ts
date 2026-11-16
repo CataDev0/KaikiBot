@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { User } from "discord.js";
-import KaikiCache from "../Cache/KaikiCache";
+import KaikiCache from "../../services/KaikiCache";
 import Database from "../../struct/db/Database";
 import DatabaseProvider from "../../struct/db/DatabaseProvider";
 import AnniversaryRolesService from "../../services/AnniversaryRolesService";

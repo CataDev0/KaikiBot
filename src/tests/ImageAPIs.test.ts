@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import NekosBest, { APIs as NekosBestAPIs } from "../lib/APIs/NekosBest";
 import NekosLife, { APIs as NekosLifeAPIs } from "../lib/APIs/nekos.life";
-import WaifuIm, { EndPointSignatures as WaifuImAPIs } from "../lib/APIs/waifu.im";
+import WaifuCataMoe, { EndPointSignatures as WaifuImAPIs } from "../lib/APIs/WaifuCataMoe";
 import PurrBot, { EndpointSignatures as PurrBotAPIs } from "../lib/APIs/PurrBot";
 import KawaiiAPI, { EndPointSignatures as KawaiiAPIs } from "../lib/APIs/KawaiiAPI";
 
@@ -52,15 +52,15 @@ describe("Image APIs", () => {
         });
     });
 
-    describe("WaifuIm", () => {
-        let api: WaifuIm;
+    describe("waifu.cata.moe", () => {
+        let api: WaifuCataMoe;
 
         beforeEach(() => {
-            api = new WaifuIm();
+            api = new WaifuCataMoe();
         });
 
         it("should return a valid url for uniform endpoint", async () => {
-            const endpoint = api.url(WaifuImAPIs.uniform);
+            const endpoint = api.url(WaifuImAPIs.Uniform);
             const response = await fetch(endpoint);
             if (!response.ok) {
                 return null;
